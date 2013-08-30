@@ -1,0 +1,1 @@
+Same as above, but calculate and display FFT of the grayscale image. This will demonstrate how to chain more than one operator to do processing

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <!-- Style -->
+    <link rel="stylesheet" type="text/css" media="all" href="layout.css" />
+    <link rel="stylesheet" type="text/css" media="all" href="xflip-box.css"/>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <script type="text/javascript" src="./xml3d.js"></script>
+    <script type="text/javascript" src="./jquery-1.8.1.min.js"></script>
+    <script type="text/javascript" src="./jquery-ui-1.8.23.min.js"></script>
+
+    <!-- Application Scrips -->
+    <script type="text/javascript" src="./xflip.js"></script>
+    <script type="text/javascript" >
+        Xflip.init(["./xflip-operators.js"]);
+    </script>		
+	
+  
+    <title>xflow grayscale snapshot</title>
+</head>
+
+<body>
+<canvas style="display:none;"></canvas>
+
+<div id="container">
+    <div id="top">
+        <h1> Snapshot(Grayscale + FFT)</h1>
+        <h2> Capturing camera feed </h2>
+    </div>
+
+    <div id="loadingScreen">
+        Loading Demo... <br />
+        <span id="progress"></span>
+    </div>
+
+    <div id="content-wrapper">
+        <div id="left">
+            <video autoplay="true" style="width:100%; height: 100%;"></video>
+        </div>
+        <div id="right">
+			<img id="snapshotinput" src="" class="input" />
+            <xflowimg srcname="output" class="output">
+                <data compute="output = xflip.createSpectrumImage(inter)">
+                    <data id="fftResult" compute="inter = xflip.applyFFT(inter)">
+                        <data compute="(inter, oSize) = xflip.padToPow2(image)">
+                            <texture name="image" >
+                                <img src="lena-color.gif" />
+                            </texture>
+                        </data>
+                    </data>
+                </data>
+            </xflowimg>			
+            <div id="log"></div>
+		</div>
+    </div>
+    <div id="footer">
+        <div id="buttons">
+            <button id="button1">Stop</button>
+            <button id="button2">Mute</button>
+            <button id="button3">Take snapshot</button>
+            <button id="button4">Switch camera</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- Libs etc. deps
+<script type="text/javascript" src="../../deps/js/xml3d.js"></script>-->
+
+<script type="text/javascript" src="../../deps/js/Util.js"></script>
+
+<!-- Demo specific code -->
+<script type="text/javascript" src="demo.js"></script>
+
+
+</body>
+</html>
