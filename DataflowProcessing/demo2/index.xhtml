@@ -17,7 +17,7 @@
     </script>		
 	
   
-    <title>xflow grayscale snapshot</title>
+    <title>Snapshot(Grayscale + FFT)</title>
 </head>
 
 <body>
@@ -45,7 +45,7 @@
                     <data id="fftResult" compute="inter = xflip.applyFFT(inter)">
                         <data compute="(inter, oSize) = xflip.padToPow2(image)">
                             <texture name="image" >
-                                <img src="lena-color.gif" />
+								<img id="snapshot" src=""/>
                             </texture>
                         </data>
                     </data>
