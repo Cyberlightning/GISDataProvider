@@ -1,12 +1,5 @@
 package com.cyberlightning.webserver;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-
 
 public class ProfileService implements MessageReceiver{
 
@@ -21,7 +14,7 @@ public class ProfileService implements MessageReceiver{
 		return _profileService;
 	}
 	
-	@Override
+	//@Override
 	public void messageReceived(String _msg) {
 		
 		if (_msg.equals("Next")) {

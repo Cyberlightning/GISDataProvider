@@ -14,23 +14,17 @@ import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.util.StringTokenizer;
 
-import org.smartflow.MessageHandler;
-import org.smartflow.MessageSender;
-import org.smartflow.Resources;
-import org.smartflow.Settings;
-import org.smartflow.WorkflowEngine;
+
 
 public class HttpServer implements MessageSender,Runnable{
 
 private boolean serverIsRunning = true;
-private boolean clientIsStopped = false;
 private Socket clientSocket;
 private ServerSocket serverSocket;
 private BufferedReader socketReader;
 private DataOutputStream outputStream;
-private String buttonLayout = Resources.HTML_WORKFLOW_BUTTONS_START + Resources.HTML_START_BUTTON + Resources.HTML_WORKFLOW_BUTTONS_END;
 private Thread serverThread;
-private String previousMessage;
+
 
 
 public HttpServer() {
@@ -76,6 +70,9 @@ public void run() {
 		
 		try {
 			
+			
+			String path = getClass().getClassLoader().getResource("../").getPath();
+		
 			registerClient(serverSocket.accept());
 			this.socketReader = new BufferedReader(new InputStreamReader (clientSocket.getInputStream()));
 			this.outputStream = new DataOutputStream(clientSocket.getOutputStream());
@@ -87,7 +84,7 @@ public void run() {
 			String httpMethod = tokenizer.nextToken();
 			String httpQueryString = tokenizer.nextToken();
 
-			StringBuffer serverResponse = new StringBuffer();
+			StringBuffer serverResponse = new StringBuffer(); //TODO
 			//serverResponse.append(Resources.RESPONSE_WELCOME_MESSAGE);
 			//serverResponse.append(Resources.RESPONSE_CLIENT_REQUEST_MESSAGE);
 			//System.out.println(clientRequest);
@@ -98,7 +95,7 @@ public void run() {
 				if (httpQueryString.equals("/")) {
 					// The default home page
 					//sendResponse(200, serverResponse.toString(), false);
-					sendResponse(200, "/html/indext.html", true);
+					sendResponse(200, "/../html/index.html", true);
 					
 				} else {
 					//This is interpreted as a file name
@@ -125,12 +122,12 @@ public void run() {
 				
 			}else if (httpMethod.equals("PUT")) { 
 				
-				String action = httpQueryString.replaceFirst("/", "");
+				//String action = httpQueryString.replaceFirst("/", "");
 				//TODO
 				
 			}else if (httpMethod.equals("DELETE")) { 
 				
-				String action = httpQueryString.replaceFirst("/", "");
+				//String action = httpQueryString.replaceFirst("/", "");
 				//TODO
 				
 			} else {
@@ -168,7 +165,8 @@ public void sendResponse (int statusCode, String responseString, boolean isFile)
 		if (!fileName.endsWith(".htm") && !fileName.endsWith(".html"))
 			contentTypeLine = "Content-Type: \r\n";
 	} else {
-		responseString = Resources.HTML_START + responseString  + this.buttonLayout + Resources.HTML_END;
+		//TODO responsestring
+		
 		contentLengthLine = "Content-Length: " + responseString.length() + "\r\n";
 	}
 
@@ -206,7 +204,6 @@ public void sendFile (FileInputStream fin, DataOutputStream out) throws Exceptio
 @Override
 public void sendMessage(String msg) {
 	try {
-		this.previousMessage = msg;
 		sendResponse(200, msg, false);
 	} catch (Exception e) {
 		// TODO Auto-generated catch block
