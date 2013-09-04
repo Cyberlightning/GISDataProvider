@@ -2,7 +2,6 @@
 package com.cyberlightning.android.coap.service;
 
 import java.util.ArrayList;
-import java.util.UUID;
 
 
 
@@ -29,8 +28,8 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.provider.Settings;
-import android.view.Window;
 import android.view.WindowManager;
+
 
 
 
@@ -87,7 +86,7 @@ public class MainActivity extends Activity implements DialogInterface.OnClickLis
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
+       //requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         //setContentView(R.layout.main);
@@ -158,21 +157,10 @@ public class MainActivity extends Activity implements DialogInterface.OnClickLis
     }
 
     
-    private int generateId() {
-    	return UUID.randomUUID().hashCode();
-    }
-    
     public void prepareMessage(int type, int value1, int value2){
     	this.sendMessageToService(type, value1, value2);
     }
     
-   
-    
-    private void exitApplication() {
-    	this.finish();
-    }
-
-   
     
     private void showExitDialog() { 
     	

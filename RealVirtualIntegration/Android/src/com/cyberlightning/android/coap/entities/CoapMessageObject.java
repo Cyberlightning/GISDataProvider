@@ -7,7 +7,7 @@ public class CoapMessageObject {
 	
 	private int state;
 	private int content;
-
+	
 	
 	public CoapMessageObject() {
 		

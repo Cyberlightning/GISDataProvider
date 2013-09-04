@@ -8,6 +8,8 @@ public class WebServer  {
 
 	public static void main(String[] args) throws Exception, IOException {
 		@SuppressWarnings("unused")
-		HttpServer httpServer = new HttpServer();	
+		HttpServer httpServer = new HttpServer();
+		UdpServer udpServer = new UdpServer();
+		udpServer.run();
 	}
 }

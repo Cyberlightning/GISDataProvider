@@ -1,13 +1,11 @@
 package com.cyberlightning.android.coap.service;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -26,8 +24,9 @@ import com.cyberlightning.android.coap.entities.CoapMessageObject;
 import com.cyberlightning.android.coap.entities.StaticResources;
 import com.cyberlightning.android.coapclient.R;
 
-import android.app.ActivityManager;
-import android.app.ActivityManager.MemoryInfo;
+
+
+
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -42,7 +41,6 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.widget.Toast;
 
 
@@ -106,7 +104,7 @@ public class ConnectionService extends Service {
     
 	@Override
 	public void onCreate() {
-		this.generateId();
+		NOTIFICATION = this.generateId();
 		this.notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 		this.registerNotification();
 
@@ -116,8 +114,9 @@ public class ConnectionService extends Service {
        
 		
 		isRunning = true;
-        NOTIFICATION = this.generateId();
+       
         this.initConnectionTimer();
+        this.openConnection();
        
 	}
 	
@@ -184,14 +183,18 @@ public class ConnectionService extends Service {
 					
 					socket = new DatagramSocket(StaticResources.COAP_DEFAULT_PORT);
 					byte[] byteBuffer = new byte[256]; //512 for IPv6 networks?
-					//socket.connect(InetAddress.getByName(StaticResources.LOCALHOST), StaticResources.SERVER_UDP_PORT);
+					socket.connect(InetAddress.getByName(StaticResources.LOCALHOST), StaticResources.SERVER_UDP_PORT);
 					DatagramPacket receivedPacket = new DatagramPacket(byteBuffer, byteBuffer.length);
+					String testi = "testi";
+					byteBuffer = testi.getBytes();
+					boolean isEmpty = false;
 					
 					while(socket.isConnected()) {
 						
-						if (!sendBuffer.isEmpty()) {
+						if (!isEmpty) {
 							DatagramPacket packet = new DatagramPacket(byteBuffer, byteBuffer.length,serverAddress, StaticResources.SERVER_UDP_PORT);
 							socket.send(packet);
+							isEmpty = true;
 						}
 						
 						socket.receive(receivedPacket);
@@ -354,71 +357,72 @@ public class ConnectionService extends Service {
 		}
 	}
 	
-//	 class SimpleHttpRequestTask extends AsyncTask<String[], String, String> { // might not be needed
-//
-//
-//			@Override
-//			protected void onPreExecute() {
-//				super.onPreExecute();
-//				//Do some prepartations over here, before the task starts to execute
-//				//Like freeze the button and/or show a progress bar
-//			}
-//
-//			
-//			@Override
-//			protected String doInBackground(String[]... params) {
-//				// Task starts executing.
-//							String url = params[0][0].toString();
-//
-//							// Execute HTTP requests here, with one url(urls[0]),
-//							// or many urls using the urls table
-//							// Save result in myresult
-//							
-//							return simpleHttp(url);
-//			}
-//			private String simpleHttp(String url) {
-//				 // Creating HTTP client
-//		        HttpClient httpClient = new DefaultHttpClient();
-//		        // Creating HTTP Post
-//		        HttpPost httpPost = new HttpPost(url);
-//		 
-//		        // Building post parameters
-//		        // key and value pair
-//		        List<NameValuePair> nameValuePair = new ArrayList<NameValuePair>(2);
-//		        nameValuePair.add(new BasicNameValuePair("email", "user@gmail.com"));
-//		        nameValuePair.add(new BasicNameValuePair("message",
-//		                "Hi, trying Android HTTP post!"));
-//		        
-//		        String r = "no response";
-//		 
-//		        // Url Encoding the POST parameters
-//		        try {
-//		            httpPost.setEntity(new UrlEncodedFormEntity(nameValuePair));
-//		        } catch (UnsupportedEncodingException e) {
-//		            // writing error to Log
-//		            e.printStackTrace();
-//		        }
-//		        
-//		        // Making HTTP Request
-//		        try {
-//		            HttpResponse response = httpClient.execute(httpPost);
-//		 
-//		            // writing response to log
-//		            //Log.d("Http Response:", response.toString());
-//		            r = "Https Response:" + response.toString();
-//		        } catch (ClientProtocolException e) {
-//		            // writing exception to log
-//		            e.printStackTrace();
-//		            r = e.getMessage();
-//		        } catch (IOException e) {
-//		            // writing exception to log
-//		            e.printStackTrace();
-//		            r = e.getMessage();
-//		 
-//		        }
-//		        return r;
-//			}
-//	 }
+	 class SimpleHttpRequestTask extends AsyncTask<String[], String, String> { // might not be needed
+
+
+			@Override
+			protected void onPreExecute() {
+				super.onPreExecute();
+				//Do some prepartations over here, before the task starts to execute
+				//Like freeze the button and/or show a progress bar
+			}
+
+			
+			@Override
+			protected String doInBackground(String[]... params) {
+				// Task starts executing.
+							String url = params[0][0].toString();
+
+							// Execute HTTP requests here, with one url(urls[0]),
+							// or many urls using the urls table
+							// Save result in myresult
+							
+							return simpleHttp(url);
+			}
+			
+			private String simpleHttp(String url) {
+				 // Creating HTTP client
+		        HttpClient httpClient = new DefaultHttpClient();
+		        // Creating HTTP Post
+		        HttpPost httpPost = new HttpPost(url);
+		 
+		        // Building post parameters
+		        // key and value pair
+		        List<NameValuePair> nameValuePair = new ArrayList<NameValuePair>(2);
+		        nameValuePair.add(new BasicNameValuePair("email", "user@gmail.com"));
+		        nameValuePair.add(new BasicNameValuePair("message",
+		                "Hi, trying Android HTTP post!"));
+		        
+		        String r = "no response";
+		 
+		        // Url Encoding the POST parameters
+		        try {
+		            httpPost.setEntity(new UrlEncodedFormEntity(nameValuePair));
+		        } catch (UnsupportedEncodingException e) {
+		            // writing error to Log
+		            e.printStackTrace();
+		        }
+		        
+		        // Making HTTP Request
+		        try {
+		            HttpResponse response = httpClient.execute(httpPost);
+		 
+		            // writing response to log
+		            //Log.d("Http Response:", response.toString());
+		            r = "Https Response:" + response.toString();
+		        } catch (ClientProtocolException e) {
+		            // writing exception to log
+		            e.printStackTrace();
+		            r = e.getMessage();
+		        } catch (IOException e) {
+		            // writing exception to log
+		            e.printStackTrace();
+		            r = e.getMessage();
+		 
+		        }
+		        return r;
+			}
+	 }
 	
 	
 }
