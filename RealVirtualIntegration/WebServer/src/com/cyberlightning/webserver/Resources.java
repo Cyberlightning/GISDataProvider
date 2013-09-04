@@ -24,6 +24,19 @@ public abstract class Resources {
 	
 	public static final String ERROR_404_MESSAGE = "<b>ERROR 404: The requested resource not found</b>";
 	
+	public static final int CLIENT_PROTOCOL_COAP= 1;
+	
+	public static final int CLIENT_PROTOCOL_UDP= 2;
+	
+	public static final int CLIENT_PROTOCOL_TCP= 3;
+	
+	public static final int CLIENT_PROTOCOL_HTTP= 4;
+	
+	public static final int UDP_PACKET_SIZE = 512;
+	
+	public static final int SERVER_PORT_COAP = 61616; //default compressed UDP port space defined in [RFC4944]
+	
+
 	
 	
 }

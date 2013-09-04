@@ -9,51 +9,70 @@ import java.net.SocketException;
 public class UdpServer implements MessageSender,Runnable  {
 	
 	private DatagramSocket serverSocket;
+	private ArrayList<Client> clientList;
+	private ArrayList<byte[]> receiveBuffer;
+	private ArrayList<byte[]> sendBuffer;
+	
+	private acceptConnections = true;
+
 
 
 	@Override
 	public void run() {
 		
 		try {
-			serverSocket = new DatagramSocket(9876);
+			
+		serverSocket = new DatagramSocket(Resources.SERVER_PORT_COAP);
+			
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
          
-		byte[] receiveData = new byte[512];
-        byte[] sendData = new byte[512];
-         
-        while(true) {
+		byte[] receivedData = new byte[Resources.UDP_PACKET_SIZE];
+        byte[] sendData = new byte[Resources.UDP_PACKET_SIZE];
+        
+        DatagramPacket receivedPacket = new DatagramPacket(receivedData, receivedData.length);
+        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+        
+        while(acceptConnections) {
         	
-        	DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-            try {
-				serverSocket.receive(receivePacket);
+        	try {
+				serverSocket.receive(receivedPacket);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-            String sentence = new String( receivePacket.getData());
-            InetAddress IPAddress = receivePacket.getAddress();
-               int port = receivePacket.getPort();
-               String capitalizedSentence = sentence.toUpperCase();
-               sendData = capitalizedSentence.getBytes();
-               DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
-               try {
-				serverSocket.send(sendPacket);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-            }
+        	
+        	if (receivePacket.getData()) {
+        		Client _client = new Client(receivedPacket.getAddress(),receivedPacket.getPort(), Resources.CLIENT_PROTOCOL_COAP);
+        		registerClient(_client);
+        		parseMessage(receivedPacket);
+        		receivedPacket = null;
+        	}
+           
+           if (!sendBuffer.isEmpty()) {
+        	   try {
+   				serverSocket.send(sendBuffer.);
+   			} catch (IOException e) {
+   				// TODO Auto-generated catch block
+   				e.printStackTrace();
+   			}   
+           }
+        	
+        }
    }
-		
-	
 
 	@Override
 	public void sendMessage(String msg) {
 		// TODO Auto-generated method stub
 		
+	}
+	private void parseMessage(DatagramPacket _packet) {
+		
+	}
+	private void registerClient(Client _client) {
+		this.clietList.add(_client); //todo add check for duplicate clients
 	}
 
 }

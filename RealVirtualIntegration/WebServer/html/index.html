@@ -22,12 +22,53 @@
         <![endif]-->
 
         <!-- Add your site or application content here -->
-        <p>Hello world! This is HTML5 Boilerplate.</p>
+        <div>
+    	<input id="inputmessage" type="text" />
+  		</div>
+  		<div>
+    	<input type="submit" value="Broadcast message" onclick="send()" />
+  		</div>
+  		<div id="messages"></div>
 
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
         <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
         <script src="js/plugins.js"></script>
         <script src="js/main.js"></script>
+        
+        <script type="text/javascript">
+    	
+    	var webSocket = new WebSocket('ws://localhost:8080/byteslounge/websocket');
+
+    	webSocket.onerror = function(event) {
+      	onError(event)
+    	};
+
+    	webSocket.onopen = function(event) {
+      	onOpen(event)
+    	};
+
+    	webSocket.onmessage = function(event) {
+      	onMessage(event)
+    	};
+
+    	function onMessage(event) {
+      	document.getElementById('messages').innerHTML += '<br />Received message: ' + event.data;
+    	}
+
+    	function onOpen(event) {
+      	document.getElementById('messages').innerHTML = 'Connection established';
+    	}
+
+    	function onError(event) {
+      	alert(event.data);
+    	}
+
+    	function send() {
+      	var txt = document.getElementById('inputmessage').value;
+      	webSocket.send(txt);
+      	return false;
+    	}
+  </script>
 
         
     </body>
