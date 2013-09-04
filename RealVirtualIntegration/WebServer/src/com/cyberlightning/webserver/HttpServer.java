@@ -70,8 +70,6 @@ public void run() {
 		
 		try {
 			
-			
-			String path = getClass().getClassLoader().getResource("../").getPath();
 		
 			registerClient(serverSocket.accept());
 			this.socketReader = new BufferedReader(new InputStreamReader (clientSocket.getInputStream()));
@@ -95,7 +93,7 @@ public void run() {
 				if (httpQueryString.equals("/")) {
 					// The default home page
 					//sendResponse(200, serverResponse.toString(), false);
-					sendResponse(200, "/../html/index.html", true);
+					sendResponse(200, "http://dev.cyberlightning.com/~tsarni/", true); //absolute path for local deve
 					
 				} else {
 					//This is interpreted as a file name
@@ -184,7 +182,7 @@ public void sendResponse (int statusCode, String responseString, boolean isFile)
 		outputStream.writeBytes(responseString);
 	}
 	
-	//outputStream.close();
+	outputStream.close();
 }
 
 public void sendFile (FileInputStream fin, DataOutputStream out) throws Exception {
