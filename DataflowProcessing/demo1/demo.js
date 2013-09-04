@@ -19,7 +19,7 @@
         metaDataLoaded = false,
         videoLoaded = false,
         localVideoStream = null;
-        backEndServer = "http://176.9.92.67:8088";
+        backEndServer = "http://dev.cyberlightning.com:8088";
 
 
     function hasGetUserMedia() {

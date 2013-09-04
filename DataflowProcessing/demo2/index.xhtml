@@ -3,21 +3,20 @@
 
 <head>
     <!-- Style -->
-    <link rel="stylesheet" type="text/css" media="all" href="layout.css" />
-    <link rel="stylesheet" type="text/css" media="all" href="xflip-box.css"/>
+    <link rel="stylesheet" type="text/css" media="all" href="../css/layout.css" />
+    <link rel="stylesheet" type="text/css" media="all" href="../css/xflip-box.css"/>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-    <script type="text/javascript" src="./xml3d.js"></script>
-    <script type="text/javascript" src="./jquery-1.8.1.min.js"></script>
-    <script type="text/javascript" src="./jquery-ui-1.8.23.min.js"></script>
+    <script type="text/javascript" src="../js/xml3d.js"></script>
+    <script type="text/javascript" src="../js/jquery-1.8.1.min.js"></script>
+    <script type="text/javascript" src="../js/jquery-ui-1.8.23.min.js"></script>
 
     <!-- Application Scrips -->
-    <script type="text/javascript" src="./xflip.js"></script>
+    <script type="text/javascript" src="../js/xflip.js"></script>
     <script type="text/javascript" >
-        Xflip.init(["./xflip-operators.js"]);
+        Xflip.init(["../js/xflip-operators.js"]);
     </script>		
-	
   
-    <title>xflow grayscale snapshot</title>
+    <title>Snapshot(Grayscale + FFT)</title>
 </head>
 
 <body>
@@ -45,7 +44,7 @@
                     <data id="fftResult" compute="inter = xflip.applyFFT(inter)">
                         <data compute="(inter, oSize) = xflip.padToPow2(image)">
                             <texture name="image" >
-                                <img src="lena-color.gif" />
+								<img id="snapshot" src=""/>
                             </texture>
                         </data>
                     </data>
@@ -64,15 +63,9 @@
     </div>
 </div>
 
-
-<!-- Libs etc. deps
-<script type="text/javascript" src="../../deps/js/xml3d.js"></script>-->
-
-<script type="text/javascript" src="../../deps/js/Util.js"></script>
+<script type="text/javascript" src="../js/Util.js"></script>
 
 <!-- Demo specific code -->
 <script type="text/javascript" src="demo.js"></script>
-
-
 </body>
 </html>
