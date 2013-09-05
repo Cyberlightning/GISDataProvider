@@ -4,12 +4,15 @@ import java.io.IOException;
 import com.cyberlightning.webserver.HttpServer;
 
 
+
 public class WebServer  {
 
 	public static void main(String[] args) throws Exception, IOException {
 		@SuppressWarnings("unused")
 		HttpServer httpServer = new HttpServer();
-		UdpServer udpServer = new UdpServer();
-		udpServer.run();
+		//UdpServer udpServer = new UdpServer();
+		//udpServer.run();
+		WebSocketServer webSocketServer = new WebSocketServer();
+		webSocketServer.run();
 	}
 }

@@ -6,7 +6,12 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.ArrayList;
 
-public class UdpServer implements MessageEvent,Runnable  {
+import com.cyberlightning.webserver.entities.Client;
+import com.cyberlightning.webserver.interfaces.IMessageEvent;
+import com.cyberlightning.webserver.services.MessageHandler;
+import com.cyberlightning.webserver.services.StaticResources;
+
+public class UdpServer implements IMessageEvent,Runnable  {
 	
 	private DatagramSocket serverSocket;
 	private ArrayList<Client> clientList;
@@ -22,14 +27,14 @@ public class UdpServer implements MessageEvent,Runnable  {
 		
 		try {
 			
-		serverSocket = new DatagramSocket(Resources.SERVER_PORT_COAP);
+		serverSocket = new DatagramSocket(StaticResources.SERVER_PORT_COAP);
 			
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
          
-		byte[] receivedData = new byte[Resources.UDP_PACKET_SIZE];
+		byte[] receivedData = new byte[StaticResources.UDP_PACKET_SIZE];
 		DatagramPacket receivedPacket = new DatagramPacket(receivedData, receivedData.length);
 		IncomingMessageHandler incomingMessageHandler = new IncomingMessageHandler();
         
@@ -101,7 +106,7 @@ public class UdpServer implements MessageEvent,Runnable  {
 			}
 			
 			if (!containsClient) {
-				Client udpClient = new Client(_datagramPacket.getAddress(), _datagramPacket.getPort(),Resources.CLIENT_PROTOCOL_UDP);
+				Client udpClient = new Client(_datagramPacket.getAddress(), _datagramPacket.getPort(),StaticResources.CLIENT_PROTOCOL_UDP);
 				udpClient.setActivityTimeStamp(System.currentTimeMillis());
 				clientList.add(udpClient);
 			}

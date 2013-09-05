@@ -1,9 +1,11 @@
-package com.cyberlightning.webserver;
+package com.cyberlightning.webserver.services;
 
 import java.net.DatagramPacket;
 
+import com.cyberlightning.webserver.interfaces.IMessageEvent;
 
-public class ProfileService implements MessageEvent{
+
+public class ProfileService implements IMessageEvent { 
 
 	private static final ProfileService _profileService = new ProfileService();
 

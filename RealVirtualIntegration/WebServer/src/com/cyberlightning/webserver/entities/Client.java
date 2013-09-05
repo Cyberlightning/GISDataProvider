@@ -1,4 +1,4 @@
-package com.cyberlightning.webserver;
+package com.cyberlightning.webserver.entities;
 
 import java.net.InetAddress;
 

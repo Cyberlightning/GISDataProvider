@@ -1,6 +1,6 @@
-package com.cyberlightning.webserver;
+package com.cyberlightning.webserver.services;
 
-public abstract class Resources {
+public abstract class StaticResources {
 	
 	public static final String HTML_START =
 			"<html>" +
@@ -36,7 +36,12 @@ public abstract class Resources {
 	
 	public static final int SERVER_PORT_COAP = 61616; //default compressed UDP port space defined in [RFC4944]
 	
-
+	public static final int SERVER_PORT = 44444;
+	public static final String LOCAL_HOST = "127.0.0.1";
+	public static final String SERVER_DETAILS = "Cyberlightning Web Server";
+	public static final int ACTIVITY_DURATION = 300; // in seconds
+	public static final int WEB_SOCKET_PORT = 44445; 
+	
 	
 	
 }

@@ -15,9 +15,13 @@ import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.util.StringTokenizer;
 
+import com.cyberlightning.webserver.interfaces.IMessageEvent;
+import com.cyberlightning.webserver.services.MessageHandler;
+import com.cyberlightning.webserver.services.StaticResources;
 
 
-public class HttpServer implements MessageEvent,Runnable{
+
+public class HttpServer implements IMessageEvent,Runnable{
 
 private boolean serverIsRunning = true;
 private Socket clientSocket;
@@ -39,7 +43,7 @@ public HttpServer() {
 public void initialize() {
 	
 	try {
-		this.serverSocket = new ServerSocket (Settings.SERVER_PORT, 10, InetAddress.getByName(Settings.LOCAL_HOST));
+		this.serverSocket = new ServerSocket (StaticResources.SERVER_PORT, 10, InetAddress.getByName(StaticResources.LOCAL_HOST));
 		
 	} catch (UnknownHostException e) {
 		// TODO Auto-generated catch block
@@ -94,7 +98,7 @@ public void run() {
 				if (httpQueryString.equals("/")) {
 					// The default home page
 					//sendResponse(200, serverResponse.toString(), false);
-					sendResponse(200, "http://dev.cyberlightning.com/~tsarni/", true); //absolute path for local deve
+					sendResponse(200, "/home/tomi/git/Cyber-WeX/RealVirtualIntegration/WebServer/html/index.html", true); //absolute path for local dev
 					
 				} else {
 					//This is interpreted as a file name
@@ -106,7 +110,7 @@ public void run() {
 						
 					}
 					else {
-						sendResponse(404, Resources.ERROR_404_MESSAGE, false);
+						sendResponse(404, StaticResources.ERROR_404_MESSAGE, false);
 					}
 				}
 				
@@ -146,7 +150,7 @@ public void run() {
 public void sendResponse (int statusCode, String responseString, boolean isFile) throws Exception {
 
 	String statusLine = null;
-	String serverdetails = Settings.SERVER_DETAILS;
+	String serverdetails = StaticResources.SERVER_DETAILS;
 	String contentLengthLine = null;
 	String fileName = null;
 	String contentTypeLine = "Content-Type: text/html" + "\r\n";
