@@ -1,7 +1,9 @@
 package com.cyberlightning.webserver;
 
+import java.net.DatagramPacket;
 
-public class ProfileService implements MessageReceiver{
+
+public class ProfileService implements MessageEvent{
 
 	private static final ProfileService _profileService = new ProfileService();
 
@@ -15,7 +17,7 @@ public class ProfileService implements MessageReceiver{
 	}
 	
 	//@Override
-	public void messageReceived(String _msg) {
+	public void messageEvent(String _msg) {
 		
 		if (_msg.equals("Next")) {
 			//TODO
@@ -27,6 +29,18 @@ public class ProfileService implements MessageReceiver{
 		
 		
 		//MessageHandler.getInstance().sendMessage(_msg);
+	}
+
+	@Override
+	public void httpMessageEvent(String msg) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void udpMessageEvent(DatagramPacket _datagramPacket) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 	

@@ -1,10 +1,13 @@
-package com.cyberligthtning.webserver
+package com.cyberlightning.webserver;
+
+import java.net.InetAddress;
 
 public class Client {
 	
 	private InetAddress address;
 	private int port;
 	private int protocol;
+	private long activityTimeStamp;
 
 	
 	public Client (){
@@ -27,6 +30,16 @@ public class Client {
 	public int getProtocol() {
 		return this.protocol;
 	}
+	
+	public long getActivityTimeStamp () {
+		return this.activityTimeStamp;
+	}
+	
+	public void setActivityTimeStamp (long _timeStamp) {
+		this.activityTimeStamp = _timeStamp;
+	}
+	
+	
 	
 	
 	

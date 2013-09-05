@@ -3,17 +3,17 @@ package com.cyberlightning.webserver;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.SocketException;
+import java.util.ArrayList;
 
-public class UdpServer implements MessageSender,Runnable  {
+public class UdpServer implements MessageEvent,Runnable  {
 	
 	private DatagramSocket serverSocket;
 	private ArrayList<Client> clientList;
-	private ArrayList<byte[]> receiveBuffer;
-	private ArrayList<byte[]> sendBuffer;
+	private ArrayList<DatagramPacket> sendBuffer;
+	private ArrayList<DatagramPacket> receiveBuffer;
 	
-	private acceptConnections = true;
+	private boolean acceptConnections = true;
 
 
 
@@ -30,10 +30,8 @@ public class UdpServer implements MessageSender,Runnable  {
 		}
          
 		byte[] receivedData = new byte[Resources.UDP_PACKET_SIZE];
-        byte[] sendData = new byte[Resources.UDP_PACKET_SIZE];
-        
-        DatagramPacket receivedPacket = new DatagramPacket(receivedData, receivedData.length);
-        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+		DatagramPacket receivedPacket = new DatagramPacket(receivedData, receivedData.length);
+		IncomingMessageHandler incomingMessageHandler = new IncomingMessageHandler();
         
         while(acceptConnections) {
         	
@@ -44,35 +42,85 @@ public class UdpServer implements MessageSender,Runnable  {
 				e.printStackTrace();
 			}
         	
-        	if (receivePacket.getData()) {
-        		Client _client = new Client(receivedPacket.getAddress(),receivedPacket.getPort(), Resources.CLIENT_PROTOCOL_COAP);
-        		registerClient(_client);
-        		parseMessage(receivedPacket);
-        		receivedPacket = null;
+        	if (receivedPacket.getData() != null) {
+        		
+        		if (!incomingMessageHandler.isRunning) incomingMessageHandler.run(); //lazy initialization
+        		handleIncomingMessage(receivedPacket);
+        		receivedPacket = null; 
         	}
            
            if (!sendBuffer.isEmpty()) {
         	   try {
-   				serverSocket.send(sendBuffer.);
-   			} catch (IOException e) {
+   				serverSocket.send(sendBuffer.get(0));
+   				} catch (IOException e) {
    				// TODO Auto-generated catch block
    				e.printStackTrace();
-   			}   
+   				}   
            }
         	
         }
-   }
+	}
+	
+	private synchronized void handleIncomingMessage(DatagramPacket _datagramPacket) { 
+		receiveBuffer.add(_datagramPacket);
+	}
+	
+	class IncomingMessageHandler extends Thread {
+		
+		
+		public boolean isRunning = false;
+		
+		@Override
+		public void run() {
+			
+			isRunning = true;
+			
+			while (true) {
+				
+				if (receiveBuffer.size() > 0) {
+					
+					int messageIndex = receiveBuffer.size() - 1;
+					DatagramPacket datagramPacket = new DatagramPacket(receiveBuffer.get(messageIndex).getData(),receiveBuffer.get(messageIndex).getData().length);
+					handleConnectedClient(datagramPacket);
+					MessageHandler.getInstance().broadcastUdpMessageEvent(datagramPacket);
+					receiveBuffer.remove(messageIndex);
+					
+				}
+				
+			}
+			
+		}
+		
+		private synchronized void handleConnectedClient(DatagramPacket _datagramPacket) {
+			boolean containsClient = false;
+			
+			for (int i = 0; i < clientList.size(); i++) {
+				if (clientList.get(i).getAddress().getHostAddress().compareTo(_datagramPacket.getAddress().getHostAddress()) == 0) {
+					containsClient = true;
+				}
+			}
+			
+			if (!containsClient) {
+				Client udpClient = new Client(_datagramPacket.getAddress(), _datagramPacket.getPort(),Resources.CLIENT_PROTOCOL_UDP);
+				udpClient.setActivityTimeStamp(System.currentTimeMillis());
+				clientList.add(udpClient);
+			}
+		}
+		
+
+	}
 
 	@Override
-	public void sendMessage(String msg) {
+	public void httpMessageEvent(String msg) {
 		// TODO Auto-generated method stub
 		
 	}
-	private void parseMessage(DatagramPacket _packet) {
+
+	@Override
+	public void udpMessageEvent(DatagramPacket _datagramPacket) {
+		this.sendBuffer.add(_datagramPacket);
 		
 	}
-	private void registerClient(Client _client) {
-		this.clietList.add(_client); //todo add check for duplicate clients
-	}
-
+	
+	
 }

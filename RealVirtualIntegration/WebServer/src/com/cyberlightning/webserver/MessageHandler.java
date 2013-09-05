@@ -1,5 +1,6 @@
 package com.cyberlightning.webserver;
 
+import java.net.DatagramPacket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,9 +8,7 @@ import java.util.List;
 public class MessageHandler {
 	
 	private static final MessageHandler _messageHandler = new MessageHandler();
-	private List<MessageReceiver> registeredReceivers= new ArrayList<MessageReceiver>();
-	private List<MessageSender> registeredSenders= new ArrayList<MessageSender>();
-
+	private List<MessageEvent> registeredReceivers= new ArrayList<MessageEvent>();
 
 	private MessageHandler() {
 		
@@ -19,26 +18,21 @@ public class MessageHandler {
 		return _messageHandler;
 	}
 	
-	public void registerReceiver(MessageReceiver receiver) {
+	public void registerReceiver(MessageEvent receiver) {
 		this.registeredReceivers.add(receiver);
 	}
 	
-	public void registerSender(MessageSender sender ) {
-		this.registeredSenders.add(sender);
-	}
-	
-	public void messageReceived(String msg) {
+	public void broadcastHttpMessageEvent(String msg) {
 		
-		for (MessageReceiver client : this.registeredReceivers) {
-			client.messageReceived(msg);
+		for (MessageEvent client : this.registeredReceivers) {
+			client.httpMessageEvent(msg);
 		}
 	}
 	
-	public void sendMessage(String msg) {
+	public void broadcastUdpMessageEvent(DatagramPacket _datagramPacket) {
 		
-		for (MessageSender sender : this.registeredSenders) {
-			sender.sendMessage(msg);
+		for (MessageEvent client : this.registeredReceivers) {
+			client.udpMessageEvent(_datagramPacket);
 		}
 	}
-
 }

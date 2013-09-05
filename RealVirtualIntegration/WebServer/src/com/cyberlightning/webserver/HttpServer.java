@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -16,7 +17,7 @@ import java.util.StringTokenizer;
 
 
 
-public class HttpServer implements MessageSender,Runnable{
+public class HttpServer implements MessageEvent,Runnable{
 
 private boolean serverIsRunning = true;
 private Socket clientSocket;
@@ -30,7 +31,7 @@ private Thread serverThread;
 public HttpServer() {
 	
 	this.serverThread = new Thread(this);
-	MessageHandler.getInstance().registerSender(this);
+	MessageHandler.getInstance().registerReceiver(this);
 	this.initialize();
 	serverThread.start();
 }
@@ -114,7 +115,7 @@ public void run() {
 				String action = httpQueryString.replaceFirst("/", "");
 				 
 				if(action.equals("PREVIOUS")) {	
-					MessageHandler.getInstance().messageReceived("Previous");
+					MessageHandler.getInstance().broadcastHttpMessageEvent("Previous");
 				}
 				
 				
@@ -197,17 +198,18 @@ public void sendFile (FileInputStream fin, DataOutputStream out) throws Exceptio
 	fin.close();
 }
 
-
+@Override
+public void httpMessageEvent(String msg) {
+	// TODO Auto-generated method stub
+	
+}
 
 @Override
-public void sendMessage(String msg) {
-	try {
-		sendResponse(200, msg, false);
-	} catch (Exception e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
+public void udpMessageEvent(DatagramPacket _datagramPacket) {
+	// TODO Auto-generated method stub
+	
 }
+
 
 }
 
