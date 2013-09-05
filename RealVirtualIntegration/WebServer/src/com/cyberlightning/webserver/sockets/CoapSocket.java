@@ -1,4 +1,4 @@
-package com.cyberlightning.webserver;
+package com.cyberlightning.webserver.sockets;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -6,21 +6,17 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.ArrayList;
 
+import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.entities.Client;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
-import com.cyberlightning.webserver.services.MessageHandler;
-import com.cyberlightning.webserver.services.StaticResources;
+import com.cyberlightning.webserver.services.MessageService;
+import com.cyberlightning.webserver.services.ProfileService;
 
-public class UdpServer implements IMessageEvent,Runnable  {
+public class CoapSocket implements IMessageEvent,Runnable  {
 	
 	private DatagramSocket serverSocket;
-	private ArrayList<Client> clientList;
 	private ArrayList<DatagramPacket> sendBuffer;
 	private ArrayList<DatagramPacket> receiveBuffer;
-	
-	private boolean acceptConnections = true;
-
-
 
 	@Override
 	public void run() {
@@ -38,7 +34,7 @@ public class UdpServer implements IMessageEvent,Runnable  {
 		DatagramPacket receivedPacket = new DatagramPacket(receivedData, receivedData.length);
 		IncomingMessageHandler incomingMessageHandler = new IncomingMessageHandler();
         
-        while(acceptConnections) {
+        while(true) {
         	
         	try {
 				serverSocket.receive(receivedPacket);
@@ -72,7 +68,6 @@ public class UdpServer implements IMessageEvent,Runnable  {
 	
 	class IncomingMessageHandler extends Thread {
 		
-		
 		public boolean isRunning = false;
 		
 		@Override
@@ -87,7 +82,7 @@ public class UdpServer implements IMessageEvent,Runnable  {
 					int messageIndex = receiveBuffer.size() - 1;
 					DatagramPacket datagramPacket = new DatagramPacket(receiveBuffer.get(messageIndex).getData(),receiveBuffer.get(messageIndex).getData().length);
 					handleConnectedClient(datagramPacket);
-					MessageHandler.getInstance().broadcastUdpMessageEvent(datagramPacket);
+					MessageService.getInstance().broadcastUdpMessageEvent(datagramPacket);
 					receiveBuffer.remove(messageIndex);
 					
 				}
@@ -97,19 +92,8 @@ public class UdpServer implements IMessageEvent,Runnable  {
 		}
 		
 		private synchronized void handleConnectedClient(DatagramPacket _datagramPacket) {
-			boolean containsClient = false;
-			
-			for (int i = 0; i < clientList.size(); i++) {
-				if (clientList.get(i).getAddress().getHostAddress().compareTo(_datagramPacket.getAddress().getHostAddress()) == 0) {
-					containsClient = true;
-				}
-			}
-			
-			if (!containsClient) {
-				Client udpClient = new Client(_datagramPacket.getAddress(), _datagramPacket.getPort(),StaticResources.CLIENT_PROTOCOL_UDP);
-				udpClient.setActivityTimeStamp(System.currentTimeMillis());
-				clientList.add(udpClient);
-			}
+			Client client = new Client(_datagramPacket.getAddress(), _datagramPacket.getPort(),StaticResources.CLIENT_PROTOCOL_COAP);
+			ProfileService.getInstance().registerClient(client);
 		}
 		
 

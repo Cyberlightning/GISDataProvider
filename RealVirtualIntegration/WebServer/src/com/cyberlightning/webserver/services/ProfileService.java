@@ -1,42 +1,46 @@
 package com.cyberlightning.webserver.services;
 
 import java.net.DatagramPacket;
+import java.util.ArrayList;
 
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
+import com.cyberlightning.webserver.entities.Client;
 
 
 public class ProfileService implements IMessageEvent { 
 
 	private static final ProfileService _profileService = new ProfileService();
+	private ArrayList<Client> connectedClients;
 
 	private ProfileService() {
-		MessageHandler.getInstance().registerReceiver(this);
-		
+		MessageService.getInstance().registerReceiver(this);
 	}
 	
 	public static ProfileService getInstance() {
 		return _profileService;
 	}
 	
-	//@Override
-	public void messageEvent(String _msg) {
+	public boolean registerClient(Client _client) { //returns true if client already registered
 		
-		if (_msg.equals("Next")) {
-			//TODO
+		boolean containsClient = false;
+		
+		for (int i = 0; i < this.connectedClients.size(); i++) {
+			if (this.connectedClients.get(i).getAddress().getHostAddress().compareTo(_client.getAddress().getHostAddress()) == 0) {
+				containsClient = true;
+				this.connectedClients.get(i).setActivityTimeStamp(System.currentTimeMillis());
+			}
+		}
+		if (!containsClient) {
+			_client.setActivityTimeStamp(System.currentTimeMillis());
+			this.connectedClients.add(_client);
 		}
 		
-		if (_msg.equals("Previous")) {
-			//TODO
-		}
-		
-		
-		//MessageHandler.getInstance().sendMessage(_msg);
+		return containsClient;
 	}
 
 	@Override
 	public void httpMessageEvent(String msg) {
-		// TODO Auto-generated method stub
-		
+		// TODO Auto-generated method stub	
 	}
 
 	@Override
