@@ -6,18 +6,24 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.ArrayList;
 
+import com.cyberlightning.webserver.Application;
 import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.entities.Client;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.services.MessageService;
 import com.cyberlightning.webserver.services.ProfileService;
 
-public class CoapSocket implements IMessageEvent,Runnable  {
+public class CoapSocket extends Thread implements IMessageEvent  {
 	
 	private DatagramSocket serverSocket;
 	private ArrayList<DatagramPacket> sendBuffer;
 	private ArrayList<DatagramPacket> receiveBuffer;
 
+	
+	public CoapSocket () {
+		Application.executor.execute(this);
+	}
+	
 	@Override
 	public void run() {
 		
@@ -45,7 +51,9 @@ public class CoapSocket implements IMessageEvent,Runnable  {
         	
         	if (receivedPacket.getData() != null) {
         		
-        		if (!incomingMessageHandler.isRunning) incomingMessageHandler.run(); //lazy initialization
+        		if (!incomingMessageHandler.isRunning){
+        			Application.executor.execute(incomingMessageHandler); //lazy initialization
+        		}
         		handleIncomingMessage(receivedPacket);
         		receivedPacket = null; 
         	}
@@ -62,7 +70,7 @@ public class CoapSocket implements IMessageEvent,Runnable  {
         }
 	}
 	
-	private synchronized void handleIncomingMessage(DatagramPacket _datagramPacket) { 
+	private void handleIncomingMessage(DatagramPacket _datagramPacket) { 
 		receiveBuffer.add(_datagramPacket);
 	}
 	
@@ -82,7 +90,7 @@ public class CoapSocket implements IMessageEvent,Runnable  {
 					int messageIndex = receiveBuffer.size() - 1;
 					DatagramPacket datagramPacket = new DatagramPacket(receiveBuffer.get(messageIndex).getData(),receiveBuffer.get(messageIndex).getData().length);
 					handleConnectedClient(datagramPacket);
-					MessageService.getInstance().broadcastUdpMessageEvent(datagramPacket);
+					MessageService.getInstance().broadcastCoapMessageEvent(datagramPacket);
 					receiveBuffer.remove(messageIndex);
 					
 				}
@@ -91,7 +99,7 @@ public class CoapSocket implements IMessageEvent,Runnable  {
 			
 		}
 		
-		private synchronized void handleConnectedClient(DatagramPacket _datagramPacket) {
+		private  void handleConnectedClient(DatagramPacket _datagramPacket) {
 			Client client = new Client(_datagramPacket.getAddress().getHostAddress(), _datagramPacket.getPort(),StaticResources.CLIENT_PROTOCOL_COAP);
 			ProfileService.getInstance().registerClient(client);
 		}

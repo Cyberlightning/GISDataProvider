@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import com.cyberlightning.webserver.sockets.CoapSocket;
 import com.cyberlightning.webserver.sockets.HttpSocket;
 import com.cyberlightning.webserver.sockets.WebSocket;
 
@@ -19,10 +20,9 @@ public class Application  {
 		WebSocket webSocketServer = new WebSocket();
 		@SuppressWarnings("unused")
 		HttpSocket httpSocket = new HttpSocket();
+		@SuppressWarnings("unused")
+		CoapSocket coapSocket = new CoapSocket();
 	
-		
-		//CoapSocket udpServer = new CoapSocket();
-		//udpServer.run();
 		
 	}
 }

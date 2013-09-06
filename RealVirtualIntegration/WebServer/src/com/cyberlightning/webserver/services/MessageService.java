@@ -31,7 +31,7 @@ public class MessageService {
 		}
 	}
 	
-	public void broadcastUdpMessageEvent(DatagramPacket _datagramPacket) {
+	public void broadcastCoapMessageEvent(DatagramPacket _datagramPacket) {
 		
 		for (IMessageEvent client : this.registeredReceivers) {
 			client.coapMessageEvent(_datagramPacket);

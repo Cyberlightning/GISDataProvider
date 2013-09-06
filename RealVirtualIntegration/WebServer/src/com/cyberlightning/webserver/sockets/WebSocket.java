@@ -18,9 +18,6 @@ import com.cyberlightning.webserver.entities.Client;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.services.ProfileService;
 
-
-
-
 public class WebSocket extends Thread implements IMessageEvent {
 	
 	private ArrayList<String> sendBuffer;
@@ -187,7 +184,7 @@ public class WebSocket extends Thread implements IMessageEvent {
 
 	@Override
 	public void coapMessageEvent(DatagramPacket _datagramPacket) {
-		// TODO Auto-generated method stub
+		this.sendBuffer.add(_datagramPacket.getData().toString());
 		
 	}
 
