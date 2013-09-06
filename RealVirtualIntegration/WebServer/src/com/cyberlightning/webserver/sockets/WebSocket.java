@@ -1,39 +1,47 @@
 package com.cyberlightning.webserver.sockets;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Base64;
 
+import com.cyberlightning.webserver.Application;
 import com.cyberlightning.webserver.StaticResources;
+import com.cyberlightning.webserver.entities.Client;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
+import com.cyberlightning.webserver.services.ProfileService;
 
 
 
 
-public class WebSocket implements  IMessageEvent,Runnable {
+public class WebSocket extends Thread implements IMessageEvent {
 	
-	
+	private ArrayList<String> sendBuffer;
 	private Socket webSocket;
 	private ServerSocket tcpSocket;
 	
-	public static final String WEB_SOCKET_CLIENT_REQUEST = 
-			"GET / HTTP/1.1"	+
-			"Upgrade: websocket"	+
-			"Connection: Upgrade"	+
-			"Host: 127.0.0.1:8999"	+
-			"Origin: null"	+
-			"Sec-WebSocket-Key: 8rYWWxsBPEigeGKDRNOndg=="	+
-			"Sec-WebSocket-Version: 13";
 	
+	private boolean isHandshake = false;
+	private String serverResponse;
+
 	public static final String WEB_SOCKET_SERVER_RESPONSE = 
-			"HTTP/1.1 101 Switching Protocols"	+
-			"Upgrade: websocket"	+
-			"Connection: Upgrade"	+
-			"Sec-WebSocket-Accept: 3aDXXmPbE5e9i08zb9mygfPlCVw=";
-	
+			"HTTP/1.1 101 Switching Protocols\r\n"	+
+			"Upgrade: websocket\r\n"	+
+			"Connection: Upgrade\r\n" +
+			"Sec-WebSocket-Accept: ";
+
+			
+	public WebSocket () {
+		
+		Application.executor.execute(this);
+	}
 
 	@Override
 	public void run() {
@@ -50,12 +58,28 @@ public class WebSocket implements  IMessageEvent,Runnable {
            
 			try {
 				BufferedReader inboundBuffer = new BufferedReader(new InputStreamReader(webSocket.getInputStream()));
-				//DataOutputStream outboundBuffer = new DataOutputStream(webSocket.getOutputStream());
+				DataOutputStream outboundBuffer = new DataOutputStream(webSocket.getOutputStream());
 				
 				while (inboundBuffer.ready()) {
-					parseRequest(inboundBuffer.readLine());
+					parseRequestLine(inboundBuffer.readLine());
 				}
+				
+				if (isHandshake) {
+					
+					outboundBuffer.writeBytes(this.serverResponse);
+					outboundBuffer.flush();
+					this.isHandshake = false;
+				}
+
 			
+				if (this.sendBuffer.size() > 0) {
+					
+					outboundBuffer.write(broadcast(this.sendBuffer.get(this.sendBuffer.size() - 1)));
+					this.sendBuffer.remove(this.sendBuffer.size() - 1);
+					outboundBuffer.flush();
+				}
+				
+				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -64,59 +88,111 @@ public class WebSocket implements  IMessageEvent,Runnable {
          }
      }
 	
-	private void parseRequest(String _request) {
-		CharSequence c = "Sec-WebSocket-Key:";
-		if (_request.contains(c)) {
-			String s = _request.replace(c, ""); //TODO
+	public byte[] broadcast(String mess) throws IOException{
+	    byte[] rawData = mess.getBytes();
+
+	    int frameCount  = 0;
+	    byte[] frame = new byte[10];
+
+	    frame[0] = (byte) 129;
+
+	    if(rawData.length <= 125){
+	        frame[1] = (byte) rawData.length;
+	        frameCount = 2;
+	    }else if(rawData.length >= 126 && rawData.length <= 65535){
+	        frame[1] = (byte) 126;
+	        byte len = (byte) rawData.length;
+	        frame[2] = (byte)((len >> 8 ) & (byte)255);
+	        frame[3] = (byte)(len & (byte)255); 
+	        frameCount = 4;
+	    }else{
+	        frame[1] = (byte) 127;
+	        byte len = (byte) rawData.length;
+	        frame[2] = (byte)((len >> 56 ) & (byte)255);
+	        frame[3] = (byte)((len >> 48 ) & (byte)255);
+	        frame[4] = (byte)((len >> 40 ) & (byte)255);
+	        frame[5] = (byte)((len >> 32 ) & (byte)255);
+	        frame[6] = (byte)((len >> 24 ) & (byte)255);
+	        frame[7] = (byte)((len >> 16 ) & (byte)255);
+	        frame[8] = (byte)((len >> 8 ) & (byte)255);
+	        frame[9] = (byte)(len & (byte)255);
+	        frameCount = 10;
+	    }
+
+	    int bLength = frameCount + rawData.length;
+
+	    byte[] reply = new byte[bLength];
+
+	    int bLim = 0;
+	    for(int i=0; i<frameCount;i++){
+	        reply[bLim] = frame[i];
+	        bLim++;
+	    }
+	    for(int i=0; i<rawData.length;i++){
+	        reply[bLim] = rawData[i];
+	        bLim++;
+	    }
+	    return reply;
+	   
+
+	}
+	
+	private void parseRequestLine(String _request)  {
+		
+		if (_request.contains("Sec-WebSocket-Key: ")) {
+			this.isHandshake = true;
+			this.serverResponse = WEB_SOCKET_SERVER_RESPONSE + generateSecurityKeyAccept(_request.replace("Sec-WebSocket-Key: ", "")) + "\r\n\r\n";
+		} if (_request.contains("Host: ")) {
+			registerClient(_request.replace("Host: ", ""));
 		}
 	}
 	
-//	public byte[] getHandshake (String firstKey, String secondKey, byte[] last8) //Try this one out
-//    {
-//        byte[] toReturn = null;
-//        //Strip out numbers
-//        int firstNum = Integer.parseInt(firstKey.replaceAll("\\D", ""));
-//        int secondNum = Integer.parseInt(secondKey.replaceAll("\\D", ""));
-//
-//        //Count spaces
-//        int firstDiv = firstKey.replaceAll("\\S", "").length();
-//        int secondDiv = secondKey.replaceAll("\\S", "").length();
-//
-//        //Do the division
-//        int firstShake = firstNum / firstDiv;
-//        int secondShake = secondNum / secondDiv;
-//
-//        //Prepare 128 bit byte array
-//        byte[] toMD5 = new byte[16];
-//        byte[] firstByte = ByteBuffer.allocate(4).putInt(firstShake).array();
-//        byte[] secondByte = ByteBuffer.allocate(4).putInt(secondShake).array();
-//
-//        //Copy the bytes of the numbers you made into your md5 byte array
-//        System.arraycopy(firstByte, 0, toMD5, 0, 4);
-//        System.arraycopy(secondByte, 0, toMD5, 4, 4);
-//        System.arraycopy(last8, 0, toMD5, 8, 8);
-//        try
-//        {
-//            //MD5 everything together
-//            MessageDigest md5 = MessageDigest.getInstance("MD5");
-//            toReturn = md5.digest(toMD5);
-//        }
-//        catch (NoSuchAlgorithmException e)
-//        {
-//            e.printStackTrace();
-//        }
-//
-//        return toReturn;
-//    }
+	private void registerClient(String _client) {
+		String ip4v = "";
+		int port = 0;
+		
+		for (int i = 0; i < _client.length();i++) {
+			while(Character.toString(_client.charAt(i)).compareTo(":") != 0) {
+				if (!Character.isSpaceChar(_client.charAt(i))) ip4v += _client.charAt(i);
+				i++;
+			}
+			if (Character.isDigit(_client.charAt(i))) port += _client.charAt(i);
+		}
+		ProfileService.getInstance().registerClient(new Client(ip4v, port, StaticResources.CLIENT_PROTOCOL_TCP));
+	}
+	
+	private String generateSecurityKeyAccept (String _secKey) {
+		
+		try {
+			MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
+			byte[] secKeyByte = (_secKey + StaticResources.MAGIC_STRING).getBytes();
+			secKeyByte = sha1.digest(secKeyByte);
+			_secKey = Base64.getEncoder().encodeToString(secKeyByte);
+			
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return _secKey;
+	}
+	
+
 
 	@Override
-	public void httpMessageEvent(String msg) {
+	public void httpMessageEvent(String msg) { 
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void udpMessageEvent(DatagramPacket _datagramPacket) {
+	public void coapMessageEvent(DatagramPacket _datagramPacket) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void webSocketMessageEvent(String msg) {
 		// TODO Auto-generated method stub
 		
 	}

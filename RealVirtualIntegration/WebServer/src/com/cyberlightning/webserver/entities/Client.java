@@ -1,10 +1,8 @@
 package com.cyberlightning.webserver.entities;
 
-import java.net.InetAddress;
-
 public class Client {
 	
-	private InetAddress address;
+	private String ip4v;
 	private int port;
 	private int protocol;
 	private long activityTimeStamp;
@@ -13,14 +11,14 @@ public class Client {
 	public Client (){
 	}
 	
-	public Client(InetAddress _address, int _port, int _protocol) {
-		this.address = _address;
+	public Client(String _address, int _port, int _protocol) {
+		this.ip4v = _address;
 		this.port = _port;
 		this.protocol = _protocol;
 	}
 	
-	public InetAddress getAddress() {
-		return this.address;
+	public String getAddress() {
+		return this.ip4v;
 	}
 	
 	public int getPort() {

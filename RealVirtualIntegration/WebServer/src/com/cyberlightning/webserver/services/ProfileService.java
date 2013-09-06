@@ -25,7 +25,7 @@ public class ProfileService implements IMessageEvent {
 		boolean containsClient = false;
 		
 		for (int i = 0; i < this.connectedClients.size(); i++) {
-			if (this.connectedClients.get(i).getAddress().getHostAddress().compareTo(_client.getAddress().getHostAddress()) == 0) {
+			if (this.connectedClients.get(i).getAddress().compareTo(_client.getAddress()) == 0) {
 				containsClient = true;
 				this.connectedClients.get(i).setActivityTimeStamp(System.currentTimeMillis());
 			}
@@ -44,7 +44,13 @@ public class ProfileService implements IMessageEvent {
 	}
 
 	@Override
-	public void udpMessageEvent(DatagramPacket _datagramPacket) {
+	public void coapMessageEvent(DatagramPacket _datagramPacket) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void webSocketMessageEvent(String msg) {
 		// TODO Auto-generated method stub
 		
 	}

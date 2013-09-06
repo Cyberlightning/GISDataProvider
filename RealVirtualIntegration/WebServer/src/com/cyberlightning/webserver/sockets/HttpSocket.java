@@ -15,11 +15,12 @@ import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.util.StringTokenizer;
 
+import com.cyberlightning.webserver.Application;
 import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.services.MessageService;
 
-public class HttpSocket implements IMessageEvent,Runnable{
+public class HttpSocket extends Thread implements IMessageEvent{
 
 private Socket clientSocket;
 private ServerSocket serverSocket;
@@ -28,6 +29,7 @@ private DataOutputStream outputStream;
 
 public HttpSocket() {
 	MessageService.getInstance().registerReceiver(this);
+	Application.executor.execute(this);
 }
 
 private void registerClient(Socket client) {
@@ -38,7 +40,7 @@ private void registerClient(Socket client) {
 public Socket getClient() {
 	return this.clientSocket;
 }
-
+@Override
 public void run() {
 
 	
@@ -75,7 +77,7 @@ public void run() {
 				
 				if (httpQueryString.equals("/")) {
 					// The default home page
-					sendResponse(200, "/home/tomi/git/Cyber-WeX/RealVirtualIntegration/Application/html/index.html", true); //absolute path for local dev
+					sendResponse(200, "/home/tomi/git/Cyber-WeX/RealVirtualIntegration/WebServer/html/index.html", true); //absolute path for local dev
 					
 				} else {
 					//This is interpreted as a file name
@@ -186,7 +188,13 @@ public void httpMessageEvent(String msg) {
 }
 
 @Override
-public void udpMessageEvent(DatagramPacket _datagramPacket) {
+public void coapMessageEvent(DatagramPacket _datagramPacket) {
+	// TODO Auto-generated method stub
+	
+}
+
+@Override
+public void webSocketMessageEvent(String msg) {
 	// TODO Auto-generated method stub
 	
 }

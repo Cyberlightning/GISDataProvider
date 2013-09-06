@@ -34,7 +34,14 @@ public class MessageService {
 	public void broadcastUdpMessageEvent(DatagramPacket _datagramPacket) {
 		
 		for (IMessageEvent client : this.registeredReceivers) {
-			client.udpMessageEvent(_datagramPacket);
+			client.coapMessageEvent(_datagramPacket);
+		}
+	}
+	
+	public void broadcastWebSocketMessageEvent(String msg) {
+		
+		for (IMessageEvent client : this.registeredReceivers) {
+			client.webSocketMessageEvent(msg);
 		}
 	}
 }

@@ -92,7 +92,7 @@ public class CoapSocket implements IMessageEvent,Runnable  {
 		}
 		
 		private synchronized void handleConnectedClient(DatagramPacket _datagramPacket) {
-			Client client = new Client(_datagramPacket.getAddress(), _datagramPacket.getPort(),StaticResources.CLIENT_PROTOCOL_COAP);
+			Client client = new Client(_datagramPacket.getAddress().getHostAddress(), _datagramPacket.getPort(),StaticResources.CLIENT_PROTOCOL_COAP);
 			ProfileService.getInstance().registerClient(client);
 		}
 		
@@ -106,8 +106,14 @@ public class CoapSocket implements IMessageEvent,Runnable  {
 	}
 
 	@Override
-	public void udpMessageEvent(DatagramPacket _datagramPacket) {
+	public void coapMessageEvent(DatagramPacket _datagramPacket) {
 		this.sendBuffer.add(_datagramPacket);
+		
+	}
+
+	@Override
+	public void webSocketMessageEvent(String msg) {
+		// TODO Auto-generated method stub
 		
 	}
 	
