@@ -44,7 +44,7 @@ public abstract class StaticResources {
 	
 	public static final int MAX_CONNECTED_CLIENTS = 10;
 	
-	public static final int MAX_NUM_OF_THREADS = 6;
+	public static final int MAX_NUM_OF_THREADS = 7;
 	
 	public static final String MAGIC_STRING = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 	

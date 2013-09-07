@@ -10,7 +10,7 @@ import com.cyberlightning.webserver.entities.Client;
 public class ProfileService implements IMessageEvent { 
 
 	private static final ProfileService _profileService = new ProfileService();
-	private ArrayList<Client> connectedClients;
+	private ArrayList<Client> connectedClients = new ArrayList<Client>();
 
 	private ProfileService() {
 		MessageService.getInstance().registerReceiver(this);

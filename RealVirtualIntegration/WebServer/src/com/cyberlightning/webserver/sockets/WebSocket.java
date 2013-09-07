@@ -10,17 +10,19 @@ import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Base64;
 
-import com.cyberlightning.webserver.Application;
+//import java.util.Base64;
+import org.apache.commons.codec.binary.Base64;
+
 import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.entities.Client;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
+import com.cyberlightning.webserver.services.MessageService;
 import com.cyberlightning.webserver.services.ProfileService;
 
 public class WebSocket extends Thread implements IMessageEvent {
 	
-	private ArrayList<String> sendBuffer;
+	private ArrayList<String> sendBuffer = new ArrayList<String>();
 	private Socket webSocket;
 	private ServerSocket tcpSocket;
 	
@@ -36,39 +38,40 @@ public class WebSocket extends Thread implements IMessageEvent {
 
 			
 	public WebSocket () {
-		
-		Application.executor.execute(this);
+		MessageService.getInstance().registerReceiver(this);
 	}
 
 	@Override
 	public void run() {
-
+		
+		BufferedReader inboundBuffer = null;
+		DataOutputStream outboundBuffer = null;
 		try {
 			tcpSocket = new ServerSocket (StaticResources.WEB_SOCKET_PORT);
 			webSocket = tcpSocket.accept();
+			inboundBuffer= new BufferedReader(new InputStreamReader(webSocket.getInputStream()));
+			outboundBuffer = new DataOutputStream(webSocket.getOutputStream());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         
 		while(true) {
-           
-			try {
-				BufferedReader inboundBuffer = new BufferedReader(new InputStreamReader(webSocket.getInputStream()));
-				DataOutputStream outboundBuffer = new DataOutputStream(webSocket.getOutputStream());
+  
+			
+        	   try {
+				
 				
 				while (inboundBuffer.ready()) {
 					parseRequestLine(inboundBuffer.readLine());
 				}
 				
 				if (isHandshake) {
-					
 					outboundBuffer.writeBytes(this.serverResponse);
 					outboundBuffer.flush();
 					this.isHandshake = false;
 				}
-
-			
+				
 				if (this.sendBuffer.size() > 0) {
 					
 					outboundBuffer.write(broadcast(this.sendBuffer.get(this.sendBuffer.size() - 1)));
@@ -146,16 +149,22 @@ public class WebSocket extends Thread implements IMessageEvent {
 	
 	private void registerClient(String _client) {
 		String ip4v = "";
-		int port = 0;
+		String port = "";
 		
 		for (int i = 0; i < _client.length();i++) {
-			while(Character.toString(_client.charAt(i)).compareTo(":") != 0) {
+			if(Character.toString(_client.charAt(i)).compareTo(":") == 0) {
+				for (int j = i ; j < _client.length(); j++) {
+					if (Character.isDigit(_client.charAt(j)) && !Character.isSpaceChar(_client.charAt(j))) {
+						port += _client.charAt(j);
+					}
+				}
+				break;
+			} else {
 				if (!Character.isSpaceChar(_client.charAt(i))) ip4v += _client.charAt(i);
-				i++;
 			}
-			if (Character.isDigit(_client.charAt(i))) port += _client.charAt(i);
 		}
-		ProfileService.getInstance().registerClient(new Client(ip4v, port, StaticResources.CLIENT_PROTOCOL_TCP));
+		
+		ProfileService.getInstance().registerClient(new Client(ip4v, Integer.parseInt(port), StaticResources.CLIENT_PROTOCOL_TCP));
 	}
 	
 	private String generateSecurityKeyAccept (String _secKey) {
@@ -164,7 +173,8 @@ public class WebSocket extends Thread implements IMessageEvent {
 			MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
 			byte[] secKeyByte = (_secKey + StaticResources.MAGIC_STRING).getBytes();
 			secKeyByte = sha1.digest(secKeyByte);
-			_secKey = Base64.getEncoder().encodeToString(secKeyByte);
+			//_secKey = Base64.getEncoder().encodeToString(secKeyByte); //java.util.base64
+			_secKey = Base64.encodeBase64String(secKeyByte);
 			
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block

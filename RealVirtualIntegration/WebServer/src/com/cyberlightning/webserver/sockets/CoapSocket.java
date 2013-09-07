@@ -19,9 +19,10 @@ public class CoapSocket extends Thread implements IMessageEvent  {
 	private ArrayList<DatagramPacket> sendBuffer;
 	private ArrayList<DatagramPacket> receiveBuffer;
 
+
 	
 	public CoapSocket () {
-		Application.executor.execute(this);
+		MessageService.getInstance().registerReceiver(this);
 	}
 	
 	@Override
@@ -38,7 +39,7 @@ public class CoapSocket extends Thread implements IMessageEvent  {
          
 		byte[] receivedData = new byte[StaticResources.UDP_PACKET_SIZE];
 		DatagramPacket receivedPacket = new DatagramPacket(receivedData, receivedData.length);
-		IncomingMessageHandler incomingMessageHandler = new IncomingMessageHandler();
+		
         
         while(true) {
         	
@@ -50,63 +51,28 @@ public class CoapSocket extends Thread implements IMessageEvent  {
 			}
         	
         	if (receivedPacket.getData() != null) {
-        		
-        		if (!incomingMessageHandler.isRunning){
-        			Application.executor.execute(incomingMessageHandler); //lazy initialization
-        		}
-        		handleIncomingMessage(receivedPacket);
+        		handleConnectedClient(receivedPacket);
+        		MessageService.getInstance().broadcastCoapMessageEvent(receivedPacket);
         		receivedPacket = null; 
         	}
            
            if (!sendBuffer.isEmpty()) {
         	   try {
-   				serverSocket.send(sendBuffer.get(0));
+   				serverSocket.send(sendBuffer.get(sendBuffer.size()-1));
    				} catch (IOException e) {
    				// TODO Auto-generated catch block
    				e.printStackTrace();
-   				}   
+   				} 
+        	   this.sendBuffer.remove(sendBuffer.size() - 1);
            }
-        	
-        }
+           }
 	}
 	
-	private void handleIncomingMessage(DatagramPacket _datagramPacket) { 
-		receiveBuffer.add(_datagramPacket);
-	}
-	
-	class IncomingMessageHandler extends Thread {
-		
-		public boolean isRunning = false;
-		
-		@Override
-		public void run() {
-			
-			isRunning = true;
-			
-			while (true) {
-				
-				if (receiveBuffer.size() > 0) {
-					
-					int messageIndex = receiveBuffer.size() - 1;
-					DatagramPacket datagramPacket = new DatagramPacket(receiveBuffer.get(messageIndex).getData(),receiveBuffer.get(messageIndex).getData().length);
-					handleConnectedClient(datagramPacket);
-					MessageService.getInstance().broadcastCoapMessageEvent(datagramPacket);
-					receiveBuffer.remove(messageIndex);
-					
-				}
-				
-			}
-			
-		}
-		
-		private  void handleConnectedClient(DatagramPacket _datagramPacket) {
+    private  void handleConnectedClient(DatagramPacket _datagramPacket) {
 			Client client = new Client(_datagramPacket.getAddress().getHostAddress(), _datagramPacket.getPort(),StaticResources.CLIENT_PROTOCOL_COAP);
 			ProfileService.getInstance().registerClient(client);
-		}
-		
-
 	}
-
+	
 	@Override
 	public void httpMessageEvent(String msg) {
 		// TODO Auto-generated method stub
@@ -115,7 +81,7 @@ public class CoapSocket extends Thread implements IMessageEvent  {
 
 	@Override
 	public void coapMessageEvent(DatagramPacket _datagramPacket) {
-		this.sendBuffer.add(_datagramPacket);
+		// TODO Auto-generated method stub
 		
 	}
 

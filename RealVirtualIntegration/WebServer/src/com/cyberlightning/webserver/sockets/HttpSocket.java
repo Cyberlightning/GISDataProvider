@@ -29,7 +29,6 @@ private DataOutputStream outputStream;
 
 public HttpSocket() {
 	MessageService.getInstance().registerReceiver(this);
-	Application.executor.execute(this);
 }
 
 private void registerClient(Socket client) {
@@ -40,6 +39,7 @@ private void registerClient(Socket client) {
 public Socket getClient() {
 	return this.clientSocket;
 }
+
 @Override
 public void run() {
 
@@ -71,13 +71,16 @@ public void run() {
 			String httpQueryString = tokenizer.nextToken();
 
 			StringBuffer serverResponse = new StringBuffer(); //TODO
-		
+			
+			
 			
 			if (httpMethod.equals("GET")) {
 				
 				if (httpQueryString.equals("/")) {
 					// The default home page
-					sendResponse(200, "/home/tomi/git/Cyber-WeX/RealVirtualIntegration/WebServer/html/index.html", true); //absolute path for local dev
+					
+					sendResponse(200, new File("../html/index.html").getAbsolutePath(), true); //absolute path for local dev
+					
 					
 				} else {
 					//This is interpreted as a file name

@@ -12,16 +12,19 @@ import com.cyberlightning.webserver.sockets.WebSocket;
 
 public class Application  {
 
-	public static Executor executor = Executors.newFixedThreadPool(StaticResources.MAX_NUM_OF_THREADS);
+
 
 
 	public static void main(String[] args) throws Exception, IOException {
 		@SuppressWarnings("unused")
-		WebSocket webSocketServer = new WebSocket();
+		WebSocket webSocket = new WebSocket();
+		webSocket.run();
 		@SuppressWarnings("unused")
 		HttpSocket httpSocket = new HttpSocket();
+		httpSocket.run();
 		@SuppressWarnings("unused")
 		CoapSocket coapSocket = new CoapSocket();
+		coapSocket.run();
 	
 		
 	}
