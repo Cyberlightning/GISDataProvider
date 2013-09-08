@@ -11,14 +11,18 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
+
+
 //import java.util.Base64;
 import org.apache.commons.codec.binary.Base64;
+import org.json.simple.JSONObject;
 
 import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.entities.Client;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.services.MessageService;
 import com.cyberlightning.webserver.services.ProfileService;
+import com.cyberlightning.webserver.services.TranslationService;
 
 public class WebSocket extends Thread implements IMessageEvent {
 	
@@ -70,11 +74,15 @@ public class WebSocket extends Thread implements IMessageEvent {
 					outboundBuffer.writeBytes(this.serverResponse);
 					outboundBuffer.flush();
 					this.isHandshake = false;
+					JSONObject o = TranslationService.getJson();
+					this.sendBuffer.add(o.toString());
 				}
 				
 				if (this.sendBuffer.size() > 0) {
 					
-					outboundBuffer.write(broadcast(this.sendBuffer.get(this.sendBuffer.size() - 1)));
+					//outboundBuffer.write(broadcast(this.sendBuffer.get(this.sendBuffer.size() - 1)));
+					String s = this.sendBuffer.get(this.sendBuffer.size() - 1);
+					outboundBuffer.write(broadcast(s));
 					this.sendBuffer.remove(this.sendBuffer.size() - 1);
 					outboundBuffer.flush();
 				}

@@ -16,8 +16,8 @@ import com.cyberlightning.webserver.services.ProfileService;
 public class CoapSocket extends Thread implements IMessageEvent  {
 	
 	private DatagramSocket serverSocket;
-	private ArrayList<DatagramPacket> sendBuffer;
-	private ArrayList<DatagramPacket> receiveBuffer;
+	private ArrayList<DatagramPacket> sendBuffer= new ArrayList<DatagramPacket>();
+	private ArrayList<DatagramPacket> receiveBuffer = new ArrayList<DatagramPacket>();
 
 
 	
