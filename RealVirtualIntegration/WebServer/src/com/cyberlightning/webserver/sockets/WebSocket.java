@@ -1,216 +1,233 @@
-package com.cyberlightning.webserver.sockets;
+    package com.cyberlightning.webserver.sockets;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.DatagramPacket;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+	import java.io.*;  
+import java.net.*;  
+import java.security.*;  
 import java.util.ArrayList;
 
-
-
-//import java.util.Base64;
-import org.apache.commons.codec.binary.Base64;
-import org.json.simple.JSONObject;
+import javax.xml.bind.*;  
 
 import com.cyberlightning.webserver.StaticResources;
-import com.cyberlightning.webserver.entities.Client;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.services.MessageService;
-import com.cyberlightning.webserver.services.ProfileService;
 import com.cyberlightning.webserver.services.TranslationService;
-
-public class WebSocket extends Thread implements IMessageEvent {
-	
-	private ArrayList<String> sendBuffer = new ArrayList<String>();
-	private Socket webSocket;
-	private ServerSocket tcpSocket;
-	
-	
-	private boolean isHandshake = false;
-	private String serverResponse;
-
-	public static final String WEB_SOCKET_SERVER_RESPONSE = 
-			"HTTP/1.1 101 Switching Protocols\r\n"	+
-			"Upgrade: websocket\r\n"	+
-			"Connection: Upgrade\r\n" +
-			"Sec-WebSocket-Accept: ";
-
-			
-	public WebSocket () {
-		MessageService.getInstance().registerReceiver(this);
-	}
-
-	@Override
-	public void run() {
-		
-		BufferedReader inboundBuffer = null;
-		DataOutputStream outboundBuffer = null;
-		try {
-			tcpSocket = new ServerSocket (StaticResources.WEB_SOCKET_PORT);
-			webSocket = tcpSocket.accept();
-			inboundBuffer= new BufferedReader(new InputStreamReader(webSocket.getInputStream()));
-			outboundBuffer = new DataOutputStream(webSocket.getOutputStream());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+      
+    public class WebSocket extends Thread implements IMessageEvent {  
+          
+        private ServerSocket server;  
+        private Socket sock;  
+        private InputStream in;  
+        private OutputStream out;  
+        private ArrayList<String> sendBuffer = new ArrayList<String>();
+      
+        public WebSocket() {  
+        	MessageService.getInstance().registerReceiver(this);
+        }  
         
-		while(true) {
-  
+        @Override 
+        public void run() {
+        	try {
+				this.listen(StaticResources.WEB_SOCKET_PORT);
+				this.handshake();
+				 //String message = this.read(); 
+				 //this.send(TranslationService.getJson().toString());
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}   
+        }
+        
+        /** throws Exception, because we don't really care much in this example */  
+        public void initialize() throws Exception {  
+            WebSocket ws = new WebSocket();  
+              
+            System.out.println("Listening...");  
+            ws.listen(StaticResources.WEB_SOCKET_PORT);  
+              
+            System.out.println("Handshake");  
+            ws.handshake();  
+              
+            System.out.println("Handshake complete!");  
+              
+            String message = ws.read();  
+            System.out.println("Message: " + message);  
+              
+            ws.send("I got your message! It's length was: " + message.length());  
+              
+            ws.close();  
+        }  
+          
+        public void listen(int port) throws IOException {  
+      
+            server = new ServerSocket(port);  
+            sock = server.accept();  
+            server.close();  
+              
+            in  = sock.getInputStream();  
+            out = sock.getOutputStream();  
+        }  
+          
+        private void handshake() throws Exception {  
+      
+            BufferedReader br = new BufferedReader(new  InputStreamReader(in,  "UTF8"));  
+            PrintWriter    pw = new    PrintWriter(new OutputStreamWriter(out, "UTF8"));  
+              
+              
+            // the first line of HTTP headers  
+            String line = br.readLine();  
+              
+            if(!line.startsWith("GET"))  
+                throw new IOException("Wrong header: " + line);  
+              
+            // we read header fields  
+            String key = null;  
+              
+            // read line by line until we get empty line  
+            while( !(line=br.readLine()).isEmpty() ) {  
+                  
+                if(line.toLowerCase().contains("sec-websocket-key")) {  
+                    key = line.substring(line.indexOf(":")+1).trim();  
+                }  
+            }  
+              
+            if(key==null)  
+                throw new IOException("No Websocket key specified");  
+              
+            System.out.println(key);  
+              
+            // add key and magic value  
+            String accept = key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";  
+              
+            // sha1  
+            byte[] digest = MessageDigest.getInstance("SHA-1")  
+                            .digest(accept.getBytes("UTF8"));  
+            // and base64  
+            accept = DatatypeConverter.printBase64Binary(digest);  
+              
+            // send http headers  
+            pw.println("HTTP/1.1 101 Switching Protocols");  
+            pw.println("Upgrade: websocket");  
+            pw.println("Connection: Upgrade");  
+            pw.println("Sec-WebSocket-Accept: " + accept);  
+            pw.println();  
+            pw.flush();  
+              
+        }  
+          
+        private void readFully(byte[] b) throws IOException {  
+              
+            int readen = 0;  
+            while(readen<b.length)  
+            {  
+                int r = in.read(b, readen, b.length-readen);  
+                if(r==-1)  
+                    break;  
+                readen+=r;  
+            }  
+        }  
+          
+        private String read() throws Exception {  
+      
+            int opcode = in.read();  
+            boolean whole = (opcode & 0b10000000) !=0;  
+            opcode = opcode & 0xF;  
+              
+            if(opcode!=1)  
+                throw new IOException("Wrong opcode: " + opcode);  
+              
+            int len = in.read();  
+            boolean encoded = (len >= 128);  
+              
+            if(encoded)  
+                len -= 128;  
+              
+            if(len == 127) {  
+                len = (in.read() << 16) | (in.read() << 8) | in.read();  
+            }  
+            else if(len == 126) {  
+                len = (in.read() << 8) | in.read();  
+            }  
+              
+            byte[] key = null;  
+              
+            if(encoded) {  
+                key = new byte[4];  
+                readFully(key);  
+            }  
+              
+            byte[] frame = new byte[len];  
+              
+            readFully(frame);  
+              
+            if(encoded) {  
+                for(int i=0; i<frame.length; i++) {  
+                    frame[i] = (byte) (frame[i] ^ key[i%4]);  
+                }  
+            }  
+              
+            return new String(frame, "UTF8");  
+        }  
+          
+        private void send(String message) throws Exception {  
+              
+            byte[] utf = message.getBytes("UTF8");  
+              
+            out.write(129);  
+              
+            if(utf.length > 65535) {  
+                out.write(127);  
+                out.write(utf.length >> 16);  
+                out.write(utf.length >> 8);  
+                out.write(utf.length);  
+            }  
+            else if(utf.length>125) {  
+                out.write(126);  
+                out.write(utf.length >> 8);  
+                out.write(utf.length);  
+            }  
+            else {  
+                out.write(utf.length);  
+            }  
+              
+            out.write(utf);  
+        }  
+          
+        private void close() {  
+            try {  
+                sock.close();  
+            } catch (IOException e) {  
+                System.err.println(e);  
+            }  
+        }
+		@Override
+		public void httpMessageEvent(String msg) {
+			// TODO Auto-generated method stub
 			
-        	   try {
-				
-				
-				while (inboundBuffer.ready()) {
-					parseRequestLine(inboundBuffer.readLine());
-				}
-				
-				if (isHandshake) {
-					outboundBuffer.writeBytes(this.serverResponse);
-					outboundBuffer.flush();
-					this.isHandshake = false;
-					JSONObject o = TranslationService.getJson();
-					this.sendBuffer.add(o.toString());
-				}
-				
-				if (this.sendBuffer.size() > 0) {
-					
-					//outboundBuffer.write(broadcast(this.sendBuffer.get(this.sendBuffer.size() - 1)));
-					String s = this.sendBuffer.get(this.sendBuffer.size() - 1);
-					outboundBuffer.write(broadcast(s));
-					this.sendBuffer.remove(this.sendBuffer.size() - 1);
-					outboundBuffer.flush();
-				}
-				
-				
-			} catch (IOException e) {
+		}
+		@Override
+		public void coapMessageEvent(DatagramPacket _datagramPacket) {
+			//this.sendBuffer.add(_datagramPacket.getData().toString());
+			
+			
+			try {
+				this.send(_datagramPacket.getData().toString());
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
-         }
-     }
-	
-	public byte[] broadcast(String mess) throws IOException{
-	    byte[] rawData = mess.getBytes();
-
-	    int frameCount  = 0;
-	    byte[] frame = new byte[10];
-
-	    frame[0] = (byte) 129;
-
-	    if(rawData.length <= 125){
-	        frame[1] = (byte) rawData.length;
-	        frameCount = 2;
-	    }else if(rawData.length >= 126 && rawData.length <= 65535){
-	        frame[1] = (byte) 126;
-	        byte len = (byte) rawData.length;
-	        frame[2] = (byte)((len >> 8 ) & (byte)255);
-	        frame[3] = (byte)(len & (byte)255); 
-	        frameCount = 4;
-	    }else{
-	        frame[1] = (byte) 127;
-	        byte len = (byte) rawData.length;
-	        frame[2] = (byte)((len >> 56 ) & (byte)255);
-	        frame[3] = (byte)((len >> 48 ) & (byte)255);
-	        frame[4] = (byte)((len >> 40 ) & (byte)255);
-	        frame[5] = (byte)((len >> 32 ) & (byte)255);
-	        frame[6] = (byte)((len >> 24 ) & (byte)255);
-	        frame[7] = (byte)((len >> 16 ) & (byte)255);
-	        frame[8] = (byte)((len >> 8 ) & (byte)255);
-	        frame[9] = (byte)(len & (byte)255);
-	        frameCount = 10;
-	    }
-
-	    int bLength = frameCount + rawData.length;
-
-	    byte[] reply = new byte[bLength];
-
-	    int bLim = 0;
-	    for(int i=0; i<frameCount;i++){
-	        reply[bLim] = frame[i];
-	        bLim++;
-	    }
-	    for(int i=0; i<rawData.length;i++){
-	        reply[bLim] = rawData[i];
-	        bLim++;
-	    }
-	    return reply;
-	   
-
-	}
-	
-	private void parseRequestLine(String _request)  {
-		
-		if (_request.contains("Sec-WebSocket-Key: ")) {
-			this.isHandshake = true;
-			this.serverResponse = WEB_SOCKET_SERVER_RESPONSE + generateSecurityKeyAccept(_request.replace("Sec-WebSocket-Key: ", "")) + "\r\n\r\n";
-		} if (_request.contains("Host: ")) {
-			registerClient(_request.replace("Host: ", ""));
-		}
-	}
-	
-	private void registerClient(String _client) {
-		String ip4v = "";
-		String port = "";
-		
-		for (int i = 0; i < _client.length();i++) {
-			if(Character.toString(_client.charAt(i)).compareTo(":") == 0) {
-				for (int j = i ; j < _client.length(); j++) {
-					if (Character.isDigit(_client.charAt(j)) && !Character.isSpaceChar(_client.charAt(j))) {
-						port += _client.charAt(j);
-					}
-				}
-				break;
-			} else {
-				if (!Character.isSpaceChar(_client.charAt(i))) ip4v += _client.charAt(i);
-			}
-		}
-		
-		ProfileService.getInstance().registerClient(new Client(ip4v, Integer.parseInt(port), StaticResources.CLIENT_PROTOCOL_TCP));
-	}
-	
-	private String generateSecurityKeyAccept (String _secKey) {
-		
-		try {
-			MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
-			byte[] secKeyByte = (_secKey + StaticResources.MAGIC_STRING).getBytes();
-			secKeyByte = sha1.digest(secKeyByte);
-			//_secKey = Base64.getEncoder().encodeToString(secKeyByte); //java.util.base64
-			_secKey = Base64.encodeBase64String(secKeyByte);
 			
-		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
+		@Override
+		public void webSocketMessageEvent(String msg) {
+			// TODO Auto-generated method stub
+			
+		}  
+      
+      
+    }  
 
-		return _secKey;
-	}
-	
 
 
-	@Override
-	public void httpMessageEvent(String msg) { 
-		// TODO Auto-generated method stub
-		
-	}
 
-	@Override
-	public void coapMessageEvent(DatagramPacket _datagramPacket) {
-		this.sendBuffer.add(_datagramPacket.getData().toString());
-		
-	}
 
-	@Override
-	public void webSocketMessageEvent(String msg) {
-		// TODO Auto-generated method stub
-		
-	}
-	
-}
 

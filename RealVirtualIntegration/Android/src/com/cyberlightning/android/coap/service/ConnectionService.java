@@ -20,9 +20,11 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
+import com.cyberlightning.android.coap.StaticResources;
 import com.cyberlightning.android.coap.entities.CoapMessageObject;
-import com.cyberlightning.android.coap.entities.StaticResources;
 import com.cyberlightning.android.coapclient.R;
+
+
 
 
 
@@ -57,18 +59,6 @@ public class ConnectionService extends Service {
 
 	private boolean messageReceivedFromServer = false;
 
-	private boolean isHandShakeReceived = false;
-	private boolean isReadFinished = true;
-
-	
-
-	private int totalConnectionTimeElapsed = 0;
-	private long connectionStarted;
-
-
-	private Handler connTimerHandler;
-	private Runnable connTimer;
-	
 	private ArrayList<Messenger> registeredReceivers = new ArrayList<Messenger>();
 	private Vector<CoapMessageObject> receiveBuffer = new Vector<CoapMessageObject>();
 	private ArrayList<String> sendBuffer = new ArrayList<String>();
@@ -82,25 +72,14 @@ public class ConnectionService extends Service {
     
     public static int NOTIFICATION;
     
-    public static final int MSG_REGISTER_CLIENT = 1;
-    public static final int MSG_UNREGISTER_CLIENT = 2;
-    public static final int MESSAGE_RECEIVED = 3;
-    public static final int FREQUENCY_CHANGE = 4;
-    public static final int ACTIVITY_STATUS = 5;
-    public static final int CONNECTION_STATUS = 6;
-    public static final int MESSAGE_SEND = 7;
+    public static final int DISCOVER_SERVICE = 1;
+    public static final int SENSOR_EVENT = 2;
+    public static final int EXCEPTION_EVENT = 3;
+    public static final int ACTUATOR_EVENT = 4;
     
-    public static final int STATE_UP = -1;
-    public static final int STATE_DOWN = -2;
-    public static final int LONG_STATE_UP = -3;
-    public static final int CONNECTION_CLOSED = -4;
-    public static final int CONNECTION_OPEN = -5;
-    public static final int CONNECTION_TIMEOUT = -6;
-    public static final int NO_REPLY_FROM_SERVER = - 7;
-    public static final int RETRY_CONNECTION = -8;
-    
+    public static final int MSG_UNREGISTER_CLIENT = 5;
+    public static final int MSG_REGISTER_CLIENT = 5;
 
-    
     
 	@Override
 	public void onCreate() {
@@ -108,14 +87,13 @@ public class ConnectionService extends Service {
 		this.notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 		this.registerNotification();
 
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+		//SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         //this.serverAddress = preferences.getString(getString(R.string.settings_preferences_ip), getString(R.string.settings_default_ip));    
         //this.portNumber = Integer.parseInt(preferences.getString(getString(R.string.settings_preferences_port), getString(R.string.settings_default_port)));
        
 		
 		isRunning = true;
-       
-        this.initConnectionTimer();
+      
         this.openConnection();
        
 	}
@@ -164,7 +142,7 @@ public class ConnectionService extends Service {
 	private void registerNotification() {
    
         Notification notification = new Notification(R.drawable.ic_launcher, getText(R.string.connection_service_started_notification),System.currentTimeMillis());
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, Application.class), 0);
 	    notification.setLatestEventInfo(this, getText(R.string.connection_service_label), getText(R.string.connection_service_started_notification), contentIntent);
         this.notificationManager.notify(NOTIFICATION, notification);
     }
@@ -192,7 +170,9 @@ public class ConnectionService extends Service {
 					while(socket.isConnected()) {
 						
 						if (!isEmpty) {
+							serverAddress = InetAddress.getByName(StaticResources.LOCALHOST);
 							DatagramPacket packet = new DatagramPacket(byteBuffer, byteBuffer.length,serverAddress, StaticResources.SERVER_UDP_PORT);
+							packet.setData(byteBuffer);
 							socket.send(packet);
 							isEmpty = true;
 						}
@@ -212,16 +192,14 @@ public class ConnectionService extends Service {
 		
 	}
 
-
 	
 	private void messageReceivedNotification () {
 		
-		if(!isHandShakeReceived) isHandShakeReceived = true; //Server alive
 		
 		if (!messageReceivedFromServer) {
 			Notification notification = new Notification(R.drawable.ic_launcher, getText(R.string.connection_service_message_received),System.currentTimeMillis());
 			this.notificationManager.cancelAll();
-			PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
+			PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, Application.class), 0);
 			notification.setLatestEventInfo(this, getText(R.string.connection_service_label), getText(R.string.connection_service_message_received), contentIntent);    
 			this.notificationManager.notify(NOTIFICATION, notification);
 			messageReceivedFromServer = true; 
@@ -229,72 +207,32 @@ public class ConnectionService extends Service {
 
 	}
 	
-	private void sendMessageToReceiver(int type, int state, int duration , int value1, int value2) {
+	private void sendMessageToReceiver(int type, String content) {
         
-		
-		if(type != FREQUENCY_CHANGE && type != CONNECTION_STATUS) {
-			CoapMessageObject messageObject = new CoapMessageObject(state,duration);
-			this.receiveBuffer.addElement(messageObject);
-		} 
-		
-		for (int i=0; i < this.registeredReceivers.size(); i++) {
+		for (Messenger messenger : this.registeredReceivers) {
             
-			try {
+		try {
 					
-				Message msg = Message.obtain(null, type, value1, value2);
+			Message msg = Message.obtain(null, type, content);
 				
-				if(type != FREQUENCY_CHANGE && type != CONNECTION_STATUS) {
-					Bundle bundle = new Bundle();
-			        bundle.putSerializable("receive_buffer", this.receiveBuffer);
-			        msg.setData(bundle);
-				}
+//			if(type != FREQUENCY_CHANGE && type != CONNECTION_STATUS) {
+//					Bundle bundle = new Bundle();
+//			        bundle.putSerializable("receive_buffer", this.receiveBuffer);
+//			        msg.setData(bundle);
+//				}
 					
-			    this.registeredReceivers.get(i).send(msg);
+			messenger.send(msg);
 				
             } catch (RemoteException e) {
          
-            	this.registeredReceivers.remove(i);
+            	this.registeredReceivers.remove(messenger);
             }
         }
     }
 	
-	private void initConnectionTimer () {
-		 
-		this.connTimerHandler = new Handler(); 
-		this.connTimer  = new Runnable() {
-			   public void run() {
-			       
-			       //long currentTime = System.currentTimeMillis();
-			       if (!isReadFinished) {
-			    	   handleConnectionException();
-			    	   connTimerHandler.removeCallbacks(this);
-			       }
-				   //connTimerHandler.postAtTime(this, currentTime + CONNECTION_TIME_OUT);
-			   }
-			};
-	 }
 	
-	private void handleConnectionException() {
-		
-		this.connTimerHandler.removeCallbacks(this.connTimer);
-		//this.closeConnection();
-		
-		if(!isHandShakeReceived) { //No hand-shake from server, server down. Thus no retry for connection needed.
-			
-			this.sendMessageToReceiver(CONNECTION_STATUS, 0, 0, NO_REPLY_FROM_SERVER, this.totalConnectionTimeElapsed);
-			this.stopConnectionService();
-			
-		} 
-		if (isHandShakeReceived) { //Connection timed out, retry with different channel 
-			if(this.registeredReceivers.size() > 0) {
-			this.sendMessageToReceiver(CONNECTION_STATUS, 0, 0, CONNECTION_TIMEOUT, 0);
-			this.isHandShakeReceived = false; //reset hand-shake in case server not reachable anymore
-			} else {
-				this.stopConnectionService();
-			}
-		}
-		
-	}
+	
+	
 	
 	
 	private void closeConnection() throws IOException {
@@ -303,126 +241,41 @@ public class ConnectionService extends Service {
 			this.socket.close();
 		}
 		else {
-			this.sendMessageToReceiver(CONNECTION_STATUS, 0, 0, NO_REPLY_FROM_SERVER, this.totalConnectionTimeElapsed);
+			this.sendMessageToReceiver(ConnectionService.EXCEPTION_EVENT, "Socket already closed, stopping service");
 			this.stopConnectionService();
 		} 
 	}
+	
+	public static void handleDiscovery(Message msg ){
+		
+	}
 
-	class IncomingMessagesHandler extends Handler { 
+	static class IncomingMessagesHandler extends Handler { 
 	        
 		 @Override
 	     public void handleMessage(Message msg) {
 			 
 			 switch (msg.what) {
-	            case MSG_REGISTER_CLIENT:
-	            	registeredReceivers.add(msg.replyTo);
+	            case ConnectionService.DISCOVER_SERVICE:
+	            	ConnectionService.handleDiscovery(msg);
 	                break;
-	            case MSG_UNREGISTER_CLIENT:
-	            	registeredReceivers.remove(msg.replyTo);
+	            case ConnectionService.ACTUATOR_EVENT:
+	            	//TODO handleMessage ConnectionService.ACTUATOR_EVENT
 	                break;
-	            case MESSAGE_SEND:
-	            	handleSendMessage(msg.arg1,msg.arg2);
+	            case ConnectionService.EXCEPTION_EVENT:
+	            	//TODO handleMessage ConnectionService.EXCEPTION_EVENT
 		           break;
-	            case FREQUENCY_CHANGE:
-	            	handleSendFrequency(msg.arg1);
+	            case ConnectionService.SENSOR_EVENT:
+	            	//TODO handleMessage ConnectionService.SENSOR_EVENT
 	               break;
-	            case ACTIVITY_STATUS:
-	            	if(msg.arg1 == RETRY_CONNECTION) {
-	            		openConnection();
-	            		handleSendFrequency(msg.arg2);
-	            		sendMessageToReceiver(FREQUENCY_CHANGE, 0, 0,msg.arg2 , 0); //check if better way
-	            	} 
-	               break;
-	         
 	            default:
 	                super.handleMessage(msg);
 	            }
 	           
 	        }
-	
-		 public void handleSendMessage(int duration, int channel) {
-			
-				
-				int stateUp = (int)(System.currentTimeMillis() - connectionStarted);
-				sendBuffer.add("[STATE_UP] " + Integer.toString(stateUp));
-				short stateDown = (short)duration;
-				sendBuffer.add("[STATE_DOWN] " + Short.toString(stateDown));
-				
-			
-			
-		}
-			
-		public void handleSendFrequency(int freq){
-			sendBuffer.add("[CHANGE_FREQUENCY] " + Integer.toString(-freq));	
-		}
 	}
 	
-	 class SimpleHttpRequestTask extends AsyncTask<String[], String, String> { // might not be needed
-
-
-			@Override
-			protected void onPreExecute() {
-				super.onPreExecute();
-				//Do some prepartations over here, before the task starts to execute
-				//Like freeze the button and/or show a progress bar
-			}
-
-			
-			@Override
-			protected String doInBackground(String[]... params) {
-				// Task starts executing.
-							String url = params[0][0].toString();
-
-							// Execute HTTP requests here, with one url(urls[0]),
-							// or many urls using the urls table
-							// Save result in myresult
-							
-							return simpleHttp(url);
-			}
-			
-			private String simpleHttp(String url) {
-				 // Creating HTTP client
-		        HttpClient httpClient = new DefaultHttpClient();
-		        // Creating HTTP Post
-		        HttpPost httpPost = new HttpPost(url);
-		 
-		        // Building post parameters
-		        // key and value pair
-		        List<NameValuePair> nameValuePair = new ArrayList<NameValuePair>(2);
-		        nameValuePair.add(new BasicNameValuePair("email", "user@gmail.com"));
-		        nameValuePair.add(new BasicNameValuePair("message",
-		                "Hi, trying Android HTTP post!"));
-		        
-		        String r = "no response";
-		 
-		        // Url Encoding the POST parameters
-		        try {
-		            httpPost.setEntity(new UrlEncodedFormEntity(nameValuePair));
-		        } catch (UnsupportedEncodingException e) {
-		            // writing error to Log
-		            e.printStackTrace();
-		        }
-		        
-		        // Making HTTP Request
-		        try {
-		            HttpResponse response = httpClient.execute(httpPost);
-		 
-		            // writing response to log
-		            //Log.d("Http Response:", response.toString());
-		            r = "Https Response:" + response.toString();
-		        } catch (ClientProtocolException e) {
-		            // writing exception to log
-		            e.printStackTrace();
-		            r = e.getMessage();
-		        } catch (IOException e) {
-		            // writing exception to log
-		            e.printStackTrace();
-		            r = e.getMessage();
-		 
-		        }
-		        return r;
-			}
-	 }
+	
 	
 	
 }

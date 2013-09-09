@@ -6,6 +6,8 @@ import java.util.ArrayList;
 
 
 
+
+
 import com.cyberlightning.android.coapclient.R;
 
 import android.app.Activity;
@@ -29,11 +31,12 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.provider.Settings;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 
 
 
-public class MainActivity extends Activity implements DialogInterface.OnClickListener {
+public class Application extends Activity implements DialogInterface.OnClickListener {
    
     private boolean isBound = false;
 	private boolean isExitDialog = false;
@@ -43,7 +46,6 @@ public class MainActivity extends Activity implements DialogInterface.OnClickLis
 	
 	private ArrayList<String> channels;
 
-	
 	private Messenger messengerService = null;
 	private int retryCount = 0;
 	public int currentIndex = 0;
@@ -114,41 +116,39 @@ public class MainActivity extends Activity implements DialogInterface.OnClickLis
     
  
     
-    private void initNetworkConnection() { //setup network connection listener
+    private void initNetworkConnection() { 
     	
     	ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-    	boolean hasInternet = false;
-    	NetworkInfo[] netInfo = connectivityManager.getAllNetworkInfo();
+      	boolean hasInternet = false;
     	
-    	for (NetworkInfo ni : netInfo) { 
-            if (ni.getTypeName().equalsIgnoreCase("WIFI")) {
-            	if (ni.isConnected()) hasInternet = true;       	
+    	for (NetworkInfo networkInfo : connectivityManager.getAllNetworkInfo()) { 
+            if (networkInfo.getTypeName().equalsIgnoreCase("WIFI")) {
+            	if (networkInfo.isConnected()) hasInternet = true;       	
             }
                 
-            if (ni.getTypeName().equalsIgnoreCase("MOBILE")) {
-            	if (ni.isConnected()) hasInternet = true;	
+            if (networkInfo.getTypeName().equalsIgnoreCase("MOBILE")) {
+            	if (networkInfo.isConnected()) hasInternet = true;	
             }  
     	}
     	
     	if (hasInternet == false) {
     		
-    		//Toast.makeText(this, R.string.main_no_connection_notification, this.NOTIFICATION_DELAY); //maybe create a dialog here
     		Intent myIntent = new Intent( Settings.ACTION_WIFI_SETTINGS); 
     		startActivity(myIntent);
+    		//Toast.makeText(this, R.string.main_no_connection_notification, this.NOTIFICATION_DELAY);
     		this.finish();
     		
     	} else {
     		if(!ConnectionService.isRunning()) {
-    			startService(new Intent(MainActivity.this, ConnectionService.class));
+    			startService(new Intent(Application.this, ConnectionService.class));
         		this.doBindService();
     		} else {
     			this.doBindService();
     			((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancelAll();
     			 Notification notification = new Notification(R.drawable.ic_launcher, "getText(R.string.connection_service_started_notification)",System.currentTimeMillis());
-    		     PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
+    		     PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, Application.class), 0);
     			 notification.setLatestEventInfo(this, "getText(R.string.connection_service_label)", "getText(R.string.connection_service_started_notification)", contentIntent);
     			 ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).notify(ConnectionService.getNotificationId(), notification);
-    		   
     		}
     		
 	
@@ -156,12 +156,6 @@ public class MainActivity extends Activity implements DialogInterface.OnClickLis
 	
     }
 
-    
-    public void prepareMessage(int type, int value1, int value2){
-    	this.sendMessageToService(type, value1, value2);
-    }
-    
-    
     private void showExitDialog() { 
     	
     	this.isExitDialog = true;
@@ -197,21 +191,12 @@ public class MainActivity extends Activity implements DialogInterface.OnClickLis
     }
     
     
-    private void sendMessageToService(int type, int value1, int value2) {
+    private void sendMessageToService(int type, String content) {
         
     	if (this.isBound && this.messengerService != null) {
    
     		try {
-    			
-    			Message msg;
-    			if(type == ConnectionService.FREQUENCY_CHANGE) {
-    				msg = Message.obtain(null, ConnectionService.FREQUENCY_CHANGE, value1, 0);
-    			} else if (type == ConnectionService.ACTIVITY_STATUS) {
-    				msg = Message.obtain(null, ConnectionService.ACTIVITY_STATUS, value1, value2);
-    			} else {
-    				msg = Message.obtain(null, ConnectionService.MESSAGE_SEND, value1, value2);
-    			}
-    			
+    			Message msg = Message.obtain(null, type, content);			
                 msg.replyTo = mMessenger;
                 this.messengerService.send(msg);
                 
@@ -246,54 +231,41 @@ public class MainActivity extends Activity implements DialogInterface.OnClickLis
            
         }
     }
-    
-    
-    
-   
-    
- 
+
  	private void stopService() {
  		this.hasServiceStopped = true;
  		this.doUnbindService();
-        stopService(new Intent(MainActivity.this, ConnectionService.class));
+        stopService(new Intent(Application.this, ConnectionService.class));
  	}
     
  
-   class IncomingHandler extends Handler { 
+   static class IncomingHandler extends Handler { 
         
 		@Override
         public void handleMessage(Message msg) {
             
-        	switch (msg.what) {
-
-            case ConnectionService.MESSAGE_RECEIVED:  //remember to make logic that this message is not shown if user has decided to change channel
-            	//receiverView.receiveMessageBuffer(msg.getData());
-            	break;
-            case ConnectionService.FREQUENCY_CHANGE:
-            	//receiveNewChannel(msg.arg1);
-            	
-            	break;
-            case ConnectionService.CONNECTION_STATUS:
-            		
-            	if(msg.arg1 == ConnectionService.NO_REPLY_FROM_SERVER) {
-            		stopService();
-            		showConnectionDialog();
-            	}if(msg.arg1 == ConnectionService.CONNECTION_TIMEOUT) {
-            		if (channels.size() > 1 && retryCount < 2) {
-            			//prepareMessage(ConnectionService.ACTIVITY_STATUS, ConnectionService.RETRY_CONNECTION, getNextChannel());
-            			retryCount++;
-            		} else {
-            			stopService();
-                		showConnectionDialog();
-            		}
-
-            	} 
-            	
-            	break;
-            default:
-                super.handleMessage(msg);
-            }
-        }
+			 switch (msg.what) {
+		           
+			 	case ConnectionService.DISCOVER_SERVICE:
+		            	//TODO handleMessage ConnectionService.DISCOVER_SERVICE
+		                break;
+		        case ConnectionService.ACTUATOR_EVENT:
+		            	//TODO handleMessage ConnectionService.ACTUATOR_EVENT
+		                break;
+		           
+		        case ConnectionService.EXCEPTION_EVENT:
+		            	//TODO handleMessage ConnectionService.EXCEPTION_EVENT
+			           break;
+		            
+		        case ConnectionService.SENSOR_EVENT:
+		            	//TODO handleMessage ConnectionService.SENSOR_EVENT
+		               break;
+		            
+		        default:
+		                
+		        	super.handleMessage(msg);
+		        }  		
+		}
     }
 
 

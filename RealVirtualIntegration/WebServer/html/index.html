@@ -69,6 +69,10 @@ svg {
   stroke-width: 1.5px;
 }
  
+.chart rect {
+	fill: steelblue;
+	stroke: white;
+}
 
 </style>
     
@@ -82,8 +86,8 @@ svg {
        <div id="sse">
    <a href="javascript:WebSocketTest()">Run WebSocket</a>
 		</div>
-		<div id="graph" width="500" height="300" ></div>
-		
+<!-- 		<div id="graph" width="500" height="300" ></div> -->
+	
 
 <!--         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script> -->
 <!--         <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.9.1.min.js"><\/script>')</script> -->
@@ -93,7 +97,34 @@ svg {
         <script type="text/javascript">
     	
 
-        
+       
+        	
+			
+			
+			function redraw() {
+				 
+				 chart.selectAll("rect")
+				 .data(data)
+				 .transition()
+				 .duration(1000)
+				 .attr("y", function(d) { return h - y(d.value) - .5; })
+				 .attr("height", function(d) { return y(d.value); });
+				 
+				 }
+			
+			var i = -1;
+			var jsonData;
+			function next() {
+				i++
+				var asd= jsonData.points[i].x;
+				var dsd = jsonData.points[i].y
+				
+				return {
+					time: asd,
+					value: dsd
+			};
+			}
+			
         function WebSocketTest()
         {
           if ("WebSocket" in window)
@@ -111,13 +142,49 @@ svg {
              { 
                 var received_msg = evt.data;
                 alert("Message is received..." + received_msg);
-               // var jsontext = evt.data;
-				//var contact = JSON.parse(jsontext);
-				//data.push(d3.range(20).map(contact.graph));
-				data.push(random());
-				tick();
+               	
+                var jsontext = evt.data;
+                jsonData = JSON.parse(jsontext);
+
+				//document.getElementById("asd").innerHTML = contact.points[0];
 				
-                
+				
+				
+                var t = 1297110663, // start time (seconds since epoch)
+    			v = 70, // start value (subscribers)
+    			data = d3.range(20).map(next); // starting dataset
+				
+    			
+    			var w = 20,
+    			    h = 80;
+    			  
+    			var x = d3.scale.linear()
+    			.domain([0, 1])
+    			.range([0, w]);
+    			  
+    			var y = d3.scale.linear()
+    			.domain([0, 100])
+    			.rangeRound([0, h]);
+            	
+    			var chart = d3.select("body").append("svg")
+    			.attr("class", "chart")
+    			.attr("width", w * data.length - 1)
+    			.attr("height", h);
+    			
+    			chart.selectAll("rect")
+    			.data(data)
+    			.enter().append("rect")
+    			.attr("x", function(d, i) { return x(i) - .5; })
+    			.attr("y", function(d) { return h - y(d.value) - .5; })
+    			.attr("width", w)
+    			.attr("height", function(d) { return y(d.value); });
+    			
+    			chart.append("line")
+    			.attr("x1", 0)
+    			.attr("x2", w * data.length)
+    			.attr("y1", h - .5)
+    			.attr("y2", h - .5)
+    			.style("stroke", "#000");
              };
              ws.onclose = function()
              { 
@@ -131,77 +198,7 @@ svg {
              alert("WebSocket NOT supported by your Browser!");
           }
         }
-        
-        var n = 40,
-    random = d3.random.normal(0, .2),
-    data = d3.range(n).map(random);
- 
-var margin = {top: 20, right: 20, bottom: 20, left: 40},
-    width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
- 
-var x = d3.scale.linear()
-    .domain([1, n - 2])
-    .range([0, width]);
- 
-var y = d3.scale.linear()
-    .domain([-1, 1])
-    .range([height, 0]);
- 
-var line = d3.svg.line()
-    .interpolate("basis")
-    .x(function(d, i) { return x(i); })
-    .y(function(d, i) { return y(d); });
- 
-var svg = d3.select("#graph").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-  .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
- 
-svg.append("defs").append("clipPath")
-    .attr("id", "clip")
-  .append("rect")
-    .attr("width", width)
-    .attr("height", height);
- 
-svg.append("g")
-    .attr("class", "x axis")
-    .attr("transform", "translate(0," + y(0) + ")")
-    .call(d3.svg.axis().scale(x).orient("bottom"));
- 
-svg.append("g")
-    .attr("class", "y axis")
-    .call(d3.svg.axis().scale(y).orient("left"));
- 
-var path = svg.append("g")
-    .attr("clip-path", "url(#clip)")
-  .append("path")
-    .datum(data)
-    .attr("class", "line")
-    .attr("d", line);
- 
-tick();
- 
-function tick() {
- 
-  // push a new data point onto the back
-  //data.push(random());
- 
-  // redraw the line, and slide it to the left
-  path
-      .attr("d", line)
-      .attr("transform", null)
-    .transition()
-      .duration(500)
-      .ease("linear")
-      .attr("transform", "translate(" + x(0) + ",0)")
-      .each("end", tick);
- 
-  // pop the old data point off the front
-  data.shift();
- 
-}
+
   </script>
   
 

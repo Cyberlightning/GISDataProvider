@@ -24,9 +24,9 @@ public abstract class TranslationService {
 
 		    try {
 
-		        JSONParser jsonParser = new JSONParser();
-		        
-		        File file = new File("miserables.json");
+		       
+		    	JSONParser jsonParser = new JSONParser();
+		        File file = new File("/home/tomi/git/Cyber-WeX/RealVirtualIntegration/WebServer/miserables.json");
 
 		        Object object = jsonParser.parse(new FileReader(file));
 
@@ -38,7 +38,18 @@ public abstract class TranslationService {
 		        ex.printStackTrace();
 		    }
 		}
-
+		public static JSONObject parseJSON (String _unparsed) {
+			 JSONParser jsonParser = new JSONParser();
+			try {
+				jsonObject = (JSONObject) jsonParser.parse(_unparsed);
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			return jsonObject;
+			
+		}
 		public static void getArray(Object object2) throws ParseException {
 
 		    JSONArray jsonArr = (JSONArray) object2;
@@ -82,7 +93,7 @@ public abstract class TranslationService {
 
 			        JSONParser jsonParser = new JSONParser();
 			        
-			        File file = new File("miserables.json");
+			        File file = new File("/home/tomi/git/Cyber-WeX/RealVirtualIntegration/WebServer/miserables.json");
 
 			         object = jsonParser.parse(new FileReader(file));
 
@@ -95,6 +106,8 @@ public abstract class TranslationService {
 			    }
 			 return (JSONObject) object;
 		}
+		
+		
 	
 
 }

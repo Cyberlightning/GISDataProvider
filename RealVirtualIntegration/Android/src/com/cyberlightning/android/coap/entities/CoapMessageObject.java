@@ -5,33 +5,33 @@ import com.cyberlightning.android.coap.service.ConnectionService;
 
 public class CoapMessageObject {
 	
-	private int state;
-	private int content;
+	private int type;
+	private String content;
 	
 	
 	public CoapMessageObject() {
 		
 	}
-	public CoapMessageObject(int state, int content) {
-		this.state = state;
+	public CoapMessageObject(int type, String content) {
+		this.type = type;
 		this.content = content;
 	}
 	
 	public String getMessage(){
 		String msg = "";
 		
-		switch(this.state) {
-		case ConnectionService.STATE_UP:
-			msg = "[State-up]";
+		switch(this.type) {
+		case ConnectionService.ACTUATOR_EVENT:
+			
 			break;
-		case ConnectionService.STATE_DOWN:
-			msg = "[State-down: " + this.content + "]";
+		case ConnectionService.DISCOVER_SERVICE:
+			
 			break;
-		case ConnectionService.FREQUENCY_CHANGE:
-			msg = "[Frequency-change: " + "this.frequency" + "]";
+		case ConnectionService.EXCEPTION_EVENT:
+			
 			break;
-		case ConnectionService.LONG_STATE_UP:
-			msg = "[Long-state-up]";
+		case ConnectionService.SENSOR_EVENT:
+			
 			break;
 		}
 		return msg;

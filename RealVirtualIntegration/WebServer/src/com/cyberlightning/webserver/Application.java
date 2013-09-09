@@ -21,13 +21,13 @@ public class Application  {
 		
 		@SuppressWarnings("unused")
 		WebSocket webSocket = new WebSocket();
-		webSocket.run();
+		webSocket.start();
 		@SuppressWarnings("unused")
 		HttpSocket httpSocket = new HttpSocket();
-		httpSocket.run();
+		httpSocket.start();
 		@SuppressWarnings("unused")
 		CoapSocket coapSocket = new CoapSocket();
-		coapSocket.run();
+		coapSocket.start();
 	
 		
 	}
