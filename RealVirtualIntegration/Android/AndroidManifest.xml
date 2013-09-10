@@ -16,7 +16,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.cyberlightning.android.coap.service.Application"
+            android:name="com.cyberlightning.android.coap.Application"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,7 +25,7 @@
             </intent-filter>
         </activity>
         <service
-			android:name="com.cyberlightning.android.coap.service.ConnectionService"
+			android:name="com.cyberlightning.android.coap.service.CoapService"
 			android:icon="@drawable/ic_launcher"
 			android:label="@string/cwp_connection_service">
 		</service>  

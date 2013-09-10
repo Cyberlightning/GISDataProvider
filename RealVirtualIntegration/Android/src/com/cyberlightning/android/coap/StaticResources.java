@@ -17,6 +17,9 @@ public final class StaticResources {
     public final static String LOCALHOST = "10.0.2.2";
     public final static int SERVER_UDP_PORT = 61616;
     
+    public final static int SERVICE_STARTED_NOTIFICATION = 1;
+	public static final int SENSOR_EVENT = 1;
+    
     
 
 }

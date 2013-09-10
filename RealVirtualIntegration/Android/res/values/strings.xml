@@ -1,6 +1,6 @@
 
 <resources>
-    <string name="app_name">Continuous Wave Protocol Client</string>
+    <string name="app_name">Cyberlightning CoAP base station</string>
     <string name="action_settings">action settings</string>
     <string name="main_no_connection_notification">No Internet connection available!</string>
     <string name="settings_channel_prompt">Channels:</string>
@@ -67,10 +67,16 @@
     <string name="connection_hung_text">Connection timed out</string>
     <string name="connection_error">Connection error</string>
     <string name="cwp_connection_service">Connection Service</string>
-    <string name="connection_service_started_notification">Connection service is running</string>
-    <string name="connection_service_stopped_notification">Connection service has shut down</string>
-    <string name="connection_service_server_down_message">Connection to server closed, unable to reconnect.</string>
-    <string name="connection_service_message_received">Incoming transmission</string>
-    <string name="connection_service_label">CWP Client</string>
-    <string name="send_translated_title">Translated text:</string>
+    <string name="service_started_notification">Connection service is running</string>
+    <string name="service_stopped_notification">Connection service has shut down</string>
+    <string name="service_server_down_message">Connection to server closed, unable to reconnect.</string>
+    <string name="service_message_received">Incoming transmission</string>
+    <string name="service_label">CWP Client</string>
+    
+    
+    <string name="remote_service_started">Translated text:</string>
+    <string name="remote_service_label">Translated text:</string>
+    <string name="remote_service_stopped">Translated text:</string>
+
+    
 </resources>
