@@ -31,7 +31,7 @@ public class WebSocket extends Thread implements IMessageEvent {
   
   public static final int DEFAULT_BUFFER_SIZE = 1024;
   public static final int MAX_CLIENT_CONNECTIONS = 50;
-
+  public static final String SAMPLE_JSON = "{\"number\":1, \"value\":8},{\"number\":2, \"value\":16},{\"number\":3, \"value\":32},{\"number\":4, \"value\":64}";
   public WebSocket() {
 	  this(StaticResources.WEB_SOCKET_PORT);
   }
@@ -73,6 +73,7 @@ public class WebSocket extends Thread implements IMessageEvent {
 					readSocket();
 				}
 			  	inboundBuffer = null;
+			  	this.sendBuffer.add(SAMPLE_JSON);
 		  		if( this.sendBuffer.size() > 0) {
 		  			try {
 						send(this.sendBuffer.get(this.sendBuffer.size() - 1));

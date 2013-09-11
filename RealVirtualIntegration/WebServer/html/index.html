@@ -6,7 +6,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title></title>
+        <title>Cyberlightning FI-WARE</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
 
@@ -83,47 +83,73 @@ svg {
         <![endif]-->
 
         <!-- Add your site or application content here -->
-       <div id="sse">
-   <a href="javascript:WebSocketTest()">Run WebSocket</a>
+       	<div id="sse">
+   			<a href="javascript:WebSocketTest()">Run WebSocket</a>
+ 
 		</div>
-<!-- 		<div id="graph" width="500" height="300" ></div> -->
-	
+		
+		<div id="test-chart"></div>
 
-<!--         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script> -->
-<!--         <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.9.1.min.js"><\/script>')</script> -->
-<!--         <script src="js/plugins.js"></script> -->
-<!--         <script src="js/main.js"></script> -->
         <script src="http://d3js.org/d3.v3.min.js"></script>
         <script type="text/javascript">
-    	
+    		
+  function onCallBack(data) {
+      var rect = svg.selectAll(".bar rect").data(data);
+      var text = svg.selectAll(".bar text").data(data);
+      var delay = function(d, i) { return i * 50; };
+      rect.transition().duration(750)
+        .delay(delay)
+        .attr("width", function(d) { return x(d.value); });
+      text.transition().duration(750)
+        .delay(delay)
+        .attr("x", function(d) { return x(d.value); })
+        .text(function(d) { return d.value; });
+  }
+    		
+			
+var data = [{"number":1, "value":8},{"number":2, "value":16},{"number":3, "value":32},{"number":4, "value":64}];
+var w = 515;
+var h = 660;
+var x = d3.scale.linear()
+  .domain([0, d3.max(data, function(d) { return d.value; })])
+  .range([0, w]);
+var y = d3.scale.ordinal()
+  .domain(d3.range(data.length))
+  .rangeBands([0, h], 0.1);
+var color = d3.scale.ordinal()
+  .range(["red", "blue"]);
 
-       
-        	
+//initial svg creation
+var svg = d3.select("#test-chart")
+  .append("svg")
+    .attr("width", 815 + 40)
+    .attr("height", h + 20)
+  .append("g")
+    .attr("transform", "translate(20,0)");
+
+//bars
+var bars = svg.selectAll(".bar")
+    .data(data)
+  .enter().append("g")
+    .attr("class", "bar")
+    .attr("transform", function(d, i) { return "translate(" + 0 + "," + y(i+1) + ")"; });
+//bar rectangles
+bars.append("rect")
+  .attr("fill", function(d, i) { return color(i%2); })
+  .attr("width", function(d) { return x(d.value); })
+  .attr("height", y.rangeBand());
+//bar labels
+bars.append("text")
+  .attr("x", function(d) { return x(d.value); })
+  .attr("y", 0 + y.rangeBand() / 2)
+  .attr("dx", -6)
+  .attr("dy", ".35em")
+  .attr("text-anchor", "end")
+  .text(function(d) { return d.value; });
+
+		
 			
 			
-			function redraw() {
-				 
-				 chart.selectAll("rect")
-				 .data(data)
-				 .transition()
-				 .duration(1000)
-				 .attr("y", function(d) { return h - y(d.value) - .5; })
-				 .attr("height", function(d) { return y(d.value); });
-				 
-				 }
-			
-			var i = -1;
-			var jsonData;
-			function next() {
-				i++
-				var asd= jsonData.points[i].x;
-				var dsd = jsonData.points[i].y
-				
-				return {
-					time: asd,
-					value: dsd
-			};
-			}
 			
         function WebSocketTest()
         {
@@ -145,46 +171,10 @@ svg {
                	
                 var jsontext = evt.data;
                 jsonData = JSON.parse(jsontext);
-
+				onCallBack(jsonData)
 				//document.getElementById("asd").innerHTML = contact.points[0];
 				
 				
-				
-                var t = 1297110663, // start time (seconds since epoch)
-    			v = 70, // start value (subscribers)
-    			data = d3.range(20).map(next); // starting dataset
-				
-    			
-    			var w = 20,
-    			    h = 80;
-    			  
-    			var x = d3.scale.linear()
-    			.domain([0, 1])
-    			.range([0, w]);
-    			  
-    			var y = d3.scale.linear()
-    			.domain([0, 100])
-    			.rangeRound([0, h]);
-            	
-    			var chart = d3.select("body").append("svg")
-    			.attr("class", "chart")
-    			.attr("width", w * data.length - 1)
-    			.attr("height", h);
-    			
-    			chart.selectAll("rect")
-    			.data(data)
-    			.enter().append("rect")
-    			.attr("x", function(d, i) { return x(i) - .5; })
-    			.attr("y", function(d) { return h - y(d.value) - .5; })
-    			.attr("width", w)
-    			.attr("height", function(d) { return y(d.value); });
-    			
-    			chart.append("line")
-    			.attr("x1", 0)
-    			.attr("x2", w * data.length)
-    			.attr("y1", h - .5)
-    			.attr("y2", h - .5)
-    			.style("stroke", "#000");
              };
              ws.onclose = function()
              { 
@@ -200,298 +190,6 @@ svg {
         }
 
   </script>
-  
-
-
-<!--
-
-<script>
- 
-var n = 40,
-    random = d3.random.normal(0, .2),
-    data = d3.range(n).map(random);
- 
-var margin = {top: 20, right: 20, bottom: 20, left: 40},
-    width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
- 
-var x = d3.scale.linear()
-    .domain([1, n - 2])
-    .range([0, width]);
- 
-var y = d3.scale.linear()
-    .domain([-1, 1])
-    .range([height, 0]);
- 
-var line = d3.svg.line()
-    .interpolate("basis")
-    .x(function(d, i) { return x(i); })
-    .y(function(d, i) { return y(d); });
- 
-var svg = d3.select("#graph").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-  .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
- 
-svg.append("defs").append("clipPath")
-    .attr("id", "clip")
-  .append("rect")
-    .attr("width", width)
-    .attr("height", height);
- 
-svg.append("g")
-    .attr("class", "x axis")
-    .attr("transform", "translate(0," + y(0) + ")")
-    .call(d3.svg.axis().scale(x).orient("bottom"));
- 
-svg.append("g")
-    .attr("class", "y axis")
-    .call(d3.svg.axis().scale(y).orient("left"));
- 
-var path = svg.append("g")
-    .attr("clip-path", "url(#clip)")
-  .append("path")
-    .datum(data)
-    .attr("class", "line")
-    .attr("d", line);
- 
-tick();
- 
-function tick() {
- 
-  // push a new data point onto the back
-  //data.push(random());
- 
-  // redraw the line, and slide it to the left
-  path
-      .attr("d", line)
-      .attr("transform", null)
-    .transition()
-      .duration(500)
-      .ease("linear")
-      .attr("transform", "translate(" + x(0) + ",0)")
-      .each("end", tick);
- 
-  // pop the old data point off the front
-  data.shift();
- 
-}
- 
-</script>
--->
-
-
-
-
-<!--
-<script>
-
-var margin = {top: 20, right: 120, bottom: 20, left: 120},
-    width = 960 - margin.right - margin.left,
-    height = 800 - margin.top - margin.bottom;
-    
-var i = 0,
-    duration = 750,
-    root;
-
-var tree = d3.layout.tree()
-    .size([height, width]);
-
-var diagonal = d3.svg.diagonal()
-    .projection(function(d) { return [d.y, d.x]; });
-
-var svg = d3.select("body").append("svg")
-    .attr("width", width + margin.right + margin.left)
-    .attr("height", height + margin.top + margin.bottom)
-  .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-d3.json("miserables.json", function(error, flare) {
-  root = flare;
-  root.x0 = height / 2;
-  root.y0 = 0;
-
-  function collapse(d) {
-    if (d.children) {
-      d._children = d.children;
-      d._children.forEach(collapse);
-      d.children = null;
-    }
-  }
-
-  root.children.forEach(collapse);
-  update(root);
-});
-
-d3.select(self.frameElement).style("height", "800px");
-
-function update(source) {
-
-  // Compute the new tree layout.
-  var nodes = tree.nodes(root).reverse(),
-      links = tree.links(nodes);
-
-  // Normalize for fixed-depth.
-  nodes.forEach(function(d) { d.y = d.depth * 180; });
-
-  // Update the nodes…
-  var node = svg.selectAll("g.node")
-      .data(nodes, function(d) { return d.id || (d.id = ++i); });
-
-  // Enter any new nodes at the parent's previous position.
-  var nodeEnter = node.enter().append("g")
-      .attr("class", "node")
-      .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
-      .on("click", click);
-
-  nodeEnter.append("circle")
-      .attr("r", 1e-6)
-      .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
-
-  nodeEnter.append("text")
-      .attr("x", function(d) { return d.children || d._children ? -10 : 10; })
-      .attr("dy", ".35em")
-      .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
-      .text(function(d) { return d.name; })
-      .style("fill-opacity", 1e-6);
-
-  // Transition nodes to their new position.
-  var nodeUpdate = node.transition()
-      .duration(duration)
-      .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
-
-  nodeUpdate.select("circle")
-      .attr("r", 4.5)
-      .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
-
-  nodeUpdate.select("text")
-      .style("fill-opacity", 1);
-
-  // Transition exiting nodes to the parent's new position.
-  var nodeExit = node.exit().transition()
-      .duration(duration)
-      .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
-      .remove();
-
-  nodeExit.select("circle")
-      .attr("r", 1e-6);
-
-  nodeExit.select("text")
-      .style("fill-opacity", 1e-6);
-
-  // Update the links…
-  var link = svg.selectAll("path.link")
-      .data(links, function(d) { return d.target.id; });
-
-  // Enter any new links at the parent's previous position.
-  link.enter().insert("path", "g")
-      .attr("class", "link")
-      .attr("d", function(d) {
-        var o = {x: source.x0, y: source.y0};
-        return diagonal({source: o, target: o});
-      });
-
-  // Transition links to their new position.
-  link.transition()
-      .duration(duration)
-      .attr("d", diagonal);
-
-  // Transition exiting nodes to the parent's new position.
-  link.exit().transition()
-      .duration(duration)
-      .attr("d", function(d) {
-        var o = {x: source.x, y: source.y};
-        return diagonal({source: o, target: o});
-      })
-      .remove();
-
-  // Stash the old positions for transition.
-  nodes.forEach(function(d) {
-    d.x0 = d.x;
-    d.y0 = d.y;
-  });
-}
-
-// Toggle children on click.
-function click(d) {
-  if (d.children) {
-    d._children = d.children;
-    d.children = null;
-  } else {
-    d.children = d._children;
-    d._children = null;
-  }
-  update(d);
-}
-
-</script>
-
-
-
-<script>
-
-var margin = {top: 20, right: 20, bottom: 30, left: 40},
-    width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
-
-var formatPercent = d3.format(".0%");
-
-var xValue = function(d) { return d.letter; }, // data -> value
-    xScale = d3.scale.ordinal().rangeRoundBands([0, width], .1), // value -> display
-    xMap = function(d) { return xScale(xValue(d)); }, // data -> display
-    xAxis = d3.svg.axis().scale(xScale).orient("bottom");
-
-var yValue = function(d) { return d.frequency; }, // data -> value
-    yScale = d3.scale.linear().range([height, 0]), // value -> display
-    yMap = function(d) { return yScale(yValue(d)); }, // data -> display
-    yAxis = d3.svg.axis().scale(yScale).orient("left").tickFormat(formatPercent);
-
-var svg = d3.select("body").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-  .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-d3.tsv("data.tsv", type, function(error, data) {
-  xScale.domain(data.map(xValue));
-  yScale.domain([0, d3.max(data, yValue)]);
-
-  svg.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + height + ")")
-      .call(xAxis);
-
-  svg.append("g")
-      .attr("class", "y axis")
-      .call(yAxis)
-    .append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 6)
-      .attr("dy", ".71em")
-      .style("text-anchor", "end")
-      .text("Frequency");
-
-  svg.selectAll(".bar")
-      .data(data)
-    .enter().append("rect")
-      .attr("class", "bar")
-      .attr("x", xMap)
-      .attr("width", xScale.rangeBand)
-      .attr("y", yMap)
-      .attr("height", function(d) { return height - yMap(d); });
-
-});
-
-function type(d) {
-  d.frequency = +d.frequency;
-  return d;
-}
-
-</script>-->
-
-
-
         
     </body>
 </html>

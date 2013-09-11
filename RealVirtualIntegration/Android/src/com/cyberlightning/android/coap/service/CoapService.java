@@ -70,17 +70,17 @@ public class CoapService extends Service {
     public void onCreate() {    
         NOTIFICATION_ID = UUID.randomUUID().hashCode(); 
         openConnectionToWebServer();
-        showNotification(R.string.app_name,R.string.service_started_notification);
+        showNotification(R.string.app_name,R.string.connection_service_started_notification);
  
     }
 
     @Override
     public void onDestroy() {
         // Cancel the persistent notification.
-    	((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancel(R.string.remote_service_started);
+    	((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancel(R.string.connection_service_started_notification);
 
         // Tell the user we stopped.
-        Toast.makeText(this, R.string.remote_service_stopped, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.connection_service_started_notification, Toast.LENGTH_SHORT).show();
      
     }
 

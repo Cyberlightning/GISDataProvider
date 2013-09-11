@@ -8,6 +8,8 @@ import com.cyberlightning.webserver.services.TranslationService;
 import com.cyberlightning.webserver.sockets.CoapSocket;
 import com.cyberlightning.webserver.sockets.HttpSocket;
 import com.cyberlightning.webserver.sockets.WebSocket;
+import com.cyberlightning.webserver.sockets.WebSocket2;
+import com.cyberlightning.webserver.sockets.WebSocket3;
 
 
 
@@ -18,9 +20,9 @@ public class Application  {
 
 	public static void main(String[] args) throws Exception, IOException {
 		
-		
+		System.out.print("webserverstarted");
 		//@SuppressWarnings("unused")
-		WebSocket webSocket = new WebSocket(StaticResources.WEB_SOCKET_PORT);
+		WebSocket2 webSocket = new WebSocket2();
 		webSocket.run();
 		//webSocket.start();
 		

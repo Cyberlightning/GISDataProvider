@@ -1,12 +1,12 @@
 package com.cyberlightning.webserver.sockets;
 
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.ArrayList;
 
-import com.cyberlightning.webserver.Application;
 import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.entities.Client;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
