@@ -19,9 +19,11 @@ public class Application  {
 	public static void main(String[] args) throws Exception, IOException {
 		
 		
-		@SuppressWarnings("unused")
-		WebSocket webSocket = new WebSocket();
-		webSocket.start();
+		//@SuppressWarnings("unused")
+		WebSocket webSocket = new WebSocket(StaticResources.WEB_SOCKET_PORT);
+		webSocket.run();
+		//webSocket.start();
+		
 		@SuppressWarnings("unused")
 		HttpSocket httpSocket = new HttpSocket();
 		httpSocket.start();

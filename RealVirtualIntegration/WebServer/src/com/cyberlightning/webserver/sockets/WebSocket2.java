@@ -1,11 +1,3 @@
-package com.cyberlightning.webserver.sockets;
-
-public class WebSocket2 {
-
-}
-
-
-
 //package com.cyberlightning.webserver.sockets;
 //
 //import java.io.BufferedReader;
@@ -32,7 +24,7 @@ public class WebSocket2 {
 //import com.cyberlightning.webserver.services.ProfileService;
 //import com.cyberlightning.webserver.services.TranslationService;
 //
-//public class WebSocket extends Thread implements IMessageEvent {
+//public class WebSocket2 extends Thread implements IMessageEvent {
 //	
 //	private ArrayList<String> sendBuffer = new ArrayList<String>();
 //	private Socket webSocket;
