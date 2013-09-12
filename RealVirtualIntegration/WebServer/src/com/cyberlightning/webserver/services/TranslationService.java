@@ -24,7 +24,6 @@ public abstract class TranslationService {
 
 		    try {
 
-		       
 		    	JSONParser jsonParser = new JSONParser();
 		        File file = new File("/home/tomi/git/Cyber-WeX/RealVirtualIntegration/WebServer/miserables.json");
 
@@ -106,8 +105,5 @@ public abstract class TranslationService {
 			    }
 			 return (JSONObject) object;
 		}
-		
-		
-	
 
 }

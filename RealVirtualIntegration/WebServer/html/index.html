@@ -85,70 +85,47 @@ svg {
         <!-- Add your site or application content here -->
        	<div id="sse">
    			<a href="javascript:WebSocketTest()">Run WebSocket</a>
- 
 		</div>
-		
-		<div id="test-chart"></div>
-
+		<div id="myChart"></div>
         <script src="http://d3js.org/d3.v3.min.js"></script>
-        <script type="text/javascript">
-    		
-  function onCallBack(data) {
-      var rect = svg.selectAll(".bar rect").data(data);
-      var text = svg.selectAll(".bar text").data(data);
-      var delay = function(d, i) { return i * 50; };
-      rect.transition().duration(750)
-        .delay(delay)
-        .attr("width", function(d) { return x(d.value); });
-      text.transition().duration(750)
-        .delay(delay)
-        .attr("x", function(d) { return x(d.value); })
-        .text(function(d) { return d.value; });
-  }
-    		
-			
-var data = [{"number":1, "value":8},{"number":2, "value":16},{"number":3, "value":32},{"number":4, "value":64}];
-var w = 515;
-var h = 660;
-var x = d3.scale.linear()
-  .domain([0, d3.max(data, function(d) { return d.value; })])
-  .range([0, w]);
-var y = d3.scale.ordinal()
-  .domain(d3.range(data.length))
-  .rangeBands([0, h], 0.1);
-var color = d3.scale.ordinal()
-  .range(["red", "blue"]);
+        <script type="text/javascript" src="tc-min.js"></script>
 
-//initial svg creation
-var svg = d3.select("#test-chart")
-  .append("svg")
-    .attr("width", 815 + 40)
-    .attr("height", h + 20)
-  .append("g")
-    .attr("transform", "translate(20,0)");
 
-//bars
-var bars = svg.selectAll(".bar")
-    .data(data)
-  .enter().append("g")
-    .attr("class", "bar")
-    .attr("transform", function(d, i) { return "translate(" + 0 + "," + y(i+1) + ")"; });
-//bar rectangles
-bars.append("rect")
-  .attr("fill", function(d, i) { return color(i%2); })
-  .attr("width", function(d) { return x(d.value); })
-  .attr("height", y.rangeBand());
-//bar labels
-bars.append("text")
-  .attr("x", function(d) { return x(d.value); })
-  .attr("y", 0 + y.rangeBand() / 2)
-  .attr("dx", -6)
-  .attr("dy", ".35em")
-  .attr("text-anchor", "end")
-  .text(function(d) { return d.value; });
 
-		
-			
+<script type="text/javascript">
+    
+    var receivedData;
+    
+    
+    function displayChart(){
+    	
+    	
+    	var mytc = new Timechart({
+        id: "myChart",
+        zoom: "d",
+        datefield: "d",
+        datafields: ["a", "b"],
+        dateformat: "yyyy-mm-dd h:i"
+    	},[
+        {d:"2013-05-21 00:30",a:767,b:1420},
+        {d:"2013-05-21 01:30",a:874.5,b:1467},
+        {d:"2013-05-21 02:30",a:808.75,b:1392},
+        // ...
+        {d:"2013-05-28 21:30",a:1101.5,b:1290},
+        {d:"2013-05-28 22:30",a:852,b:1350},
+        {d:"2013-05-28 23:30",a:942.75,b:1446}
+    	]);
+    } 
+   
+   function displayChart2() {
+   	var mytc = new Timechart({
+        id: "myChart",
+        zoom: "d",
+        datefield: "d",
+        datafields: ["a", "b"],
+        dateformat: "yyyy-mm-dd h:i"
+    	},receivedData);
+    }
 			
 			
         function WebSocketTest()
@@ -167,12 +144,13 @@ bars.append("text")
              ws.onmessage = function (evt) 
              { 
                 var received_msg = evt.data;
+          
                 alert("Message is received..." + received_msg);
                	
                 var jsontext = evt.data;
-                jsonData = JSON.parse(jsontext);
-				onCallBack(jsonData)
-				//document.getElementById("asd").innerHTML = contact.points[0];
+                receivedData = JSON.parse(jsontext);
+				displayChart2();
+				
 				
 				
              };
