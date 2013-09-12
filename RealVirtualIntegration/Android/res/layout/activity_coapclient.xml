@@ -9,10 +9,10 @@
     tools:context=".SensorListener" >
 
      <TextView
-        android:id="@+id/displayHeader"
+        android:id="@+id/displayStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Here are a list of sensors found on your device. \n"
+        android:text="@string/view_status_title"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
      <TextView
@@ -23,9 +23,9 @@
 
      <Button
          android:id="@+id/sendButton"
-         android:layout_width="226dp"
+         android:layout_width="30dp"
          android:layout_height="wrap_content"
          android:layout_marginLeft="@dimen/activity_horizontal_margin"
-         android:onClick="sendMessage"
-         android:text="Wow. Let&apos;s send &apos;em over to a Coap Server." />
+         android:onClick="showExitDialog"
+         android:text="@string/view_button_exit" />
 </RelativeLayout>

@@ -13,6 +13,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.hardware.Sensor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -21,9 +24,11 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.os.StrictMode;
 import android.provider.Settings;
 import android.view.Menu;
 import android.view.WindowManager;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -32,15 +37,11 @@ public class Application extends Activity implements DialogInterface.OnClickList
     private boolean isBound = false;
 	private boolean hasServiceStopped = false;
 	
-
 	private Messenger messengerService = null;
-	
+	private TextView statustext;
 	
 	private final int NOTIFICATION_DELAY = 12000;
 	private final Messenger mMessenger = new Messenger(new IncomingHandler());
-	
-	
-
 
    
 	@Override
@@ -49,10 +50,13 @@ public class Application extends Activity implements DialogInterface.OnClickList
         
        //requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        //setContentView(R.layout.main);
+        
+        setContentView(R.layout.activity_coapclient);
         //this.getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.title);
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy); 
         this.initNetworkConnection();
+        this.statustext = (TextView) findViewById(R.id.displayStatus);
   
     }
 	
@@ -65,14 +69,12 @@ public class Application extends Activity implements DialogInterface.OnClickList
 	
 	@Override
 	public void onResume() {
-		super.onResume();
-		//this.registerSensorListeners();
+		super.onResume();	
 	}
     
     @Override
     public void onPause() { 
     	super.onPause();
-    	//((SensorManager) getSystemService(Context.SENSOR_SERVICE)).unregisterListener(this);
     }
   
     @Override
@@ -149,6 +151,7 @@ public class Application extends Activity implements DialogInterface.OnClickList
                     Message msg = Message.obtain(null, CoapService.MSG_UNREGISTER_CLIENT);
                     msg.replyTo = mMessenger;
                     this.messengerService.send(msg);
+                   
                 } catch (RemoteException e) {
                     // There is nothing special we need to do if the service has crashed.
                 }
@@ -181,8 +184,9 @@ public class Application extends Activity implements DialogInterface.OnClickList
 		}	
 	}
 	public void initiateSensorListener() {
-		  SensorListener sensorListener = new SensorListener(this,this.messengerService);
-	      sensorListener.start();
+		  Runnable sensorListener = new SensorListener(this,this.messengerService);
+	      Thread sensorThread = new Thread(sensorListener);
+	      sensorThread.start();
 	}
 	
 	/**
@@ -195,6 +199,9 @@ public class Application extends Activity implements DialogInterface.OnClickList
 	            case StaticResources.SENSOR_EVENT:
 				try {
 					messengerService.send(msg);
+					statustext.setTextColor(Color.GREEN);
+					
+					statustext.setText("Sensor event send -> sensor number: " + msg.arg2);
 				} catch (RemoteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

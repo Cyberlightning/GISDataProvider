@@ -15,6 +15,7 @@ public final class StaticResources {
     public final static int COAP_DEFAULT_MAX_AGE_MS = COAP_DEFAULT_MAX_AGE_S * 1000;
     
     public final static String LOCALHOST = "10.0.2.2";
+    public final static String REMOTEHOST = "dev.cyberlightning.com";
     public final static int SERVER_UDP_PORT = 61616;
     
     public final static int SERVICE_STARTED_NOTIFICATION = 1;

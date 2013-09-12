@@ -1,82 +1,22 @@
-
 <resources>
-    <string name="app_name">Cyberlightning CoAP base station</string>
-    <string name="action_settings">action settings</string>
-    <string name="main_no_connection_notification">No Internet connection available!</string>
-    <string name="settings_channel_prompt">Channels:</string>
-    <string name="settings_default_ip">cwp.opimobi.com</string> 
-    <string name="settings_default_port">20000</string>
-    <string name="settings_default_receiver_speed">60</string>
-    <string name="settings_default_tone_volume">75</string>
-    <string name="settings_default_channel"></string>
-    <string name="settings_receiver_speed_units">Letters per minute</string>
+	<string name="view_button_exit">exit</string>
+    <string name="view_status_title">Status:</string>
+    <string name="view_main_title">CoAP base station</string>
     
-    <string name="settings_preferences_ip">CWPCLIENT_IP</string>
-    <string name="settings_preferences_port">CWPCLIENT_PORT</string>
-    <string name="settings_preferences_receiver_speed">CWPCLIENT_RECEIVER_SPEED</string>
-    <string name="settings_preferences_tone_volume">CWP_TONE_VOLUME</string>
-    <string name="settings_preferences_channels">CWP_USER_CHANNELS</string>
-    
-    <string name="settings_server_ip_hint" >Type in server IP or URL address</string>
-    <string name="settings_server_port_hint" >Type in server port number</string>
-    
-    <string name="settings_server_ip_label">Server IP</string>
-    <string name="settings_server_port_label">Server Port</string>
-    <string name="settings_audio_checkbox_label">Mute send audio</string>
-    <string name="settings_seekbar_title">Send speed:</string>
-    <string name="settings_seekbar_accessibility">Move to change signal speed</string>
-     <string name="settings_spinner_title">Channels:</string>
-    <string name="menu_settings_button">Settings</string>
-    <string name="menu_send_button">Send</string>
-    <string name="settings_ok_button">Save</string>
-    <string name="settings_add_channel_button">Add</string>
-    <string name="settings_delete_channel_button">Delete</string>
-    <string name="settings_dialog_add_channel_title">New Channel</string>
-    <string name="settings_dialog_add_channel_hint">A number between 1 and 2147483647</string>
-    <string name="settings_dialog_channel_error">Use number between 1 and 2147483647</string>
-    <string name="settings_dialog_delete_channel_title">Delete channel?</string>
-    <string name="settings_saved_notification">Settings saved!</string>
-    <string name="menu_help_button">Help</string>
-    <string name="menu_mainview_button">Main</string>
-    <string name="menu_messages_button">Send</string>
-    <string name="menu_exit_button">Exit</string>
-    <string name="settings_reset_button">Reset</string>
-    
-    <string name="menu_button_default_description">Tap to activate</string>
-    
-  
-    <string name="dialog_changed_notification">There are unsaved changes, do you wish to save them before leaving?</string>
-    <string name="dialog_exit_program_notification">You are exiting the application, do you wish to leave receiver service on? </string>
-    <string name="dialog_exit_program_notification_no_service">You are exiting the application, proceed?</string>
     <string name="dialog_cancel_button">Cancel</string>
-    <string name="dialog_no_button">No</string>
-    <string name="dialog_yes_button">Yes</string>
-    <string name="dialog_ok_button">OK</string>
-    <string name="dialog_title_settings">Unsaved Settings</string>
-    <string name="dialog_title_exit">Exit program</string>
-    <string name="receiver_channel_selector_default">No Channels</string>
-    <string name="receiver_next_button">+</string>
-    <string name="receiver_previous_button">-</string>
-    <string name="receive_translated_title">Message:</string>
-  
-    <string name="send_clear_button">Clear</string>
-    <string name="send_error_in_translate">Invalid sequence, retry</string>
-    <string name="send_status_title">Status:</string>
-    <string name="connection_open_text">Connection open</string>
-    <string name="connection_closed_text">Connection closed</string>
-    <string name="connection_hung_text">Connection timed out</string>
-    <string name="connection_error">Connection error</string>
-    <string name="cwp_connection_service">Connection Service</string>
-    <string name="service_started_notification">Connection service is running</string>
-    <string name="service_stopped_notification">Connection service has shut down</string>
-    <string name="service_server_down_message">Connection to server closed, unable to reconnect.</string>
-    <string name="service_message_received">Incoming transmission</string>
-    <string name="service_label">CWP Client</string>
+    <string name="dialog_no_button">no</string>
+    <string name="dialog_yes_button">OK</string>
+    <string name="dialog_title_exit">Exit program?</string>
+    <string name="dialog_exit_program_notification">Program is being shutdown, but service will run on background</string>
+    <string name="dialog_exit_program_notification_no_service">Program and service is being shut down</string>
     
+    <string name="service_started_notification">CoAP service started</string>
+    <string name="service_stopped_notification">CoAP service stopped</string>
+    <string name="action_settings">asd</string>
     
-    <string name="remote_service_started">Translated text:</string>
-    <string name="remote_service_label">Translated text:</string>
-    <string name="remote_service_stopped">Translated text:</string>
-
+    <string name="app_name">CoAP service</string>
+    <string name="service_main_title">Cyberlightning CoAP service</string>
     
-</resources>
+    <string name="main_no_connection_notification">Program needs internet connection to work</string>
+    
+ </resources>

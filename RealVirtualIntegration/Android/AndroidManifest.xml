@@ -27,7 +27,7 @@
         <service
 			android:name="com.cyberlightning.android.coap.service.CoapService"
 			android:icon="@drawable/ic_launcher"
-			android:label="@string/cwp_connection_service">
+			android:label="@string/service_main_title">
 		</service>  
     </application>
 

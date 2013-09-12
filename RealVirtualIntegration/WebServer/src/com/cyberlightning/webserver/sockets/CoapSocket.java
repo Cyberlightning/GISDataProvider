@@ -13,14 +13,20 @@ import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.services.MessageService;
 import com.cyberlightning.webserver.services.ProfileService;
 
-public class CoapSocket extends Thread implements IMessageEvent  {
+public class CoapSocket implements Runnable,IMessageEvent  {
 	
 	private DatagramSocket serverSocket;
 	private ArrayList<DatagramPacket> sendBuffer= new ArrayList<DatagramPacket>();
-	//private ArrayList<DatagramPacket> receiveBuffer = new ArrayList<DatagramPacket>();
+	
+	private int port;
 	
 	public CoapSocket () {
-		MessageService.getInstance().registerReceiver(this);
+		this(StaticResources.SERVER_PORT_COAP);
+		
+	}
+	
+	public CoapSocket (int _port) {
+		this.port = _port;
 	}
 	
 	@Override
@@ -28,8 +34,8 @@ public class CoapSocket extends Thread implements IMessageEvent  {
 		
 		try {
 			
-		serverSocket = new DatagramSocket(StaticResources.SERVER_PORT_COAP);
-			
+		serverSocket = new DatagramSocket(this.port);
+		MessageService.getInstance().registerReceiver(this);	
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -51,7 +57,7 @@ public class CoapSocket extends Thread implements IMessageEvent  {
         	if (receivedPacket.getData() != null) {
         		handleConnectedClient(receivedPacket);
         		MessageService.getInstance().broadcastCoapMessageEvent(receivedPacket);
-        		receivedPacket = null; 
+        		
         	}
            
            if (!sendBuffer.isEmpty()) {

@@ -12,120 +12,107 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
-import java.net.UnknownHostException;
 import java.util.StringTokenizer;
 
 import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.services.MessageService;
 
-public class HttpSocket extends Thread implements IMessageEvent{
+public class HttpSocket implements Runnable,IMessageEvent{
 
 private Socket clientSocket;
 private ServerSocket serverSocket;
-private BufferedReader socketReader;
-private DataOutputStream outputStream;
+private DataOutputStream output;
+private BufferedReader input;
+private int port;
 
 public HttpSocket() {
+	this(StaticResources.SERVER_PORT);
+}
+public HttpSocket(int _port) {
+	this.port = _port;
+	this.initialize();
+}
+
+public void initialize() {
+	try {
+		this.serverSocket = new ServerSocket (this.port, StaticResources.MAX_CONNECTED_CLIENTS, InetAddress.getByName(StaticResources.LOCAL_HOST));
+	} catch (IOException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
 	MessageService.getInstance().registerReceiver(this);
-}
-
-private void registerClient(Socket client) {
-	this.clientSocket = client;
-	System.out.println( "The Client "+ clientSocket.getInetAddress() + ":" + clientSocket.getPort() + " is connected");
-}
-
-public Socket getClient() {
-	return this.clientSocket;
 }
 
 @Override
 public void run() {
 
-	
-	try {
-		this.serverSocket = new ServerSocket (StaticResources.SERVER_PORT, StaticResources.MAX_CONNECTED_CLIENTS, InetAddress.getByName(StaticResources.LOCAL_HOST));
-	} catch (UnknownHostException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (IOException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
-
-	
 	while(true) {
 		
 		try {
+			this.clientSocket = this.serverSocket.accept();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		try {
 			
-			registerClient(serverSocket.accept());
-			this.socketReader = new BufferedReader(new InputStreamReader (clientSocket.getInputStream()));
-			this.outputStream = new DataOutputStream(clientSocket.getOutputStream());
+			this.input =  new BufferedReader(new InputStreamReader (clientSocket.getInputStream()));
+			this.output = new DataOutputStream(clientSocket.getOutputStream());
+			String request = "";
 			
+			while(input.ready()){
+				request += input.readLine(); 
+		}
 			
-			String clientRequest = socketReader.readLine();
-
-			StringTokenizer tokenizer = new StringTokenizer(clientRequest);
+			StringTokenizer tokenizer = new StringTokenizer(request);
 			String httpMethod = tokenizer.nextToken();
 			String httpQueryString = tokenizer.nextToken();
-
-			StringBuffer serverResponse = new StringBuffer(); //TODO
 			
-			
-			
-			if (httpMethod.equals("GET")) {
-				
-				if (httpQueryString.equals("/")) {
-					// The default home page
-					
-					sendResponse(200, new File("../html/index.html").getAbsolutePath(), true); //absolute path for local dev
-					
-					
-				} else {
-					//This is interpreted as a file name
-					String fileName = httpQueryString.replaceFirst("/", "");
-					fileName = URLDecoder.decode(fileName);
-
-					if (new File(fileName).isFile()){ //this is relative path
-						sendResponse(200, fileName, true);
-						
-					}
-					else {
-						sendResponse(404, StaticResources.ERROR_404_MESSAGE, false);
-					}
-				}
-				
-			} else if (httpMethod.equals("POST")) { 
-				
-				String action = httpQueryString.replaceFirst("/", "");
-				 
-				if(action.equals("PREVIOUS")) {	
-					MessageService.getInstance().broadcastHttpMessageEvent("Previous");
-				}
-				
-				
-			}else if (httpMethod.equals("PUT")) { 
-				
-				//String action = httpQueryString.replaceFirst("/", "");
-				//TODO
-				
-			}else if (httpMethod.equals("DELETE")) { 
-				
-				//String action = httpQueryString.replaceFirst("/", "");
-				//TODO
-				
-			} else {
-				System.out.println(httpMethod.toString());
-			}
-			
-			
-			
+			if (httpMethod.equals("GET")) 			this.handGETMethod(httpQueryString);
+			else if (httpMethod.equals("POST"))  	this.handPOSTMethod(httpQueryString.replaceFirst("/", ""));
+			else if (httpMethod.equals("PUT")) 		this.handPUTMethod(httpQueryString);
+			else if (httpMethod.equals("DELETE")) 	this.handDELETEMethod(httpQueryString);
+			else System.out.println(httpMethod.toString());
+	
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
 	}
 	
+}
+private void handGETMethod(String _query) throws Exception {
+	
+	if (_query.equals("/")) {
+		sendResponse(200, "/home/tomi/git/Cyber-WeX/RealVirtualIntegration/WebServer/html/index.html", true); //absolute path for local dev
+		
+	} else {
+		//This is interpreted as a file name
+		String fileName = _query.replaceFirst("/", "");
+		fileName = URLDecoder.decode(fileName);
+
+		if (new File(fileName).isFile()){ //this is relative path
+			sendResponse(200, fileName, true);	
+		}
+		else {
+			sendResponse(404, "/home/tomi/git/Cyber-WeX/RealVirtualIntegration/WebServer/html/404.html", false);
+		}
+	}
+}
+
+private void handPOSTMethod(String _action) {
+	MessageService.getInstance().broadcastHttpMessageEvent("Previous");	
+
+}
+
+private void handPUTMethod(String _request) {
+	//TODO handPUTMethod
+}
+
+private void handDELETEMethod(String _request) {
+	//TODO handDELETEMethod
 }
 
 public void sendResponse (int statusCode, String responseString, boolean isFile) throws Exception {
@@ -149,26 +136,24 @@ public void sendResponse (int statusCode, String responseString, boolean isFile)
 		if (!fileName.endsWith(".htm") && !fileName.endsWith(".html"))
 			contentTypeLine = "Content-Type: \r\n";
 	} else {
-		//TODO responsestring
-		
 		contentLengthLine = "Content-Length: " + responseString.length() + "\r\n";
 	}
 
-	outputStream.writeBytes(statusLine);
-	outputStream.writeBytes(serverdetails);
-	outputStream.writeBytes(contentTypeLine);
-	outputStream.writeBytes(contentLengthLine);
-	outputStream.writeBytes("Connection: close\r\n");
-	outputStream.writeBytes("\r\n");
+	this.output.writeBytes(statusLine);
+	this.output.writeBytes(serverdetails);
+	this.output.writeBytes(contentTypeLine);
+	this.output.writeBytes(contentLengthLine);
+	this.output.writeBytes("Connection: close\r\n");
+	this.output.writeBytes("\r\n");
 
 	if (isFile) {
-		sendFile(fin, outputStream);
+		sendFile(fin, this.output);
 	}
 	else {
-		outputStream.writeBytes(responseString);
+		this.output.writeBytes(responseString);
 	}
 	
-	outputStream.close();
+	this.output.close();
 }
 
 public void sendFile (FileInputStream fin, DataOutputStream out) throws Exception {

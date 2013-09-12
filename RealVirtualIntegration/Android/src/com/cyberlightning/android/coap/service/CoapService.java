@@ -5,7 +5,9 @@ package com.cyberlightning.android.coap.service;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -13,7 +15,6 @@ import com.cyberlightning.android.coap.Application;
 import com.cyberlightning.android.coap.StaticResources;
 import com.cyberlightning.android.coapclient.R;
 
-import android.annotation.SuppressLint;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -70,17 +71,16 @@ public class CoapService extends Service {
     public void onCreate() {    
         NOTIFICATION_ID = UUID.randomUUID().hashCode(); 
         openConnectionToWebServer();
-        showNotification(R.string.app_name,R.string.connection_service_started_notification);
+        showNotification(R.string.app_name,R.string.service_started_notification);
  
     }
 
     @Override
     public void onDestroy() {
         // Cancel the persistent notification.
-    	((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancel(R.string.connection_service_started_notification);
+    	((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancel(R.string.service_started_notification);
 
-        // Tell the user we stopped.
-        Toast.makeText(this, R.string.connection_service_started_notification, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.service_stopped_notification, Toast.LENGTH_SHORT).show();
      
     }
 
@@ -157,7 +157,6 @@ public class CoapService extends Service {
     	
     	NotificationCompat.Builder mBuilder =new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_launcher).setContentTitle(this.getString(_title)).setContentText(this.getString(_content));
     	   
-    	//TODO Creates an explicit intent for an Activity in your app
     	Intent resultIntent = new Intent(this, Application.class);
     	    
     	TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
@@ -195,7 +194,24 @@ public class CoapService extends Service {
                 	}
                 	break;
                 case SEND_TO_WEBSERVER:
-                	sendBuffer.add(msg.obj.toString());
+                	//sendBuffer.add(msg.obj.toString());
+                String _msg  = msg.obj.toString(); //512 for IPv6 networks?
+                byte[] byteBuffer = new byte[_msg.length()];
+                byteBuffer = _msg.getBytes();
+				try {
+					
+					DatagramPacket packet = new DatagramPacket(byteBuffer, byteBuffer.length);
+					packet.setData(byteBuffer);
+					socket.send(packet);
+				} catch (UnknownHostException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+					
+				
                 	break;
     
                 default:

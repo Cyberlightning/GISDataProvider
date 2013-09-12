@@ -19,7 +19,7 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.provider.Settings.Secure;
 
-public class SensorListener extends Thread implements SensorEventListener  {
+public class SensorListener implements Runnable,SensorEventListener  {
 
 	private Context context;
 	private List<Sensor> deviceSensors;
@@ -35,10 +35,51 @@ public class SensorListener extends Thread implements SensorEventListener  {
 	public void run() {
 		this.deviceID = Secure.getString(this.context.getApplicationContext().getContentResolver(), Secure.ANDROID_ID);
 		this.registerSensorListeners();
+		//this.detectSensors();
 		
 	}
 	
+	private void detectSensors() {
+		this.deviceSensors = ((SensorManager) this.context.getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).getSensorList(Sensor.TYPE_ALL);
 
+		for (Sensor sensor : this.deviceSensors) {
+			JSONObject device = new JSONObject();
+			JSONObject properties = new JSONObject();			
+			
+
+			try {
+					
+				properties.put("type", sensor.getType());
+				properties.put("version", sensor.getVersion());
+				properties.put("vendor", sensor.getVendor());
+				properties.put("range", sensor.getMaximumRange());
+				properties.put("delay", sensor.getMinDelay());
+				properties.put("power", sensor.getPower());
+				properties.put("resolution", sensor.getResolution());
+				
+				
+
+				device.put("device_id", this.deviceID );
+				device.put("device_properties", properties);
+				
+					
+				} catch (JSONException e) {
+					//TODO auto-generated method stub
+				}
+				
+				Message message = new Message();
+				message.what = CoapService.SEND_TO_WEBSERVER;
+				message.obj = (Object) device;
+				
+				try {
+					messenger.send(message);
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			
+		}	
+	}
 	
 	private void registerSensorListeners(){
 			
@@ -46,6 +87,7 @@ public class SensorListener extends Thread implements SensorEventListener  {
 
 		for (Sensor sensor : this.deviceSensors) {
 			((SensorManager) this.context.getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+			
 		}	
 	}
 		
@@ -87,6 +129,7 @@ public class SensorListener extends Thread implements SensorEventListener  {
 			
 			Message message = new Message();
 			message.what = CoapService.SEND_TO_WEBSERVER;
+			message.arg2 = event.sensor.getType(); //for UI
 			message.obj = (Object) device;
 			
 			try {
