@@ -31,7 +31,7 @@ var options = {
 		};
 
 function locationFindingerror(err) {
-	  alert(err);
+	  alert("An Error Occured"+ err.data);
 };
 
 function getLocation(callback){

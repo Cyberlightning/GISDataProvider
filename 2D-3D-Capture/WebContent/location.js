@@ -67,7 +67,7 @@ function initGoogleMaps(pos) {
 		var mapTypeID =  google.maps.MapTypeId.TERRAIN;
         var mapOptions = {
           center: centerPosition,
-          zoom: 4,
+          zoom: 10,
           mapTypeId: mapTypeID,
         };
         var map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);        

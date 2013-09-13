@@ -16,7 +16,7 @@ var handleRotationEvent = function( rotation ) {
 };
 
 var registerForAccelerometerEvents = function(handlacceleration, handleAccelerationWithGravity, handleRotation){
-	alert("It starts too");
+	
 	window.addEventListener("devicemotion", function(event) {
 		var rotationRate = event.rotationRate;		
 		var acceleration = event.acceleration;
@@ -44,6 +44,5 @@ var registerForAccelerometerEvents = function(handlacceleration, handleAccelerat
 }; 
 
 window.onload = function(){
-	alert("It starts once");
 	registerForAccelerometerEvents(handleAccelerationEvent,handleAccelerationWithGravityEvent,handleRotationEvent);
 };
