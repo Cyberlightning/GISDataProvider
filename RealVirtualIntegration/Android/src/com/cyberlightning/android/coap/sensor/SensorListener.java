@@ -1,5 +1,8 @@
 package com.cyberlightning.android.coap.sensor;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -19,6 +22,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.provider.Settings.Secure;
+
 
 public class SensorListener implements Runnable,SensorEventListener  {
 
@@ -127,14 +131,32 @@ public class SensorListener implements Runnable,SensorEventListener  {
 			} catch (JSONException e) {
 				//TODO auto-generated method stub
 			}
+			
+			//<--------starting test---
+			JSONObject test = new JSONObject();
+			try {
+				DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+				Date date = new Date();
+				System.out.print(dateFormat.format(date));
+				test.put("a", dateFormat.format(date));
+				test.put("b", (int) (Math.random() * 100));
+				test.put("c",  (int) (Math.random() * 100));
+			} catch (JSONException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
 		
+		
+		
+			
 		
 			Message message = new Message();
 			message.what = CoapService.SEND_TO_WEBSERVER;
 			message.arg2 = event.sensor.getType(); //for UI
 			//message.obj = device.toString();
-			System.out.print(device.toString());
-			message.obj = device.toString();
+			
+			message.obj = test.toString();
 			try {
 				messenger.send(message);
 			} catch (RemoteException e) {

@@ -128,7 +128,7 @@ svg {
     var geometry = new THREE.Geometry();
     
     
-   
+   var json;
     
     function callBack() {
     	
@@ -140,7 +140,15 @@ svg {
     	renderer.render(scene, camera);
   
     }
-   
+   function test() {
+	   json = JSON.parse(document.getElementById("myChart").innerHTML);
+	   var geometry = new THREE.Geometry();
+   		geometry.vertices.push(new THREE.Vector3(0, 0, 0));  
+   		geometry.vertices.push(new THREE.Vector3(json.a, json.b, c));
+   		var line = new THREE.Line(geometry, material);
+   		scene.add(line);
+   		renderer.render(scene, camera);
+   }
     
 	
   
@@ -160,15 +168,10 @@ svg {
              };
              ws.onmessage = function (evt) 
              { 
-                
-            	json = JSON.parse(evt.data);
-                document.getElementById("myChart").innerHTML = json.event_accuracy;
-                callBack();	
-                i++
-	
-				
-				
-				
+                json=evt.data;
+            	document.getElementById("myChart").innerHTML = evt.data;
+				test();
+                //callBack();
              };
              ws.onclose = function()
              { 

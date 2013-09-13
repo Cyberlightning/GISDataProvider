@@ -19,7 +19,7 @@ public class BluetoothListener implements Runnable {
 	public BluetoothListener(Context _context, Messenger _messenger) {
 		this.context = _context;
 		messenger = _messenger;
-		this.initialize();
+		//this.initialize();
 	}
 	
 	private void initialize() {
