@@ -106,7 +106,7 @@ public class Application extends Activity implements DialogInterface.OnClickList
     	
     	if (!hasInternet) {
     		Intent settingsIntent = new Intent( Settings.ACTION_WIFI_SETTINGS); 
-    		startActivity(settingsIntent);
+    		this.startActivityForResult(settingsIntent, 1); //TODO onActivityResult() callback needs interception
     		Toast.makeText(this, R.string.main_no_connection_notification, this.NOTIFICATION_DELAY).show();
     		this.finish();	
     	} else {
@@ -164,7 +164,7 @@ public class Application extends Activity implements DialogInterface.OnClickList
  		this.doUnbindService();
         stopService(new Intent(Application.this, CoapService.class));
  	}
-
+ 	
 	@Override
 	public void onClick(DialogInterface dialog, int action) {
 		

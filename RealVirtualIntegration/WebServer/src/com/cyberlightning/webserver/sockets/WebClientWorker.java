@@ -3,7 +3,6 @@ package com.cyberlightning.webserver.sockets;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -41,10 +40,10 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 		while(this.clientSocket.isConnected()) {
 			
 			try {
-				if(this.sendBuffer.size() > 0) {
-					this.send(this.sendBuffer.get(this.sendBuffer.size() -1));
-					this.sendBuffer.remove(this.sendBuffer.size() - 1);
+				if(this.sendBuffer.listIterator().hasNext()) {
+					this.send(this.getMessage());
 				}
+				
 				if(this.input.available() > 0) MessageService.getInstance().broadcastWebSocketMessageEvent(read());
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -130,6 +129,14 @@ public class WebClientWorker implements Runnable, IMessageEvent {
           
         this.output.write(utf);  
     }  
+	private void addNewMessage(String _msg) {
+		this.sendBuffer.add(_msg);
+	}
+	private String getMessage() {
+		String msg = this.sendBuffer.get(this.sendBuffer.size() - 1);
+		this.sendBuffer.remove(this.sendBuffer.size() - 1);
+		return msg;
+	}
 	
 	@Override
 	public void httpMessageEvent(String msg) {
@@ -142,8 +149,9 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 		byte[] buffer = new byte[_datagramPacket.getData().length];
 		buffer = _datagramPacket.getData();
 		try {
-			this.sendBuffer.add(new String(buffer, "UTF8"));
-		} catch (UnsupportedEncodingException e) {
+			String s = new String(buffer,"UTF8");
+			this.send(s);
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}  
@@ -151,8 +159,8 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 	}
 
 	@Override
-	public void webSocketMessageEvent(String msg) {
-		this.sendBuffer.add(msg);
+	public void webSocketMessageEvent(String _msg) {
+		//this.addNewMessage(_msg);
 		
 	}
 

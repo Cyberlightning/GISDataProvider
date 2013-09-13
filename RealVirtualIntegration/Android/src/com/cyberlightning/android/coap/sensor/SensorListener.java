@@ -5,6 +5,7 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONStringer;
 
 import com.cyberlightning.android.coap.StaticResources;
 import com.cyberlightning.android.coap.service.CoapService;
@@ -87,7 +88,6 @@ public class SensorListener implements Runnable,SensorEventListener  {
 
 		for (Sensor sensor : this.deviceSensors) {
 			((SensorManager) this.context.getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
-			
 		}	
 	}
 		
@@ -102,7 +102,7 @@ public class SensorListener implements Runnable,SensorEventListener  {
 		JSONObject device = new JSONObject();
 		JSONObject properties = new JSONObject();			
 		JSONArray values = new JSONArray();
-
+		
 		try {
 				
 			properties.put("type", event.sensor.getType());
@@ -119,19 +119,22 @@ public class SensorListener implements Runnable,SensorEventListener  {
 
 			device.put("device_id", this.deviceID );
 			device.put("device_properties", properties);
-			device.put("event_time_stamp", event.timestamp);
+			device.put("device_uptime", event.timestamp);
+			device.put("event_timestamp", System.currentTimeMillis());
 			device.put("event_accuracy", event.accuracy);
 			device.put("event_values", values);
 				
 			} catch (JSONException e) {
 				//TODO auto-generated method stub
 			}
-			
+		
+		
 			Message message = new Message();
 			message.what = CoapService.SEND_TO_WEBSERVER;
 			message.arg2 = event.sensor.getType(); //for UI
-			message.obj = (Object) device;
-			
+			//message.obj = device.toString();
+			System.out.print(device.toString());
+			message.obj = device.toString();
 			try {
 				messenger.send(message);
 			} catch (RemoteException e) {

@@ -12,9 +12,6 @@
 
         <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
 
-<!--         <link rel="stylesheet" href="css/normalize.css"> -->
-<!--         <link rel="stylesheet" href="css/main.css"> -->
-<!--         <script src="js/vendor/modernizr-2.6.2.min.js"></script> -->
     </head>
 <style>
 
@@ -86,20 +83,19 @@ svg {
        	<div id="sse">
    			<a href="javascript:WebSocketTest()">Run WebSocket</a>
 		</div>
-		<div id="myChart"></div>
+		<div  onload="displayChart" id="myChart"></div>
         <script src="http://d3js.org/d3.v3.min.js"></script>
         <script type="text/javascript" src="tc-min.js"></script>
+        <script src="three.min.js"></script>
 
 
 
 <script type="text/javascript">
     
-    var receivedData;
-    
-    
+	var json;
+   
     function displayChart(){
-    	
-    	
+       	
     	var mytc = new Timechart({
         id: "myChart",
         zoom: "d",
@@ -116,17 +112,38 @@ svg {
         {d:"2013-05-28 23:30",a:942.75,b:1446}
     	]);
     } 
+    
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 500);
+    camera.position.set(0, 0, 100);
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
+    scene = new THREE.Scene();
+    
+    var material = new THREE.LineBasicMaterial({
+        color: 0x0000ff
+    });
+    
+    var geometry = new THREE.Geometry();
+    
+    
    
-   function displayChart2() {
-   	var mytc = new Timechart({
-        id: "myChart",
-        zoom: "d",
-        datefield: "d",
-        datafields: ["a", "b"],
-        dateformat: "yyyy-mm-dd h:i"
-    	},receivedData);
+    
+    function callBack() {
+    	
+    	var geometry = new THREE.Geometry();
+    	geometry.vertices.push(new THREE.Vector3(0, 0, 0));  
+    	geometry.vertices.push(new THREE.Vector3(json.event_values[0], json.event_values[1], json.event_values[2]));
+    	var line = new THREE.Line(geometry, material);
+    	scene.add(line);
+    	renderer.render(scene, camera);
+  
     }
-			
+   
+    
+	
+  
 			
         function WebSocketTest()
         {
@@ -143,13 +160,12 @@ svg {
              };
              ws.onmessage = function (evt) 
              { 
-                var received_msg = evt.data;
-          
-                alert("Message is received..." + received_msg);
-               	
-                var jsontext = evt.data;
-                receivedData = JSON.parse(jsontext);
-				displayChart2();
+                
+            	json = JSON.parse(evt.data);
+                document.getElementById("myChart").innerHTML = json.event_accuracy;
+                callBack();	
+                i++
+	
 				
 				
 				

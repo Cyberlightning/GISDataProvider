@@ -5,7 +5,6 @@ package com.cyberlightning.android.coap.service;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -19,6 +18,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.app.TaskStackBuilder;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
@@ -71,7 +71,9 @@ public class CoapService extends Service {
     public void onCreate() {    
         NOTIFICATION_ID = UUID.randomUUID().hashCode(); 
         openConnectionToWebServer();
+        listenLocalCoapDevices();
         showNotification(R.string.app_name,R.string.service_started_notification);
+      
  
     }
 
@@ -79,9 +81,7 @@ public class CoapService extends Service {
     public void onDestroy() {
         // Cancel the persistent notification.
     	((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancel(R.string.service_started_notification);
-
         Toast.makeText(this, R.string.service_stopped_notification, Toast.LENGTH_SHORT).show();
-     
     }
 
     /**
@@ -92,7 +92,14 @@ public class CoapService extends Service {
     public IBinder onBind(Intent intent) {
         return messenger.getBinder();
     }
-    
+    private void listenLocalCoapDevices() {
+    	
+    	if (BluetoothAdapter.getDefaultAdapter() != null) {
+    		Runnable bl = new BluetoothListener(this,this.messenger);
+    		Thread t = new Thread(bl);
+    		t.start();
+    	}
+    }
     
     private void openConnectionToWebServer() {
 		
