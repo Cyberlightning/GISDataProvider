@@ -48,6 +48,9 @@ public abstract class StaticResources {
 	
 	public static final String MAGIC_STRING = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 	
+	public static final String CLIENT_DISCONNECTED = " disconnected, socket shutdown gracefully";
+	public static final String CLIENT_CONNECTED = " connected, connection established";
+	
 
 	
 }

@@ -1,6 +1,5 @@
 package com.cyberlightning.webserver.sockets;
 
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -35,20 +34,22 @@ public class CoapSocket implements Runnable,IMessageEvent  {
 		try {
 			
 		serverSocket = new DatagramSocket(this.port);
+		this.serverSocket.setReceiveBufferSize(StaticResources.UDP_PACKET_SIZE);
 		MessageService.getInstance().registerReceiver(this);	
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
          
-		byte[] receivedData = new byte[StaticResources.UDP_PACKET_SIZE];
-		DatagramPacket receivedPacket = new DatagramPacket(receivedData, receivedData.length);
-		
-        
-        while(true) {
+		while(true) {
         	
-        	try {
+        	byte[] receivedData = new byte[StaticResources.UDP_PACKET_SIZE];
+    		DatagramPacket receivedPacket = new DatagramPacket(receivedData, receivedData.length);
+        	
+    		try {
+        		
 				serverSocket.receive(receivedPacket);
+				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -57,7 +58,6 @@ public class CoapSocket implements Runnable,IMessageEvent  {
         	if (receivedPacket.getData() != null) {
         		handleConnectedClient(receivedPacket);
         		MessageService.getInstance().broadcastCoapMessageEvent(receivedPacket);
-        		
         	}
            
            if (!sendBuffer.isEmpty()) {

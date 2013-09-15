@@ -24,6 +24,12 @@ public class MessageService {
 		this.registeredReceivers.add(receiver);
 	}
 	
+	public void unregisterReceiver(IMessageEvent receiver) {
+		for (IMessageEvent client: this.registeredReceivers) {
+			if (client.equals(receiver)) this.registeredReceivers.remove(receiver);
+		}
+	}
+	
 	public void broadcastHttpMessageEvent(String msg) {
 		
 		for (IMessageEvent client : this.registeredReceivers) {

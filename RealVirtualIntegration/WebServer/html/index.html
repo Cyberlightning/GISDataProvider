@@ -83,7 +83,7 @@ svg {
        	<div id="sse">
    			<a href="javascript:WebSocketTest()">Run WebSocket</a>
 		</div>
-		<div  onload="displayChart" id="myChart"></div>
+		<div id="myChart"></div>
         <script src="http://d3js.org/d3.v3.min.js"></script>
         <script type="text/javascript" src="tc-min.js"></script>
         <script src="three.min.js"></script>
@@ -99,18 +99,10 @@ svg {
     	var mytc = new Timechart({
         id: "myChart",
         zoom: "d",
-        datefield: "d",
-        datafields: ["a", "b"],
+        datefield: "event_timestamp",
+        datafields: ["event_values[0]", "event_values[1]","event_values[2]"],
         dateformat: "yyyy-mm-dd h:i"
-    	},[
-        {d:"2013-05-21 00:30",a:767,b:1420},
-        {d:"2013-05-21 01:30",a:874.5,b:1467},
-        {d:"2013-05-21 02:30",a:808.75,b:1392},
-        // ...
-        {d:"2013-05-28 21:30",a:1101.5,b:1290},
-        {d:"2013-05-28 22:30",a:852,b:1350},
-        {d:"2013-05-28 23:30",a:942.75,b:1446}
-    	]);
+    	},json);
     } 
     
     renderer = new THREE.WebGLRenderer();
@@ -126,9 +118,7 @@ svg {
     });
     
     var geometry = new THREE.Geometry();
-    
-    
-   var json;
+
     
     function callBack() {
     	
@@ -140,43 +130,33 @@ svg {
     	renderer.render(scene, camera);
   
     }
-   function test() {
-	   json = JSON.parse(document.getElementById("myChart").innerHTML);
-	   var geometry = new THREE.Geometry();
-   		geometry.vertices.push(new THREE.Vector3(0, 0, 0));  
-   		geometry.vertices.push(new THREE.Vector3(json.a, json.b, c));
-   		var line = new THREE.Line(geometry, material);
-   		scene.add(line);
-   		renderer.render(scene, camera);
-   }
-    
-	
-  
-			
+
         function WebSocketTest()
         {
           if ("WebSocket" in window)
           {
              //alert("WebSocket is supported by your Browser!");
              // Let us open a web socket
-             var ws = new WebSocket("ws://127.0.0.1:44445");
+             //var ws = new WebSocket("ws://127.0.0.1:44445");
+             var ws = new WebSocket("ws://dev.cyberlightning.com:44445");
              ws.onopen = function()
              {
                 // Web Socket is connected, send data using send()
                 ws.send("Message to send");
                 alert("Message is sent...");
              };
-             ws.onmessage = function (evt) 
-             { 
-                json=evt.data;
+             ws.onmessage = function (evt)
+             {
+
             	document.getElementById("myChart").innerHTML = evt.data;
-				test();
-                //callBack();
+                 json = JSON.parse(document.getElementById("myChart").innerHTML);
+                 document.getElementById("myChart").innerHTML = "";
+                callBack();
              };
              ws.onclose = function()
-             { 
+             {
                 // websocket is closed.
-                alert("Connection is closed..."); 
+                alert("Connection is closed...");
              };
           }
           else

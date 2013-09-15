@@ -1,8 +1,7 @@
 package com.cyberlightning.android.coap.service;
 
-
-
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -19,13 +18,17 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.app.TaskStackBuilder;
 import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.widget.Toast;
 
 public class CoapService extends Service {
@@ -73,10 +76,11 @@ public class CoapService extends Service {
         openConnectionToWebServer();
         listenLocalCoapDevices();
         showNotification(R.string.app_name,R.string.service_started_notification);
-      
+        
  
     }
-
+    
+   
     @Override
     public void onDestroy() {
         // Cancel the persistent notification.
@@ -125,6 +129,7 @@ public class CoapService extends Service {
 							DatagramPacket packet = new DatagramPacket(byteBuffer, byteBuffer.length,InetAddress.getByName(StaticResources.LOCALHOST), StaticResources.SERVER_UDP_PORT);
 							packet.setData(byteBuffer);
 							socket.send(packet);
+							
 							packet = null;
 							byteBuffer = null;
 							sendBuffer.remove(sendBuffer.size() - 1);
@@ -176,11 +181,11 @@ public class CoapService extends Service {
     	((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, mBuilder.build());
     }
     
-    
+   
     /**
      * Handler of incoming messages from clients.
      */ 
-    class IncomingHandler extends Handler {
+    class  IncomingHandler extends Handler {
         
     	@Override
         public void handleMessage(Message msg) {
@@ -203,14 +208,14 @@ public class CoapService extends Service {
                 case SEND_TO_WEBSERVER:
                 	//sendBuffer.add(msg.obj.toString());
                 String _msg  = msg.obj.toString(); //512 for IPv6 networks?
-                byte[] byteBuffer = new byte[_msg.length()];
-                byteBuffer = _msg.getBytes();
-				try {
-					
+                try {
+                	
+					byte[] byteBuffer = _msg.getBytes("UTF8");
 					DatagramPacket packet = new DatagramPacket(byteBuffer, byteBuffer.length);
 					packet.setData(byteBuffer);
 					socket.send(packet);
-				} catch (UnknownHostException e) {
+					
+				} catch (UnsupportedEncodingException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (IOException e) {

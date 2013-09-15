@@ -1,12 +1,16 @@
 package com.cyberlightning.webserver.sockets;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.Socket;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 
+import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.services.MessageService;
 
@@ -16,9 +20,12 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 	private InputStream input;
 	private OutputStream output;
 	private ArrayList<String> sendBuffer = new ArrayList<String>();
+	private WebSocket parent;
 	
-	public WebClientWorker (Socket _client) {
+	
+	public WebClientWorker (WebSocket _parent, Socket _client) {
 		this.clientSocket = _client;
+		this.parent = _parent;
 		this.initialize();
 	}
 	
@@ -36,6 +43,7 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 	public void run() {
 		
 		MessageService.getInstance().registerReceiver(this);
+		System.out.println(this.clientSocket.getInetAddress().getAddress().toString() + StaticResources.CLIENT_CONNECTED);
 		
 		while(this.clientSocket.isConnected()) {
 			
@@ -44,13 +52,44 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 					this.send(this.getMessage());
 				}
 				
-				if(this.input.available() > 0) MessageService.getInstance().broadcastWebSocketMessageEvent(read());
+				if(this.input.available() > 0) {
+					 int opcode = this.input.read();  
+				     @SuppressWarnings("unused")
+					 boolean whole = (opcode & 0b10000000) !=0;  
+				     opcode = opcode & 0xF;
+				     System.out.println("Client message type: " + opcode);
+				     if (opcode != 8) { 
+				    	 MessageService.getInstance().broadcastWebSocketMessageEvent(read()); 
+				     }
+					    /*|Opcode  | Meaning                             | Reference |
+					     -+--------+-------------------------------------+-----------|
+					      | 0      | Continuation Frame                  | RFC 6455  |
+					     -+--------+-------------------------------------+-----------|
+					      | 1      | Text Frame                          | RFC 6455  |
+					     -+--------+-------------------------------------+-----------|
+					      | 2      | Binary Frame                        | RFC 6455  |
+					     -+--------+-------------------------------------+-----------|
+					      | 8      | Connection Close Frame              | RFC 6455  |
+				     	 -+--------+-------------------------------------+-----------|
+					      | 9      | Ping Frame                          | RFC 6455  |
+					     -+--------+-------------------------------------+-----------|
+					      | 10     | Pong Frame                          | RFC 6455  |*/
+				}
+				
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				System.out.println("Connecttion interrupted: " + e.getLocalizedMessage());
 			}
 		}
+		
+		MessageService.getInstance().unregisterReceiver(this);
+		this.parent.removeSocket(this.clientSocket);
+		System.out.println(this.clientSocket.getInetAddress().getAddress().toString() + StaticResources.CLIENT_DISCONNECTED);
+		return;
+		
 	}
+	
 	
 	private void readFully(byte[] b) throws IOException {  
         
@@ -65,13 +104,6 @@ public class WebClientWorker implements Runnable, IMessageEvent {
     }  
       
     private String read() throws Exception {  
-  
-        int opcode = this.input.read();  
-        boolean whole = (opcode & 0b10000000) !=0;  
-        opcode = opcode & 0xF;  
-          
-        if(opcode!=1)  
-            throw new IOException("Wrong opcode: " + opcode);  
           
         int len = this.input.read();  
         boolean encoded = (len >= 128);  
@@ -127,11 +159,10 @@ public class WebClientWorker implements Runnable, IMessageEvent {
         	this.output.write(utf.length);  
         }  
           
-        this.output.write(utf);  
+        this.output.write(utf);
+
     }  
-	private void addNewMessage(String _msg) {
-		this.sendBuffer.add(_msg);
-	}
+    
 	private String getMessage() {
 		String msg = this.sendBuffer.get(this.sendBuffer.size() - 1);
 		this.sendBuffer.remove(this.sendBuffer.size() - 1);
@@ -146,11 +177,13 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 
 	@Override
 	public void coapMessageEvent(DatagramPacket _datagramPacket) {
-		byte[] buffer = new byte[_datagramPacket.getData().length];
-		buffer = _datagramPacket.getData();
+		
+		InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(_datagramPacket.getData()), Charset.forName("UTF-8"));
 		try {
-			String s = new String(buffer,"UTF8");
-			this.send(s);
+			StringBuilder str = new StringBuilder();
+			for (int value; (value = input.read()) != -1; )
+			    str.append((char) value);
+			this.send(str.toString());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -160,7 +193,7 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 
 	@Override
 	public void webSocketMessageEvent(String _msg) {
-		//this.addNewMessage(_msg);
+		System.out.println("message from client: " + _msg);
 		
 	}
 

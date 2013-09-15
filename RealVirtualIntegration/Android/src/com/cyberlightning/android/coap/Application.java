@@ -8,10 +8,12 @@ import com.cyberlightning.android.coapclient.R;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
@@ -24,6 +26,7 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.os.StrictMode;
 import android.provider.Settings;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.Menu;
 import android.view.WindowManager;
 import android.widget.TextView;
@@ -39,7 +42,7 @@ public class Application extends Activity implements DialogInterface.OnClickList
 	private TextView statustext;
 	
 	private final int NOTIFICATION_DELAY = 12000;
-	private final Messenger mMessenger = new Messenger(new IncomingHandler());
+	public final Messenger mMessenger = new Messenger(new IncomingHandler());
 
    
 	@Override
@@ -56,8 +59,17 @@ public class Application extends Activity implements DialogInterface.OnClickList
         this.initNetworkConnection();
         this.statustext = (TextView) findViewById(R.id.displayStatus);
   
-    }
+   
+	}
 	
+
+
+	public void sendM(Message message) {
+		  Intent intent = new Intent("my-event");
+		  // Add data
+		  intent.putExtra("message", message.obj.toString());
+		  LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+	}	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -87,7 +99,7 @@ public class Application extends Activity implements DialogInterface.OnClickList
     public Context getContext() {
 		return this.getApplicationContext();
 	}
- 
+    
     
     private void initNetworkConnection() { 
     	
@@ -181,29 +193,30 @@ public class Application extends Activity implements DialogInterface.OnClickList
 
 		}	
 	}
-	public void initiateSensorListener() {
+	private void initiateSensorListener() {
 		  Runnable sensorListener = new SensorListener(this,this.messengerService);
 	      Thread sensorThread = new Thread(sensorListener);
 	      sensorThread.start();
 	}
 	
+	
 	/**
 	 * Handler of incoming messages from service.
 	 */
-	public class IncomingHandler extends Handler {
+	 static class IncomingHandler extends Handler {
 	    @Override
 	    public void handleMessage(Message msg) {
 	        switch (msg.what) {
 	            case StaticResources.SENSOR_EVENT:
-				try {
-					messengerService.send(msg);
-					statustext.setTextColor(Color.GREEN);
-					
-					statustext.setText("Sensor event send -> sensor number: " + msg.arg2);
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+//				try {
+//					messengerService.send(msg);
+//					statustext.setTextColor(Color.GREEN);
+//					
+//					statustext.setText("Sensor event send -> sensor number: " + msg.arg2);
+//				} catch (RemoteException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
 	               
 	                break;
 	            default:
