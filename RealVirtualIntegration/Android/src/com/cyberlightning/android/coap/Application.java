@@ -3,11 +3,13 @@ package com.cyberlightning.android.coap;
 
 import com.cyberlightning.android.coap.sensor.SensorListener;
 import com.cyberlightning.android.coap.service.CoapService;
+import com.cyberlightning.android.coap.service.CoapService.MyBinder;
 import com.cyberlightning.android.coapclient.R;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -42,7 +44,27 @@ public class Application extends Activity implements DialogInterface.OnClickList
 	private TextView statustext;
 	
 	private final int NOTIFICATION_DELAY = 12000;
-	public final Messenger mMessenger = new Messenger(new IncomingHandler());
+	
+	private MyBinder<CoapService> mService;
+	 
+	 private ServiceConnection conn = new ServiceConnection()
+	 {
+	 @Override
+	 public void onServiceDisconnected(ComponentName name)
+	 {
+	 String s = "service disconnect0";
+	 }
+	 
+	
+	@Override
+	 public void onServiceConnected(ComponentName name, IBinder service)
+	 {
+	 //Service is connected.
+	 mService = (MyBinder<CoapService>) service;
+
+	 initiateSensorListener();
+	 }
+	 };
 
    
 	@Override
@@ -62,14 +84,11 @@ public class Application extends Activity implements DialogInterface.OnClickList
    
 	}
 	
+	public void sendMessage(Message _msg) {
+		mService.sendMessage(_msg);
+	}
 
-
-	public void sendM(Message message) {
-		  Intent intent = new Intent("my-event");
-		  // Add data
-		  intent.putExtra("message", message.obj.toString());
-		  LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-	}	
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -122,7 +141,8 @@ public class Application extends Activity implements DialogInterface.OnClickList
     		Toast.makeText(this, R.string.main_no_connection_notification, this.NOTIFICATION_DELAY).show();
     		this.finish();	
     	} else {
-    		this.doBindService();
+    		bindService(new Intent(this, CoapService.class), conn, Service.BIND_AUTO_CREATE);
+    		//this.doBindService();
     	}
     }
 
@@ -147,35 +167,9 @@ public class Application extends Activity implements DialogInterface.OnClickList
     	alert.show();
     }
     
-    private void doBindService() { 
-        bindService(new Intent(this, CoapService.class), serviceConnection, Context.BIND_AUTO_CREATE);
-        this.isBound = true;
-    }
-    
-    private void doUnbindService() { 
+   
+   
 
-    	if (this.isBound) {
-
-        	if (this.messengerService != null) {
-                try {
-                    Message msg = Message.obtain(null, CoapService.MSG_UNREGISTER_CLIENT);
-                    msg.replyTo = mMessenger;
-                    this.messengerService.send(msg);
-                   
-                } catch (RemoteException e) {
-                    // There is nothing special we need to do if the service has crashed.
-                }
-            }
-            
-            unbindService(serviceConnection);
-            this.isBound = false;
-        }
-    }
-
- 	private void stopService() {
- 		this.doUnbindService();
-        stopService(new Intent(Application.this, CoapService.class));
- 	}
  	
 	@Override
 	public void onClick(DialogInterface dialog, int action) {
@@ -188,63 +182,18 @@ public class Application extends Activity implements DialogInterface.OnClickList
 			case Dialog.BUTTON_NEGATIVE: this.finish();
 			break;
 
-			case Dialog.BUTTON_NEUTRAL: this.stopService(); this.finish();
+			case Dialog.BUTTON_NEUTRAL: //this.stopService(); this.finish();
 			break;
 
 		}	
 	}
 	private void initiateSensorListener() {
-		  Runnable sensorListener = new SensorListener(this,this.messengerService);
+		  Runnable sensorListener = new SensorListener(this);
 	      Thread sensorThread = new Thread(sensorListener);
 	      sensorThread.start();
 	}
 	
 	
-	/**
-	 * Handler of incoming messages from service.
-	 */
-	 static class IncomingHandler extends Handler {
-	    @Override
-	    public void handleMessage(Message msg) {
-	        switch (msg.what) {
-	            case StaticResources.SENSOR_EVENT:
-//				try {
-//					messengerService.send(msg);
-//					statustext.setTextColor(Color.GREEN);
-//					
-//					statustext.setText("Sensor event send -> sensor number: " + msg.arg2);
-//				} catch (RemoteException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-	               
-	                break;
-	            default:
-	                super.handleMessage(msg);
-	        }
-	    }
-	}
-	
-	private ServiceConnection serviceConnection = new ServiceConnection() { 
-		
-		public void onServiceConnected(ComponentName className, IBinder service) {
-	        	
-			messengerService= new Messenger(service);
-	            
-			try {
-	            Message msg = Message.obtain(null, CoapService.MSG_REGISTER_CLIENT);
-	            msg.replyTo = mMessenger;
-	            messengerService.send(msg);
-	               
-	        } catch (RemoteException e) {
-	        	e.printStackTrace();
-	        } 
-		    initiateSensorListener();
-		}
-	    public void onServiceDisconnected(ComponentName className) {
-	        messengerService = null;
-	    }
-	}; 
 	
 
 }

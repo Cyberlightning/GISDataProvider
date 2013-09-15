@@ -29,15 +29,15 @@ import android.support.v4.content.LocalBroadcastManager;
 
 public class SensorListener implements Runnable,SensorEventListener  {
 
-	private Context context;
+	private Application context;
 	private Messenger messenger;
 	private List<Sensor> deviceSensors;
 	private String deviceID;
 
 	
-	public SensorListener(Context _context, Messenger _messenger) {
-		this.context = _context;
-		this.messenger = _messenger;
+	public SensorListener(Application _parent) {
+		this.context = _parent;
+		
 	}
 	
 	@Override 
@@ -101,16 +101,11 @@ public class SensorListener implements Runnable,SensorEventListener  {
 			}
 			
 			Message message = new Message();
-			message.what = CoapService.SEND_TO_WEBSERVER;
+			message.what = 4;
 			message.arg2 = event.sensor.getType(); //for UI
 			message.obj = device.toString();
 			
-			try {
-				this.messenger.send(message);
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			this.context.sendMessage(message);
 			
 
 		}

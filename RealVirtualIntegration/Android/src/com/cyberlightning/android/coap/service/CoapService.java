@@ -2,11 +2,13 @@ package com.cyberlightning.android.coap.service;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.ref.WeakReference;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.UUID;
 
 import com.cyberlightning.android.coap.Application;
@@ -19,9 +21,12 @@ import android.app.Service;
 import android.app.TaskStackBuilder;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -35,51 +40,39 @@ public class CoapService extends Service {
 
 
   
-    /** Keeps track of all current registered clients. */
-    ArrayList<Messenger> registeredClients = new ArrayList<Messenger>();
+    
     ArrayList<String> sendBuffer = new ArrayList<String>();
     /** Holds last value set by a client. */
     int mValue = 0;
     private DatagramSocket socket;
+    private static int NOTIFICATION_ID;
   
-    static int NOTIFICATION_ID;
+    
 
-    /**
-     * Command to the service to register a client, receiving callbacks
-     * from the service.  The Message's replyTo field must be a Messenger of
-     * the client where callbacks should be sent.
-     */
-    public static final int MSG_REGISTER_CLIENT = 1;
-
-    /**
-     * Command to the service to unregister a client, ot stop receiving callbacks
-     * from the service.  The Message's replyTo field must be a Messenger of
-     * the client as previously given with MSG_REGISTER_CLIENT.
-     */
-    public static final int MSG_UNREGISTER_CLIENT = 2;
-
-    /**
-     * Command to service to set a new value.  This can be sent to the
-     * service to supply a new value, and will be sent by the service to
-     * any registered clients with the new value.
-     */
-    public static final int MSG_BROADCAST = 3;
-    public static final int SEND_TO_WEBSERVER = 4;
-    /**
-     * Target we publish for clients to send messages to IncomingHandler.
-     */
-    final Messenger messenger = new Messenger(new IncomingHandler());
+    
+    public static final String MY_CUSTOM_ACTION = "com.ramesh.myservice.ACTION";
+    private MyBinder<CoapService> binder;
+    private String name = "Hi";
 
     @Override
     public void onCreate() {    
         NOTIFICATION_ID = UUID.randomUUID().hashCode(); 
         openConnectionToWebServer();
-        listenLocalCoapDevices();
+        //listenLocalCoapDevices();
         showNotification(R.string.app_name,R.string.service_started_notification);
-        
- 
     }
     
+//    @Override
+//    public int onStartCommand(Intent intent, int flags, int startId) {
+//    return START_STICKY;
+//    }
+
+
+	@Override
+	public IBinder onBind(Intent arg0) {
+		binder = new MyBinder<CoapService>(this);
+		return binder;
+	}
    
     @Override
     public void onDestroy() {
@@ -88,20 +81,12 @@ public class CoapService extends Service {
         Toast.makeText(this, R.string.service_stopped_notification, Toast.LENGTH_SHORT).show();
     }
 
-    /**
-     * When binding to the service, we return an interface to our messenger
-     * for sending messages to the service.
-     */
-    @Override
-    public IBinder onBind(Intent intent) {
-        return messenger.getBinder();
-    }
+    
+   
     private void listenLocalCoapDevices() {
     	
     	if (BluetoothAdapter.getDefaultAdapter() != null) {
-    		Runnable bl = new BluetoothListener(this,this.messenger);
-    		Thread t = new Thread(bl);
-    		t.start();
+    		
     	}
     }
     
@@ -154,15 +139,7 @@ public class CoapService extends Service {
     
     private void processReceivedPacket (DatagramPacket _packet){
     	
-    	Message message = new Message();
-    	message.obj = (Object) _packet;
     	
-    	try {
-			messenger.send(message);
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
     }
 
     private void showNotification (int _title, int _content) {
@@ -180,56 +157,57 @@ public class CoapService extends Service {
 
     	((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, mBuilder.build());
     }
-    
    
-    /**
-     * Handler of incoming messages from clients.
-     */ 
-    class  IncomingHandler extends Handler {
-        
-    	@Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case MSG_REGISTER_CLIENT:
-                	registeredClients.add(msg.replyTo);
-                    break;
-                case MSG_UNREGISTER_CLIENT:
-                	registeredClients.remove(msg.replyTo);
-                    break;
-                case MSG_BROADCAST:
-                	for (int i = 0 ; i < registeredClients.size(); i++) {
-                		try {
-							registeredClients.get(i).send(msg);
-						} catch (RemoteException e) {
-							registeredClients.remove(i);
-						}
-                	}
-                	break;
-                case SEND_TO_WEBSERVER:
-                	//sendBuffer.add(msg.obj.toString());
-                String _msg  = msg.obj.toString(); //512 for IPv6 networks?
-                try {
-                	
-					byte[] byteBuffer = _msg.getBytes("UTF8");
-					DatagramPacket packet = new DatagramPacket(byteBuffer, byteBuffer.length);
-					packet.setData(byteBuffer);
-					socket.send(packet);
-					
-				} catch (UnsupportedEncodingException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-					
-				
-                	break;
     
-                default:
-                    super.handleMessage(msg);
-            }
-        }
-    }
+	public class MyBinder<T> extends Binder implements IMybinder {
+		 private WeakReference<T> mService;
+		 
+		public MyBinder(T service) {
+		 mService = new WeakReference<T>(service);
+		 }
+		 
+		public T getService() {
+		 return mService.get();
+		 }
+		 
+		@Override
+		 public String getName() {
+		 
+		Random r = new Random();
+		 return "=> your lucky number is:" + r.nextInt(100);
+		 }
+		 
+		@Override
+		 public void sendMessage(Message _msg) {
+
+		
+			try {
+				byte[] byteBuffer = _msg.obj.toString().getBytes("UTF8");
+				DatagramPacket packet = new DatagramPacket(byteBuffer, byteBuffer.length);
+				packet.setData(byteBuffer);
+				socket.send(packet);
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+
+		 }
+		 }
+		
+		 
+		 /** Interface setting the name and getting the name.**/
+		 
+		 public interface IMybinder
+		 {
+		 public String getName();
+		 
+		 public void sendMessage(Message _msg);
+		 }
+
+    
    
 }
