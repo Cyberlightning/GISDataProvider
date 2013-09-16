@@ -19,6 +19,7 @@ import org.apache.commons.codec.binary.Base64;
 
 import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.entities.Client;
+import com.cyberlightning.webserver.services.MessageService;
 import com.cyberlightning.webserver.services.ProfileService;
 
 public class WebSocket implements Runnable  {
@@ -30,7 +31,7 @@ public class WebSocket implements Runnable  {
 	private String serverResponse = new String();
 	private ArrayList<Thread> spawnedThreads = new ArrayList<Thread>();
 	private HashMap<InetAddress,Long> connectedWebSockets = new HashMap<InetAddress,Long>();
-	private boolean hasCompletedHandshake = false;
+
 	
 	private int port;
 
@@ -112,12 +113,15 @@ public class WebSocket implements Runnable  {
 	
 	public void removeSocket(Socket _socket) {
 		
+
+		
 		for (int i = 0; i < this.spawnedThreads.size(); i++) {
 			if(this.spawnedThreads.get(i).getId() == this.connectedWebSockets.get(_socket.getInetAddress())) {
 				this.spawnedThreads.remove(i);
 				this.connectedWebSockets.remove(_socket);
 			}
 		}
+		
 		
 	}
 	

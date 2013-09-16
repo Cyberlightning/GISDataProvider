@@ -1,12 +1,7 @@
 package com.cyberlightning.webserver;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.DatagramPacket;
 
-import sun.misc.IOUtils;
-
-import com.cyberlightning.webserver.services.MessageService;
 import com.cyberlightning.webserver.sockets.CoapSocket;
 import com.cyberlightning.webserver.sockets.HttpSocket;
 import com.cyberlightning.webserver.sockets.WebSocket;

@@ -21,6 +21,7 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 	private OutputStream output;
 	private ArrayList<String> sendBuffer = new ArrayList<String>();
 	private WebSocket parent;
+	private boolean isConnected = true;
 	
 	
 	public WebClientWorker (WebSocket _parent, Socket _client) {
@@ -45,7 +46,7 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 		MessageService.getInstance().registerReceiver(this);
 		System.out.println(this.clientSocket.getInetAddress().getAddress().toString() + StaticResources.CLIENT_CONNECTED);
 		
-		while(this.clientSocket.isConnected()) {
+		while(this.isConnected) {
 			
 			try {
 				if(this.sendBuffer.listIterator().hasNext()) {
@@ -60,7 +61,7 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 				     System.out.println("Client message type: " + opcode);
 				     if (opcode != 8) { 
 				    	 MessageService.getInstance().broadcastWebSocketMessageEvent(read()); 
-				     }
+				     } else {
 					    /*|Opcode  | Meaning                             | Reference |
 					     -+--------+-------------------------------------+-----------|
 					      | 0      | Continuation Frame                  | RFC 6455  |
@@ -74,22 +75,40 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 					      | 9      | Ping Frame                          | RFC 6455  |
 					     -+--------+-------------------------------------+-----------|
 					      | 10     | Pong Frame                          | RFC 6455  |*/
+				    	this.closeSocketGracefully();
+				     }
 				}
 				
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				System.out.println("Connecttion interrupted: " + e.getLocalizedMessage());
+				this.closeSocketGracefully();
 			}
 		}
 		
 		MessageService.getInstance().unregisterReceiver(this);
 		this.parent.removeSocket(this.clientSocket);
 		System.out.println(this.clientSocket.getInetAddress().getAddress().toString() + StaticResources.CLIENT_DISCONNECTED);
+	
 		return;
 		
 	}
 	
+	private void closeSocketGracefully() {
+		try {
+			
+			this.input.close();
+			this.clientSocket.close();
+			this.isConnected = false;
+			
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
 	
 	private void readFully(byte[] b) throws IOException {  
         

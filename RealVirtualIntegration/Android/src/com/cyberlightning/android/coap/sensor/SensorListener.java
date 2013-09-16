@@ -11,20 +11,16 @@ import org.json.JSONObject;
 
 import com.cyberlightning.android.coap.Application;
 import com.cyberlightning.android.coap.StaticResources;
-import com.cyberlightning.android.coap.service.CoapService;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Message;
 import android.os.Messenger;
-import android.os.RemoteException;
 import android.provider.Settings.Secure;
-import android.support.v4.content.LocalBroadcastManager;
 
 
 public class SensorListener implements Runnable,SensorEventListener  {
@@ -76,7 +72,7 @@ public class SensorListener implements Runnable,SensorEventListener  {
 		
 		try {
 				
-			properties.put("type", event.sensor.getType());
+			properties.put("type", this.resolveDeviceById(event.sensor.getType()));
 			properties.put("version", event.sensor.getVersion());
 			properties.put("vendor", event.sensor.getVendor());
 			properties.put("range", event.sensor.getMaximumRange());
@@ -108,6 +104,38 @@ public class SensorListener implements Runnable,SensorEventListener  {
 			this.context.sendMessage(message);
 			
 
+		}
+	
+		private String resolveDeviceById(int _id) {
+			String name = null;
+			switch(_id){
+			case Sensor.TYPE_ACCELEROMETER: name = "TYPE_ACCELEROMETER";
+				break;
+			case Sensor.TYPE_AMBIENT_TEMPERATURE:name = "TYPE_AMBIENT_TEMPERATURE";
+				break;
+			case Sensor.TYPE_GAME_ROTATION_VECTOR:name = "TYPE_GAME_ROTATION_VECTOR";
+				break;
+			case Sensor.TYPE_GRAVITY:name = "TYPE_GRAVITY";
+				break;
+			case Sensor.TYPE_GYROSCOPE:name = "TYPE_GYROSCOPE";
+				break;
+			case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:name = "TYPE_GYROSCOPE_UNCALIBRATED";
+				break;
+			case Sensor.TYPE_LIGHT:name = "TYPE_LIGHT";
+				break;
+			case Sensor.TYPE_LINEAR_ACCELERATION:name = "TYPE_LINEAR_ACCELERATION";
+				break;
+			case Sensor.TYPE_MAGNETIC_FIELD:name = "TYPE_MAGNETIC_FIELD";
+				break;
+			case Sensor.TYPE_PRESSURE:name = "TYPE_PRESSURE";
+				break;
+			case Sensor.TYPE_PROXIMITY:name = "TYPE_PROXIMITY";
+				break;
+			case Sensor.TYPE_SIGNIFICANT_MOTION:name = "TYPE_SIGNIFICANT_MOTION";
+				break;
+			}
+			
+			return name;
 		}
 	
 	

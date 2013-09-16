@@ -3,6 +3,7 @@ package com.cyberlightning.webserver.services;
 import java.net.DatagramPacket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 
@@ -25,9 +26,12 @@ public class MessageService {
 	}
 	
 	public void unregisterReceiver(IMessageEvent receiver) {
-		for (IMessageEvent client: this.registeredReceivers) {
-			if (client.equals(receiver)) this.registeredReceivers.remove(receiver);
+		
+		ListIterator<IMessageEvent> i = this.registeredReceivers.listIterator(); //only ListIterator is allowed to remove or add from an collection of a contested resource or concurrentmodification exception is thrown
+		while(i.hasNext()) {
+			if(i.equals(receiver)) i.remove();
 		}
+
 	}
 	
 	public void broadcastHttpMessageEvent(String msg) {
