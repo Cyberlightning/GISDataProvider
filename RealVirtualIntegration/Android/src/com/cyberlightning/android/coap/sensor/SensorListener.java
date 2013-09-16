@@ -10,7 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.cyberlightning.android.coap.Application;
-import com.cyberlightning.android.coap.StaticResources;
+import com.cyberlightning.android.coap.resources.StaticResources;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -19,14 +19,12 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Message;
-import android.os.Messenger;
 import android.provider.Settings.Secure;
 
 
 public class SensorListener implements Runnable,SensorEventListener  {
 
 	private Application context;
-	private Messenger messenger;
 	private List<Sensor> deviceSensors;
 	private String deviceID;
 

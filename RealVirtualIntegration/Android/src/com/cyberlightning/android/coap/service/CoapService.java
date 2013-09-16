@@ -6,72 +6,55 @@ import java.lang.ref.WeakReference;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Random;
 import java.util.UUID;
 
 import com.cyberlightning.android.coap.Application;
-import com.cyberlightning.android.coap.StaticResources;
+import com.cyberlightning.android.coap.resources.StaticResources;
 import com.cyberlightning.android.coapclient.R;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.app.TaskStackBuilder;
-import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
+import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pManager;
+import android.net.wifi.p2p.WifiP2pManager.Channel;
+import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
 import android.os.Binder;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.os.Messenger;
-import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.widget.Toast;
 
 public class CoapService extends Service {
 
 
-  
-    
-    ArrayList<String> sendBuffer = new ArrayList<String>();
-    /** Holds last value set by a client. */
-    int mValue = 0;
-    private DatagramSocket socket;
+    private DatagramSocket webServerSocket;
+    private DatagramSocket coapServerSocket;
+    private CoapServiceBinder<CoapService> coapBinder;
+    private WifiP2pManager wifiManager;
+    private Channel wifiChannel;
+    private WifiListener wifiListener;
+    private WifiP2pDeviceList availableWifiDevices;
     private static int NOTIFICATION_ID;
-  
-    
-
-    
-    public static final String MY_CUSTOM_ACTION = "com.ramesh.myservice.ACTION";
-    private MyBinder<CoapService> binder;
-    private String name = "Hi";
+   
 
     @Override
     public void onCreate() {    
         NOTIFICATION_ID = UUID.randomUUID().hashCode(); 
-        openConnectionToWebServer();
-        //listenLocalCoapDevices();
-        showNotification(R.string.app_name,R.string.service_started_notification);
+        this.openCoapSocket();
+        this.listenForLocalCoapDevices();
+        this.showNotification(R.string.app_name,R.string.service_started_notification);
     }
-    
-//    @Override
-//    public int onStartCommand(Intent intent, int flags, int startId) {
-//    return START_STICKY;
-//    }
-
-
+  
 	@Override
 	public IBinder onBind(Intent arg0) {
-		binder = new MyBinder<CoapService>(this);
-		return binder;
+		this.coapBinder = new CoapServiceBinder<CoapService>(this);
+		return this.coapBinder;
 	}
    
     @Override
@@ -81,16 +64,7 @@ public class CoapService extends Service {
         Toast.makeText(this, R.string.service_stopped_notification, Toast.LENGTH_SHORT).show();
     }
 
-    
-   
-    private void listenLocalCoapDevices() {
-    	
-    	if (BluetoothAdapter.getDefaultAdapter() != null) {
-    		
-    	}
-    }
-    
-    private void openConnectionToWebServer() {
+    private void openCoapSocket() {
 		
 		new Thread(new Runnable() { 
 			
@@ -98,30 +72,16 @@ public class CoapService extends Service {
 				
 				try {
 					
-					socket = new DatagramSocket(StaticResources.COAP_DEFAULT_PORT);
-					byte[] receiveByte = new byte[512]; //512 for IPv6 networks?
-					socket.connect(InetAddress.getByName(StaticResources.LOCALHOST), StaticResources.SERVER_UDP_PORT);
+					webServerSocket = new DatagramSocket(StaticResources.COAP_DEFAULT_PORT);
+					webServerSocket.setReceiveBufferSize(1024);
+					byte[] receiveByte = new byte[1024]; //512 for IPv6 networks?
+					//webServerSocket.connect(InetAddress.getByName(StaticResources.LOCALHOST), StaticResources.SERVER_UDP_PORT);
 					DatagramPacket receivedPacket = new DatagramPacket(receiveByte, receiveByte.length);
 			
 					
-					while(socket.isConnected()) {
+					while(true) {
 						
-						
-						if (sendBuffer.size() > 0) {
-		
-							
-							byte[] byteBuffer = new byte[sendBuffer.get(sendBuffer.size() - 1).getBytes().length]; //512 for IPv6 networks?
-							DatagramPacket packet = new DatagramPacket(byteBuffer, byteBuffer.length,InetAddress.getByName(StaticResources.LOCALHOST), StaticResources.SERVER_UDP_PORT);
-							packet.setData(byteBuffer);
-							socket.send(packet);
-							
-							packet = null;
-							byteBuffer = null;
-							sendBuffer.remove(sendBuffer.size() - 1);
-
-						}
-						
-						socket.receive(receivedPacket);
+						webServerSocket.receive(receivedPacket);
 						if (receivedPacket.getSocketAddress() != null) {
 							processReceivedPacket(receivedPacket);
 							receivedPacket = null; //clear packet holder
@@ -133,12 +93,34 @@ public class CoapService extends Service {
 					e.printStackTrace();
 				} 
 				
+				return; 
+				
 			}}).start();	
 		
 	}
     
-    private void processReceivedPacket (DatagramPacket _packet){
+    
+    
+    private void listenForLocalCoapDevices () {
     	
+    	this.wifiManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+    	this.wifiChannel = wifiManager.initialize(this, getMainLooper(), null);
+    	
+    	this.wifiListener = new WifiListener();
+    	
+    	IntentFilter mIntentFilter = new IntentFilter();
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+        
+        registerReceiver(wifiListener, mIntentFilter);
+        this.wifiListener.discoverConnectedPeers();
+    }
+    
+    
+    private void processReceivedPacket (DatagramPacket _packet){
+    	//TODO processReceivedPacket
     	
     }
 
@@ -157,56 +139,105 @@ public class CoapService extends Service {
 
     	((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, mBuilder.build());
     }
-   
     
-	public class MyBinder<T> extends Binder implements IMybinder {
-		 private WeakReference<T> mService;
+    
+	public class CoapServiceBinder<T> extends Binder implements ICoapServiceBinder {
+		 private WeakReference<T> coapService;
 		 
-		public MyBinder(T service) {
-		 mService = new WeakReference<T>(service);
-		 }
+		public CoapServiceBinder(T service) {
+			coapService = new WeakReference<T>(service);
+		}
 		 
 		public T getService() {
-		 return mService.get();
-		 }
+		 return coapService.get();
+		}
 		 
 		@Override
 		 public String getName() {
+			return null;
+		}
 		 
-		Random r = new Random();
-		 return "=> your lucky number is:" + r.nextInt(100);
-		 }
 		 
 		@Override
 		 public void sendMessage(Message _msg) {
-
-		
-			try {
-				byte[] byteBuffer = _msg.obj.toString().getBytes("UTF8");
-				DatagramPacket packet = new DatagramPacket(byteBuffer, byteBuffer.length);
-				packet.setData(byteBuffer);
-				socket.send(packet);
-			} catch (UnsupportedEncodingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 			
-
+			//if (webServerSocket.isConnected()) {
+				try {
+					byte[] byteBuffer = _msg.obj.toString().getBytes("UTF8");
+					//DatagramPacket packet = new DatagramPacket(byteBuffer, byteBuffer.length);
+					DatagramPacket packet = new DatagramPacket(byteBuffer,byteBuffer.length,InetAddress.getByName(StaticResources.REMOTEHOST),StaticResources.SERVER_UDP_PORT);
+					packet.setData(byteBuffer);
+					webServerSocket.send(packet);
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			//}
 		 }
-		 }
-		
+	}
 		 
 		 /** Interface setting the name and getting the name.**/
 		 
-		 public interface IMybinder
-		 {
-		 public String getName();
+	public interface ICoapServiceBinder {
 		 
-		 public void sendMessage(Message _msg);
-		 }
+		public String getName();
+		public void sendMessage(Message _msg);
+	
+	}
+	
+	class WifiListener extends BroadcastReceiver implements PeerListListener  {
+
+		  public WifiListener() {
+		       super();
+		   }
+		   
+		   public void discoverConnectedPeers() {
+			   wifiManager.discoverPeers( wifiChannel, new WifiP2pManager.ActionListener() {
+			   	    
+			   		@Override
+			   	    public void onSuccess() {
+			   	       System.out.println("Discover Peers Success");
+			   	    }
+
+			   	    @Override
+			   	    public void onFailure(int reasonCode) {
+			   	    	System.out.println("Discover Peers Failed");
+			   	    }
+			   	});
+		   }
+		   
+		   @Override
+		   public void onReceive(Context context, Intent intent) {
+		       String action = intent.getAction();
+
+		       if (WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION.equals(action)) {
+		    	   
+		    	   int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
+		           if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
+		               System.out.println("Wifi enabled");
+		           } else {
+		        	   System.out.println("Wifi disabled");
+		           }
+
+		       } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
+		    	   wifiManager.requestPeers(wifiChannel, this);
+		       } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
+		           // Respond to new connection or disconnections
+		       } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
+		           // Respond to this device's wifi state changing
+		       }
+		   }
+
+		   @Override
+		   public void onPeersAvailable(WifiP2pDeviceList peers) {
+			   availableWifiDevices = peers;
+			
+		   }
+	}
+	
 
     
    

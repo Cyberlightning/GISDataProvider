@@ -17,7 +17,8 @@
     <string name="app_name">CoAP service</string>
     <string name="service_main_title">Cyberlightning CoAP service</string>
     
-    <string name="main_no_connection_notification">Program needs internet connection to work</string>
+    <string name="main_no_connection_notification">Program requires an Internet connection</string>
+    <string name="main_no_wifi_notification">Program requires WIFI to be turned on</string>
     
     <string name="request_enable_bluetooth">Coap services requires bluetooth to be enabled, permission to enable bluetooth?</string>
     
