@@ -11,10 +11,13 @@
     
 	<script src="js/jquery-1.9.1.js"></script>
 	<script src="js/jquery-ui-1.10.3.custom.js"></script>
-	<script src="js/three.min.js"></script>
-	<script src="js/Chart.js"></script>
-		
-	<script type="text/javascript">
+	<script src="js/three.min.js"></script>>
+    <script src="js/knockout-2.2.1.js"></script>
+    <script src="js/globalize.min.js"></script>
+    <script src="js/dx.chartjs.js"></script>
+
+
+    <script type="text/javascript">
 	 $(function() {
 		 $( "#accordion" ).accordion();
 		 });
@@ -26,6 +29,9 @@
 		margin: 30px;
 		background-color:#1F001F;
 	}
+    canvas{
+
+    }
 	</style>
 </head>
 
@@ -37,18 +43,16 @@
 <div style="width:100%;height:100%">
   	
   	
-  	<div id="content_left" style="background-color:#D2CCD2;height:500px;width:29%;float:left;">
-    	 <canvas id="chart_canvas" height="100%" width="100%"></canvas>
+  	<div id="content_left" style="background-color:#D2CCD2;height:500px;width:49%;float:left;">
+
   	</div>
   	
   	<div style="background-color:#938F93;height:500px;width:0.3%;float:left;"></div>
   	
-  	<div style="background-color:#D2CCD2;height:500px;width:70.7%;float:left;">
-		<div id="accordion" onClick="handleClick">
-			
-		</div>
+  	<div style="background-color:#D2CCD2;height:500px;width:50.7%;float:left;">
+		<div id="accordion"></div>
   	</div>
-  	<div align="right" style="background-color:#4C334C;clear:both;color:white">Copyright © 2007 Cyberlightning Ltd.</div>
+  	<div align="right" style="background-color:#4C334C;clear:both;color:white;font-size: 9">Copyright © 2013 Cyberlightning Ltd.</div>
 </div>
 	
 	<script type="text/javascript">
@@ -57,30 +61,41 @@
 	
 	var json;
 	var sensors = [];
-	
+    var type;
+
 	function setContent() {
+
+        var alreadyExists = false;
 		
-		sensors.push(json);
-		
-		var alreadyExists = false;
-		
-		for(var i =0;i<sensors.length;i++){
-			if(sensors[i].properties.type.equals(json.properties.type)) {
-				alreadyExists = true;
-			}
-		}
-		
+		if (sensors != null) {
+            for(var i =0;i<sensors.length;i++){
+                if(sensors[i].device_properties.type == json.device_properties.type) {
+                    alreadyExists = true;
+                    break;
+                }
+            }
+        }
+
+        sensors.push(json);
+
 		if (!alreadyExists) {
+            type =  json.device_properties.type;
 			var active = $('#accordion').accordion('option', 'active');
-			$('#accordion').append('<h3><a href="#drawCharts('+json.properties.type+')">'+json.properties.type +'</a></h3><div><p>'+ json +'</p></div>')
+			$('#accordion').append('<h3><a href="#" onclick="drawCharts()">' + type + '</a></h3><div>'+ parseContent(json) +'</div>')
 			    .accordion('destroy').accordion({ active: active});
 		}
 		
 		
 	}
 
-	
-	function drawCharts(type) {
+	function parseContent(data) {
+        var content = "<b>Device Id:</b><i>" + data.device_id + "</i>   <b>Current Uptime:</b> <i>" + Math.round(eval(data.device_uptime)/60000000000)  + " minutes</i></br>";
+        content += "<b>Sensor vendor: </b><i>" + data.device_properties.vendor + "</i>   <b>Power usage: </b><i>" + data.device_properties.power + " mA </i></br>";
+        content += "<b>Latest recorded sensor event: </b><i>" + data.event_timestamp + "</i>";
+        return content;
+    }
+
+	function drawCharts() {
 		
 		var xValues = [];
 		var yValues = [];
@@ -88,7 +103,7 @@
 		var timeStamps = [];
 		
 		for (var i = 0 ; i < sensors.length; i++) {
-			if (sensors[i].properties.type.equals(type)) {
+			if (sensors[i].device_properties.type == type) {
 				xValues.push(sensors[i].event_values[0]);
 				yValues.push(sensors[i].event_values[1]);
 				zValues.push(sensors[i].event_values[2]);
@@ -96,23 +111,42 @@
 			}
 		}
 		
-		if(type.equals(TYPE_LIGHT)) {
-			
-			var barChartData = {
-					labels : timeStamps,
-					datasets : [
-						{
-							fillColor : "rgba(220,220,220,0.5)",
-							strokeColor : "rgba(220,220,220,1)",
-							data : xValues
-						}
-					]
-				}
-			
-			var myLine = new Chart(document.getElementById("chart_canvas").getContext("2d")).Bar(barChartData);
+		if(type == "TYPE_LIGHT" || type =="TYPE_PRESSURE" || type == "TYPE_MAGNETIC_FIELD") {
+            var dSource = [];
+
+            for (var j = 0; j < timeStamps.length; j++) {
+                var dEntry = {"Time": timeStamps[j],"Value":xValues[j] };
+                dSource.push(dEntry)
+            }
+
+            $(function ()
+            {
+                $("#chartContainer").dxChart({
+                    dataSource: [
+                        {day: "Monday", oranges: 3},
+                        {day: "Tuesday", oranges: 2},
+                        {day: "asd", oranges: 3},
+                        {day: "Thursday", oranges: 4},
+                        {day: "Friday", oranges: 6},
+                        {day: "Saturday", oranges: 11},
+                        {day: "Sunday", oranges: 4} ],
+
+                    series: {
+                        argumentField: "day",
+                        valueField: "oranges",
+                        name: "My oranges",
+                        type: "bar",
+                        color: "orange"
+                    }
+                });}
+
+            );
+
+
+
 		} 
 	}
-	
+
 	function WebSocketTest()
      {
        if ("WebSocket" in window)
@@ -129,8 +163,9 @@
           };
           ws.onmessage = function (evt)
           {
-        	document.getElementById("chart_canvas").innerHTML = evt.data;
-            json = JSON.parse(document.getElementById("chart_canvas").innerHTML);
+        	document.getElementById("content_left").innerHTML = evt.data;
+            json = JSON.parse(document.getElementById("content_left").innerHTML);
+            document.getElementById("content_left").innerHTML = "";
             setContent();
 
           };
