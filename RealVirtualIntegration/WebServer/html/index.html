@@ -1,259 +1,153 @@
-<!DOCTYPE html>
-<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title>Cyberlightning FI-WARE</title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width">
+<!doctype html>
+<html lang="us">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="description" content="Cyberlightning FI-WARE - IoT project, Author: Tomi Sarni">
+    <meta name="viewport" content="width=device-width">
+    <title>Cyberlightning FI-WARE</title>
 
-        <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
-
-    </head>
-<style>
-
-.node {
-  cursor: pointer;
-}
-
-.node circle {
-  fill: #fff;
-  stroke: steelblue;
-  stroke-width: 1.5px;
-}
-
-.node text {
-  font: 10px sans-serif;
-}
-
-.link {
-  fill: none;
-  stroke: #ccc;
-  stroke-width: 1.5px;
-}
-
-
-
-body {
-  font: 10px sans-serif;
-}
-
-.axis path,
-.axis line {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
-}
-
-.bar {
-  fill: steelblue;
-}
-
-.x.axis path {
-  display: none;
-}
-
-svg {
-  font: 10px sans-serif;
-}
- 
-.line {
-  fill: none;
-  stroke: #000;
-  stroke-width: 1.5px;
-}
- 
-.chart rect {
-	fill: steelblue;
-	stroke: white;
-}
-
-</style>
+    <link href="css/eggplant/jquery-ui-1.10.3.custom.css" rel="stylesheet">
     
-    
-    <body>
-        <!--[if lt IE 7]>
-            <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
-        <![endif]-->
+	<script src="js/jquery-1.9.1.js"></script>
+	<script src="js/jquery-ui-1.10.3.custom.js"></script>
+	<script src="js/three.min.js"></script>
+	<script src="js/Chart.js"></script>
+		
+	<script type="text/javascript">
+	 $(function() {
+		 $( "#accordion" ).accordion();
+		 });
+	</script>
+	
+	<style>
+	body{
+		font: 62.5% "Trebuchet MS", sans-serif;
+		margin: 30px;
+		background-color:#1F001F;
+	}
+	</style>
+</head>
 
-        <!-- Add your site or application content here -->
-       	<div id="sse">
-   			<a href="javascript:WebSocketTest()">Run WebSocket</a>
+<body>
+	<div align="left" style="width:100%;height:100px">
+		<img alt="" src="assets/logo.png">	
+		<button onClick="WebSocketTest()">connect</button>
+	</div>
+<div style="width:100%;height:100%">
+  	
+  	
+  	<div id="content_left" style="background-color:#D2CCD2;height:500px;width:29%;float:left;">
+    	 <canvas id="chart_canvas" height="100%" width="100%"></canvas>
+  	</div>
+  	
+  	<div style="background-color:#938F93;height:500px;width:0.3%;float:left;"></div>
+  	
+  	<div style="background-color:#D2CCD2;height:500px;width:70.7%;float:left;">
+		<div id="accordion" onClick="handleClick">
+			
 		</div>
-		<div id="myChart"></div>
-		<div id="myChart2"></div>
-        <script src="http://d3js.org/d3.v3.min.js"></script>
-        <script type="text/javascript" src="tc-min.js"></script>
-        <script src="three.min.js"></script>
-
-
-
-<script type="text/javascript">
-    
+  	</div>
+  	<div align="right" style="background-color:#4C334C;clear:both;color:white">Copyright © 2007 Cyberlightning Ltd.</div>
+</div>
+	
+	<script type="text/javascript">
+	
+	
+	
 	var json;
-   
-    function displayChart(){
-       	
-    	var mytc = new Timechart({
-        id: "myChart2",
-        zoom: "d",
-        datefield: "event_timestamp",
-        datafields: ["event_values[0]", "event_values[1]","event_values[2]"],
-        dateformat: "yyyy-mm-dd h:i"
-    	},json);
-    } 
-    
-    renderer = new THREE.WebGLRenderer();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 500);
-    camera.position.set(0, 200, 100);
-    camera.lookAt(new THREE.Vector3(0, 0, 0));
-    scene = new THREE.Scene();
-    
-    var material = new THREE.LineBasicMaterial({
-        color: 0x0000ff
-    });
-    
-    var geometry = new THREE.Geometry();
+	var sensors = [];
+	
+	function setContent() {
+		
+		sensors.push(json);
+		
+		var alreadyExists = false;
+		
+		for(var i =0;i<sensors.length;i++){
+			if(sensors[i].properties.type.equals(json.properties.type)) {
+				alreadyExists = true;
+			}
+		}
+		
+		if (!alreadyExists) {
+			var active = $('#accordion').accordion('option', 'active');
+			$('#accordion').append('<h3><a href="#drawCharts('+json.properties.type+')">'+json.properties.type +'</a></h3><div><p>'+ json +'</p></div>')
+			    .accordion('destroy').accordion({ active: active});
+		}
+		
+		
+	}
 
-    
-    function callBack() {
-    	
-    	var geometry = new THREE.Geometry();
-    	geometry.vertices.push(new THREE.Vector3(0, 0, 0));  
-    	geometry.vertices.push(new THREE.Vector3(json.event_values[0], json.event_values[1], json.event_values[2]));
-    	var line = new THREE.Line(geometry, material);
-    	scene.add(line);
-    	renderer.render(scene, camera);
-  
-    }
-
-        function WebSocketTest()
-        {
-          if ("WebSocket" in window)
+	
+	function drawCharts(type) {
+		
+		var xValues = [];
+		var yValues = [];
+		var zValues = [];
+		var timeStamps = [];
+		
+		for (var i = 0 ; i < sensors.length; i++) {
+			if (sensors[i].properties.type.equals(type)) {
+				xValues.push(sensors[i].event_values[0]);
+				yValues.push(sensors[i].event_values[1]);
+				zValues.push(sensors[i].event_values[2]);
+				timeStamps.push(sensors[i].event_timestamp)	
+			}
+		}
+		
+		if(type.equals(TYPE_LIGHT)) {
+			
+			var barChartData = {
+					labels : timeStamps,
+					datasets : [
+						{
+							fillColor : "rgba(220,220,220,0.5)",
+							strokeColor : "rgba(220,220,220,1)",
+							data : xValues
+						}
+					]
+				}
+			
+			var myLine = new Chart(document.getElementById("chart_canvas").getContext("2d")).Bar(barChartData);
+		} 
+	}
+	
+	function WebSocketTest()
+     {
+       if ("WebSocket" in window)
+       {
+          //alert("WebSocket is supported by your Browser!");
+          // Let us open a web socket
+          //var ws = new WebSocket("ws://127.0.0.1:44445");
+          var ws = new WebSocket("ws://dev.cyberlightning.com:44445");
+          ws.onopen = function()
           {
-             //alert("WebSocket is supported by your Browser!");
-             // Let us open a web socket
-             //var ws = new WebSocket("ws://127.0.0.1:44445");
-             var ws = new WebSocket("ws://dev.cyberlightning.com:44445");
-             ws.onopen = function()
-             {
-                // Web Socket is connected, send data using send()
-                ws.send("Message to send");
-                alert("Message is sent...");
-             };
-             ws.onmessage = function (evt)
-             {
-
-            	document.getElementById("myChart").innerHTML = evt.data;
-                json = JSON.parse(document.getElementById("myChart").innerHTML);
-                //callBack();
-                //displayChart();
-                if (s != null) {
-                	   s = {"d":event_values[0], "d":event_values[1], "d":event_values[2]};
-                       data = d3.entries(s);  
-                       test();
-                } else {
-                	var t = {"d":event_values[0], "d":event_values[1], "d":event_values[2]};
-                    data.push(t);
-                    tick();
-                }
-             	
-             };
-             ws.onclose = function()
-             {
-                // websocket is closed.
-                alert("Connection is closed...");
-             };
-          }
-          else
+             // Web Socket is connected, send data using send()
+             ws.send("Message to send");
+             alert("Message is sent...");
+          };
+          ws.onmessage = function (evt)
           {
-             // The browser doesn't support WebSocket
-             alert("WebSocket NOT supported by your Browser!");
-          }
-        }
-        
-        //var n = 40,
-        //random = d3.random.normal(0, .2),
-        //data = d3.range(n).map(random);
-        
-        var data;
-        var s;
-        
-        function test() { 
-        var margin = {top: 20, right: 20, bottom: 20, left: 40},
-        width = 960 - margin.left - margin.right,
-        height = 500 - margin.top - margin.bottom;
-         
-        var x = d3.scale.linear()
-        .domain([0, n - 1])
-        .range([0, width]);
-         
-        var y = d3.scale.linear()
-        .domain([-1, 1])
-        .range([height, 0]);
-         
-        var line = d3.svg.line()
-        .x(function(d, i) { return x(i); })
-        .y(function(d, i) { return y(d); });
-         
-        var svg = d3.select("body").append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-         
-        svg.append("defs").append("clipPath")
-        .attr("id", "clip")
-        .append("rect")
-        .attr("width", width)
-        .attr("height", height);
-         
-        svg.append("g")
-        .attr("class", "x axis")
-        .attr("transform", "translate(0," + y(0) + ")")
-        .call(d3.svg.axis().scale(x).orient("bottom"));
-         
-        svg.append("g")
-        .attr("class", "y axis")
-        .call(d3.svg.axis().scale(y).orient("left"));
-         
-        var path = svg.append("g")
-        .attr("clip-path", "url(#clip)")
-        .append("path")
-        .datum(data)
-        .attr("class", "line")
-        .attr("d", line);
-         
-        tick();
-        
-        }
-        
-        function tick() {
-         
-        // push a new data point onto the back
-        
-         
-        // redraw the line, and slide it to the left
-        path
-        .attr("d", line)
-        .attr("transform", null)
-        .transition()
-        .duration(500)
-        .ease("linear")
-        .attr("transform", "translate(" + x(-1) + ",0)")
-        .each("end", tick);
-         
-        // pop the old data point off the front
-        data.shift();
-         
-        }
+        	document.getElementById("chart_canvas").innerHTML = evt.data;
+            json = JSON.parse(document.getElementById("chart_canvas").innerHTML);
+            setContent();
 
-  </script>
-        
-    </body>
+          };
+          ws.onclose = function()
+          {
+             // websocket is closed.
+             alert("Connection is closed...");
+          };
+       }
+       else
+       {
+          // The browser doesn't support WebSocket
+          alert("WebSocket NOT supported by your Browser!");
+       }
+     }
+	 
+	 
+	</script>
+</body>
 </html>
