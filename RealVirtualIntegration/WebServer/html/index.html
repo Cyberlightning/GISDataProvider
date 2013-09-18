@@ -1,189 +1,188 @@
-<!DOCTYPE html>
-<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title>Cyberlightning FI-WARE</title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width">
+<!doctype html>
+<html lang="us">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="description" content="Cyberlightning FI-WARE - IoT project, Author: Tomi Sarni">
+    <meta name="viewport" content="width=device-width">
+    <title>Cyberlightning FI-WARE</title>
 
-        <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
-
-    </head>
-<style>
-
-.node {
-  cursor: pointer;
-}
-
-.node circle {
-  fill: #fff;
-  stroke: steelblue;
-  stroke-width: 1.5px;
-}
-
-.node text {
-  font: 10px sans-serif;
-}
-
-.link {
-  fill: none;
-  stroke: #ccc;
-  stroke-width: 1.5px;
-}
-
-
-
-body {
-  font: 10px sans-serif;
-}
-
-.axis path,
-.axis line {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
-}
-
-.bar {
-  fill: steelblue;
-}
-
-.x.axis path {
-  display: none;
-}
-
-svg {
-  font: 10px sans-serif;
-}
- 
-.line {
-  fill: none;
-  stroke: #000;
-  stroke-width: 1.5px;
-}
- 
-.chart rect {
-	fill: steelblue;
-	stroke: white;
-}
-
-</style>
+    <link href="css/eggplant/jquery-ui-1.10.3.custom.css" rel="stylesheet">
     
-    
-    <body>
-        <!--[if lt IE 7]>
-            <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
-        <![endif]-->
-
-        <!-- Add your site or application content here -->
-       	<div id="sse">
-   			<a href="javascript:WebSocketTest()">Run WebSocket</a>
-		</div>
-		<div  onload="displayChart" id="myChart"></div>
-        <script src="http://d3js.org/d3.v3.min.js"></script>
-        <script type="text/javascript" src="tc-min.js"></script>
-        <script src="three.min.js"></script>
+	<script src="js/jquery-1.9.1.js"></script>
+	<script src="js/jquery-ui-1.10.3.custom.js"></script>
+	<script src="js/three.min.js"></script>>
+    <script src="js/knockout-2.2.1.js"></script>
+    <script src="js/globalize.min.js"></script>
+    <script src="js/dx.chartjs.js"></script>
 
 
+    <script type="text/javascript">
+	 $(function() {
+		 $( "#accordion" ).accordion();
+		 });
+	</script>
+	
+	<style>
+	body{
+		font: 62.5% "Trebuchet MS", sans-serif;
+		margin: 30px;
+		background-color:#1F001F;
+	}
+    canvas{
 
-<script type="text/javascript">
-    
-	var json;
-   
-    function displayChart(){
-       	
-    	var mytc = new Timechart({
-        id: "myChart",
-        zoom: "d",
-        datefield: "d",
-        datafields: ["a", "b"],
-        dateformat: "yyyy-mm-dd h:i"
-    	},[
-        {d:"2013-05-21 00:30",a:767,b:1420},
-        {d:"2013-05-21 01:30",a:874.5,b:1467},
-        {d:"2013-05-21 02:30",a:808.75,b:1392},
-        // ...
-        {d:"2013-05-28 21:30",a:1101.5,b:1290},
-        {d:"2013-05-28 22:30",a:852,b:1350},
-        {d:"2013-05-28 23:30",a:942.75,b:1446}
-    	]);
-    } 
-    
-    renderer = new THREE.WebGLRenderer();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 500);
-    camera.position.set(0, 0, 100);
-    camera.lookAt(new THREE.Vector3(0, 0, 0));
-    scene = new THREE.Scene();
-    
-    var material = new THREE.LineBasicMaterial({
-        color: 0x0000ff
-    });
-    
-    var geometry = new THREE.Geometry();
-    
-    
-   
-    
-    function callBack() {
-    	
-    	var geometry = new THREE.Geometry();
-    	geometry.vertices.push(new THREE.Vector3(0, 0, 0));  
-    	geometry.vertices.push(new THREE.Vector3(json.event_values[0], json.event_values[1], json.event_values[2]));
-    	var line = new THREE.Line(geometry, material);
-    	scene.add(line);
-    	renderer.render(scene, camera);
-  
     }
-   
-    
+	</style>
+</head>
+
+<body>
+	<div align="left" style="width:100%;height:100px">
+		<img alt="" src="assets/logo.png">	
+		<button onClick="WebSocketTest()">connect</button>
+	</div>
+<div style="width:100%;height:100%">
+  	
+  	
+  	<div id="content_left" style="background-color:#D2CCD2;height:500px;width:49%;float:left;">
+
+  	</div>
+  	
+  	<div style="background-color:#938F93;height:500px;width:0.3%;float:left;"></div>
+  	
+  	<div style="background-color:#D2CCD2;height:500px;width:50.7%;float:left;">
+		<div id="accordion"></div>
+  	</div>
+  	<div align="right" style="background-color:#4C334C;clear:both;color:white;font-size: 9">Copyright © 2013 Cyberlightning Ltd.</div>
+</div>
 	
-  
-			
-        function WebSocketTest()
-        {
-          if ("WebSocket" in window)
-          {
-             //alert("WebSocket is supported by your Browser!");
-             // Let us open a web socket
-             var ws = new WebSocket("ws://127.0.0.1:44445");
-             ws.onopen = function()
-             {
-                // Web Socket is connected, send data using send()
-                ws.send("Message to send");
-                alert("Message is sent...");
-             };
-             ws.onmessage = function (evt) 
-             { 
-                
-            	json = JSON.parse(evt.data);
-                document.getElementById("myChart").innerHTML = json.event_accuracy;
-                callBack();	
-                i++
+	<script type="text/javascript">
 	
-				
-				
-				
-             };
-             ws.onclose = function()
-             { 
-                // websocket is closed.
-                alert("Connection is closed..."); 
-             };
-          }
-          else
-          {
-             // The browser doesn't support WebSocket
-             alert("WebSocket NOT supported by your Browser!");
-          }
+	
+	
+	var json;
+	var sensors = [];
+    var type;
+
+	function setContent() {
+
+        var alreadyExists = false;
+		
+		if (sensors != null) {
+            for(var i =0;i<sensors.length;i++){
+                if(sensors[i].device_properties.type == json.device_properties.type) {
+                    alreadyExists = true;
+                    break;
+                }
+            }
         }
 
-  </script>
-        
-    </body>
+        sensors.push(json);
+
+		if (!alreadyExists) {
+            type =  json.device_properties.type;
+			var active = $('#accordion').accordion('option', 'active');
+			$('#accordion').append('<h3><a href="#" onclick="drawCharts()">' + type + '</a></h3><div>'+ parseContent(json) +'</div>')
+			    .accordion('destroy').accordion({ active: active});
+		}
+		
+		
+	}
+
+	function parseContent(data) {
+        var content = "<b>Device Id:</b><i>" + data.device_id + "</i>   <b>Current Uptime:</b> <i>" + Math.round(eval(data.device_uptime)/60000000000)  + " minutes</i></br>";
+        content += "<b>Sensor vendor: </b><i>" + data.device_properties.vendor + "</i>   <b>Power usage: </b><i>" + data.device_properties.power + " mA </i></br>";
+        content += "<b>Latest recorded sensor event: </b><i>" + data.event_timestamp + "</i>";
+        return content;
+    }
+
+	function drawCharts() {
+		
+		var xValues = [];
+		var yValues = [];
+		var zValues = [];
+		var timeStamps = [];
+		
+		for (var i = 0 ; i < sensors.length; i++) {
+			if (sensors[i].device_properties.type == type) {
+				xValues.push(sensors[i].event_values[0]);
+				yValues.push(sensors[i].event_values[1]);
+				zValues.push(sensors[i].event_values[2]);
+				timeStamps.push(sensors[i].event_timestamp)	
+			}
+		}
+		
+		if(type == "TYPE_LIGHT" || type =="TYPE_PRESSURE" || type == "TYPE_MAGNETIC_FIELD") {
+            var dSource = [];
+
+            for (var j = 0; j < timeStamps.length; j++) {
+                var dEntry = {"Time": timeStamps[j],"Value":xValues[j] };
+                dSource.push(dEntry)
+            }
+
+            $(function ()
+            {
+                $("#chartContainer").dxChart({
+                    dataSource: [
+                        {day: "Monday", oranges: 3},
+                        {day: "Tuesday", oranges: 2},
+                        {day: "asd", oranges: 3},
+                        {day: "Thursday", oranges: 4},
+                        {day: "Friday", oranges: 6},
+                        {day: "Saturday", oranges: 11},
+                        {day: "Sunday", oranges: 4} ],
+
+                    series: {
+                        argumentField: "day",
+                        valueField: "oranges",
+                        name: "My oranges",
+                        type: "bar",
+                        color: "orange"
+                    }
+                });}
+
+            );
+
+
+
+		} 
+	}
+
+	function WebSocketTest()
+     {
+       if ("WebSocket" in window)
+       {
+          //alert("WebSocket is supported by your Browser!");
+          // Let us open a web socket
+          //var ws = new WebSocket("ws://127.0.0.1:44445");
+          var ws = new WebSocket("ws://dev.cyberlightning.com:44445");
+          ws.onopen = function()
+          {
+             // Web Socket is connected, send data using send()
+             ws.send("Message to send");
+             alert("Message is sent...");
+          };
+          ws.onmessage = function (evt)
+          {
+        	document.getElementById("content_left").innerHTML = evt.data;
+            json = JSON.parse(document.getElementById("content_left").innerHTML);
+            document.getElementById("content_left").innerHTML = "";
+            setContent();
+
+          };
+          ws.onclose = function()
+          {
+             // websocket is closed.
+             alert("Connection is closed...");
+          };
+       }
+       else
+       {
+          // The browser doesn't support WebSocket
+          alert("WebSocket NOT supported by your Browser!");
+       }
+     }
+	 
+	 
+	</script>
+</body>
 </html>

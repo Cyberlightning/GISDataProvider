@@ -3,25 +3,23 @@ package com.cyberlightning.android.coap;
 
 import com.cyberlightning.android.coap.sensor.SensorListener;
 import com.cyberlightning.android.coap.service.CoapService;
+import com.cyberlightning.android.coap.service.CoapService.CoapServiceBinder;
 import com.cyberlightning.android.coapclient.R;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Color;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.os.Messenger;
-import android.os.RemoteException;
 import android.os.StrictMode;
 import android.provider.Settings;
 import android.view.Menu;
@@ -32,14 +30,27 @@ import android.widget.Toast;
 
 public class Application extends Activity implements DialogInterface.OnClickListener {
    
-    private boolean isBound = false;
+   
 	private boolean hasServiceStopped = false;
-	
-	private Messenger messengerService = null;
-	private TextView statustext;
-	
 	private final int NOTIFICATION_DELAY = 12000;
-	private final Messenger mMessenger = new Messenger(new IncomingHandler());
+	
+	private CoapServiceBinder<CoapService> coapService;
+	private TextView statustext;
+	private ServiceConnection serviceConnection = new ServiceConnection() {
+	 
+		@Override
+		public void onServiceDisconnected(ComponentName name){
+			//TODO onServiceDisconnected
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service){
+			//Service is connected.
+			coapService = (CoapServiceBinder<CoapService>) service;
+			initiateSensorListener();
+		}
+	};
 
    
 	@Override
@@ -56,7 +67,8 @@ public class Application extends Activity implements DialogInterface.OnClickList
         this.initNetworkConnection();
         this.statustext = (TextView) findViewById(R.id.displayStatus);
   
-    }
+   
+	}
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -84,34 +96,61 @@ public class Application extends Activity implements DialogInterface.OnClickList
     protected void onDestroy() {
     	super.onDestroy(); 
     }
+	
     public Context getContext() {
 		return this.getApplicationContext();
 	}
- 
+	
+    public void sendMessage(Message _msg) {
+		this.coapService.sendMessage(_msg);
+	}
+
+    private void initiateSensorListener() {
+		  Runnable sensorListener = new SensorListener(this);
+	      Thread sensorThread = new Thread(sensorListener);
+	      sensorThread.start();
+	}
     
     private void initNetworkConnection() { 
     	
-    	ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+    	boolean hasWifi = false;
       	boolean hasInternet = false;
     	
-    	for (NetworkInfo networkInfo : connectivityManager.getAllNetworkInfo()) { 
-            if (networkInfo.getTypeName().equalsIgnoreCase("WIFI")) {
-            	if (networkInfo.isConnected()) hasInternet = true;       	
-            }
-                
-            if (networkInfo.getTypeName().equalsIgnoreCase("MOBILE")) {
-            	if (networkInfo.isConnected()) hasInternet = true;	
-            }  
-    	}
+      	WifiManager wifiManager = (WifiManager)getBaseContext().getSystemService(Context.WIFI_SERVICE);
+        
+         if (wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED) {
+        	 hasWifi = true;
+        	//wifiManager.setWifiEnabled(true); //TODO ask permission to set WIFI on
+         }
     	
-    	if (!hasInternet) {
+    	if (this.haveNetworkConnection()) hasInternet = true;
+    	if (!hasWifi) {
+    		
+    		Toast.makeText(this, R.string.main_no_wifi_notification, this.NOTIFICATION_DELAY).show();
     		Intent settingsIntent = new Intent( Settings.ACTION_WIFI_SETTINGS); 
     		this.startActivityForResult(settingsIntent, 1); //TODO onActivityResult() callback needs interception
-    		Toast.makeText(this, R.string.main_no_connection_notification, this.NOTIFICATION_DELAY).show();
-    		this.finish();	
+    		this.finish();
+    		
     	} else {
-    		this.doBindService();
+    		if (hasInternet) {
+    			bindService(new Intent(this, CoapService.class), this.serviceConnection, Service.BIND_AUTO_CREATE);
+    			
+    		} else {
+    			Toast.makeText(this, R.string.main_no_connection_notification, this.NOTIFICATION_DELAY).show();
+        		this.finish();	
+    		}
+    		
+    		
     	}
+    }
+    private boolean haveNetworkConnection() {
+        final ConnectivityManager conMgr = (ConnectivityManager) getSystemService (Context.CONNECTIVITY_SERVICE);
+           if (conMgr.getActiveNetworkInfo() != null && conMgr.getActiveNetworkInfo().isAvailable() &&    conMgr.getActiveNetworkInfo().isConnected()) {
+                 return true;
+           } else {
+                 System.out.println("Internet Connection Not Present");
+               return false;
+           }
     }
 
     private void showExitDialog() { 
@@ -134,37 +173,7 @@ public class Application extends Activity implements DialogInterface.OnClickList
     	AlertDialog alert = builder.create();
     	alert.show();
     }
-    
-    private void doBindService() { 
-        bindService(new Intent(this, CoapService.class), serviceConnection, Context.BIND_AUTO_CREATE);
-        this.isBound = true;
-    }
-    
-    private void doUnbindService() { 
 
-    	if (this.isBound) {
-
-        	if (this.messengerService != null) {
-                try {
-                    Message msg = Message.obtain(null, CoapService.MSG_UNREGISTER_CLIENT);
-                    msg.replyTo = mMessenger;
-                    this.messengerService.send(msg);
-                   
-                } catch (RemoteException e) {
-                    // There is nothing special we need to do if the service has crashed.
-                }
-            }
-            
-            unbindService(serviceConnection);
-            this.isBound = false;
-        }
-    }
-
- 	private void stopService() {
- 		this.doUnbindService();
-        stopService(new Intent(Application.this, CoapService.class));
- 	}
- 	
 	@Override
 	public void onClick(DialogInterface dialog, int action) {
 		
@@ -176,63 +185,11 @@ public class Application extends Activity implements DialogInterface.OnClickList
 			case Dialog.BUTTON_NEGATIVE: this.finish();
 			break;
 
-			case Dialog.BUTTON_NEUTRAL: this.stopService(); this.finish();
+			case Dialog.BUTTON_NEUTRAL:  this.finish(); //this.stopService();
 			break;
 
 		}	
 	}
-	public void initiateSensorListener() {
-		  Runnable sensorListener = new SensorListener(this,this.messengerService);
-	      Thread sensorThread = new Thread(sensorListener);
-	      sensorThread.start();
-	}
-	
-	/**
-	 * Handler of incoming messages from service.
-	 */
-	public class IncomingHandler extends Handler {
-	    @Override
-	    public void handleMessage(Message msg) {
-	        switch (msg.what) {
-	            case StaticResources.SENSOR_EVENT:
-				try {
-					messengerService.send(msg);
-					statustext.setTextColor(Color.GREEN);
-					
-					statustext.setText("Sensor event send -> sensor number: " + msg.arg2);
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-	               
-	                break;
-	            default:
-	                super.handleMessage(msg);
-	        }
-	    }
-	}
-	
-	private ServiceConnection serviceConnection = new ServiceConnection() { 
-		
-		public void onServiceConnected(ComponentName className, IBinder service) {
-	        	
-			messengerService= new Messenger(service);
-	            
-			try {
-	            Message msg = Message.obtain(null, CoapService.MSG_REGISTER_CLIENT);
-	            msg.replyTo = mMessenger;
-	            messengerService.send(msg);
-	               
-	        } catch (RemoteException e) {
-	        	e.printStackTrace();
-	        } 
-		    initiateSensorListener();
-		}
-	    public void onServiceDisconnected(ComponentName className) {
-	        messengerService = null;
-	    }
-	}; 
-	
 
 }
 
