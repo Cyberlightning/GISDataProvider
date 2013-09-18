@@ -83,10 +83,11 @@ public void run() {
 	}
 	
 }
+
 private void handGETMethod(String _query) throws Exception {
 	
 	if (_query.equals("/")) {
-		sendResponse(200, "/home/tomi/git/Cyber-WeX/RealVirtualIntegration/WebServer/html/index.html", true); //absolute path for local dev
+		sendResponse(200, "index.html", true); //absolute path for local dev
 		
 	} else {
 		//This is interpreted as a file name
@@ -97,7 +98,7 @@ private void handGETMethod(String _query) throws Exception {
 			sendResponse(200, fileName, true);	
 		}
 		else {
-			sendResponse(404, "/home/tomi/git/Cyber-WeX/RealVirtualIntegration/WebServer/html/404.html", false);
+			sendResponse(404, "404.html", false);
 		}
 	}
 }
