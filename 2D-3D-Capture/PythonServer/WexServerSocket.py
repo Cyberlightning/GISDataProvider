@@ -1,12 +1,13 @@
 import re  
 import struct   
-from base64 import b64encode
+from base64 import b64encode,b64decode
 from hashlib import sha1
+from cStringIO import StringIO
 import gevent
 from gevent import socket
 from PIL import Image
 import json
-import time ,sys 
+import sys 
 
 
 
@@ -38,7 +39,8 @@ def encodeMessage( message):
     
 def connectionHandler( conn, addr):
     filename= ""
-    BUFFER = ""             
+    BUFFER = ""
+    done=""             
     print 'Connected with ' + addr[0] + ':' + str(addr[1])
     while True:
         try:
@@ -52,19 +54,19 @@ def connectionHandler( conn, addr):
                      
                 #working
             if len(data) == 0:
-                return
+                return            
             key = re.search('Sec-WebSocket-Key:\s+(.*?)[\n\r]+', data)
             if key is not None:
-                print data
+                #print data
                     #print len(key)
                 key = key.groups()[0].strip()
                 if key is not None:
                     response_key = b64encode(sha1(key + magic_string).digest())
                     response = '\r\n'.join(response_header).format(key=response_key)
-                    print '#####################################'
-                    print response
-                    print len(response)
-                    print '#####################################'
+#                     print '#####################################'
+#                     print response
+#                     print len(response)
+#                     print '#####################################'
                     conn.send(response)
                     message = "Hello Client\n..Server is listening..!"                                              
                     conn.send(encodeMessage(message))
@@ -82,23 +84,23 @@ def connectionHandler( conn, addr):
                 mask = b2 & 0x80    # high bit of the second byte
                 length = b2 & 0x7f   # low 7 bits of the second byte
                         #print "<!---------------------------------------!>"
-                        #print "OPCODE"
-                        #print opcode
-                        #print "Length"                
-                        #print length
-                        #print "FIN"
-                        #print fin
+                #print "OPCODE"
+                #print opcode
+                #print "Length"                
+                #print length
+                #print "FIN"
+                #print fin
                         # check that enough bytes remain
                 if len(buf) < payload_start + 4:
                     return
                 elif length == 126:
-                    length, = struct.unpack_from('>xH', buf)
+                    length, = struct.unpack_from('>xxH', buf)
                     payload_start += 2
                 elif length == 127:
                     length, = struct.unpack_from('>xxQ', buf)
                     payload_start += 8
-                print "LENGTH OF THE PAYLOAD"
-                print length
+                #print "LENGTH OF THE PAYLOAD"
+                #print length
                         #print "Un-masking"                                
                 if mask:
                     mask_bytes = [ord(b) for b in buf[payload_start:payload_start + 4]]
@@ -106,53 +108,72 @@ def connectionHandler( conn, addr):
                             #print mask_bytes
                     payload_start += 4
                 full_len = payload_start + length
-                        #print "FULL LENGTH"
-                        #print full_len
-                        #print len(buf)
+                #print "FULL LENGTH"
+                #print full_len
+                #print len(buf)
                 if len(buf) < full_len:
                     print "Not a complete frame"
                 else:
                     print 'There is a complete frame now' 
-                    print "check the buffer"
-                    print len(BUFFER)
+                    #print "check the buffer"
+                    print len(buf)
                     #print self.BUFFER
-                            #print "<!---------------------------------------!>"
-                                # is there a complete frame in the buffer?
-                                              
-                                # remove leading bytes, decode if necessary, dispatch
-                                
+                    #print "<!---------------------------------------!>"
+                    # remove leading bytes, decode if necessary, dispatch                                
                     payload = buf[payload_start:full_len]
                             # use xor and mask bytes to unmask data
                     if mask:  
                                 #print mask_bytes                        
                                 #print "<!======================================!>"
                         unmasked = [mask_bytes[i % 4] ^ ord(b) for b, i in zip(payload, range(len(payload)))]
-                                #unmasked = reversed(unmasked)
-                               #print "<!======================================!>"
+                        #unmasked = reversed(unmasked)
+                        #print "<!======================================!>"
                         payload = "".join([chr(c) for c in unmasked])
-                                #print binascii.hexlify(payload)
-                                #print "<!======================================!>"
+                        #print binascii.hexlify(payload)
+                        #print "<!======================================!>"
                                         
                         if opcode == 1:
-                            s = payload.decode("UTF8")
-                            jsondata = json.loads(s)
-                            filename= jsondata["type"]+"_"+jsondata["time"]+"."+jsondata["ext"]
-                            print(filename)
+                            if done=="":                                
+                                s = payload.decode("UTF8")
+                                jsondata = json.loads(s)
+                                filename= jsondata["type"]+"_"+jsondata["time"]+"."+jsondata["ext"]
+                                print(filename)
                                 #time.sleep(1)
-                            message= "FILENAME"                            
-                            sent = conn.send(encodeMessage(message))                           
-                            print "BYTES SENT"
-                            print sent
-                            BUFFER=""
-                            buf= ""
-                                #conn.close()
-                                #break 
+                                message= "FILENAME"                            
+                                sent = conn.send(encodeMessage(message))                           
+                                print "BYTES SENT"
+                                print sent
+                                BUFFER=""
+                                buf= ""
+                                done="true"
+                            else :
+#                                 payload= payload[5:]
+                                #print payload
+                                splitplace=payload.find(",")
+                                #print(splitplace)
+                                payload= payload[splitplace+1:]
+                                print "########################################"
+                                #print payload
+                                try :
+                                    payload = b64decode(payload)
+                                    file_like = StringIO(payload)
+                                    i = Image.open(file_like)
+                                    i.save(filename)
+                                except RuntimeError as e:
+                                    conn.close();
+                                    print e.strerror                                    
+                                    sys.exit(0)                                
+                                conn.close()
+                                BUFFER=""
+                                buf= ""
+                                filename= ""
+                                done= ""
+                                break 
                         elif opcode == 2:                        
-                            print 'Handling binary data'
+                            print 'Handling binary data'                           
                             size = 640 ,427
                             img = Image.frombuffer('RGBA', size, payload,'raw','RGBA',0,1)
-                                #img.save("image1.png")
-                            img.save(filename)                                                      
+                            img.save(filename)      
                             print '##### frame processed###'        
                             print 'Closing the connection'
                             conn.close()
