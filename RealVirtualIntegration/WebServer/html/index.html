@@ -11,11 +11,7 @@
     
 	<script src="js/jquery-1.9.1.js"></script>
 	<script src="js/jquery-ui-1.10.3.custom.js"></script>
-	<script src="js/three.min.js"></script>>
-    <script src="js/knockout-2.2.1.js"></script>
-    <script src="js/globalize.min.js"></script>
-    <script src="js/dx.chartjs.js"></script>
-
+	<script src="js/three.min.js"></script>
 
     <script type="text/javascript">
 	 $(function() {
@@ -54,9 +50,28 @@
   	</div>
   	<div align="right" style="background-color:#4C334C;clear:both;color:white;font-size: 9">Copyright © 2013 Cyberlightning Ltd.</div>
 </div>
-	
+	<div id="holder"></div>
 	<script type="text/javascript">
 	
+	
+	
+	var WIDTH = $("#content_left").height();
+	var HEIGHT = $("#content_left").width();
+	
+
+	// set some camera attributes
+	var VIEW_ANGLE = 45,
+	  ASPECT = WIDTH / HEIGHT,
+	  NEAR = 0.1,
+	  FAR = 10000;
+
+	// get the DOM element to attach to
+	// - assume we've got jQuery to hand
+	var $container = $('#content_left');
+
+	// create a WebGL renderer, camera
+	// and a scene
+	renderer = new THREE.WebGLRenderer( {antialias:true} );
 	
 	
 	var json;
@@ -81,7 +96,7 @@
 		if (!alreadyExists) {
             type =  json.device_properties.type;
 			var active = $('#accordion').accordion('option', 'active');
-			$('#accordion').append('<h3><a href="#" onclick="drawCharts()">' + type + '</a></h3><div>'+ parseContent(json) +'</div>')
+			$('#accordion').append('<h3><a href="#" onclick="drawCharts(event)">' + type + '</a></h3><div>'+ parseContent(json) +'</div>')
 			    .accordion('destroy').accordion({ active: active});
 		}
 		
@@ -95,55 +110,153 @@
         return content;
     }
 
-	function drawCharts() {
+	function drawCharts(e) {
 		
+		var eventTarget = e.explicitOriginalTarget.data
+		var cubeX = 20;
+		var cubeZ = 20;
+		var cubeY = 0;
+		
+		var tempSensorList = sensors;
 		var xValues = [];
-		var yValues = [];
-		var zValues = [];
-		var timeStamps = [];
 		
-		for (var i = 0 ; i < sensors.length; i++) {
-			if (sensors[i].device_properties.type == type) {
-				xValues.push(sensors[i].event_values[0]);
-				yValues.push(sensors[i].event_values[1]);
-				zValues.push(sensors[i].event_values[2]);
-				timeStamps.push(sensors[i].event_timestamp)	
+		var timeStamps = [];
+		var minValue = 50000;
+		var maxValue = 0;
+		
+		for (var i = 0 ; i < tempSensorList.length; i++) {
+			if (tempSensorList[i].device_properties.type == eventTarget) {
+				xValues.push(tempSensorList[i].event_values[0]);
+				if (minValue > parseFloat(tempSensorList[i].event_values[0])) {
+					minValue = parseFloat(tempSensorList[i].event_values[0]);
+				}
+				if (maxValue < parseFloat(tempSensorList[i].event_values[0])) {
+					maxValue = parseFloat(tempSensorList[i].event_values[0]);
+				}
+			
+				timeStamps.push(tempSensorList[i].event_timestamp)	
 			}
 		}
 		
-		if(type == "TYPE_LIGHT" || type =="TYPE_PRESSURE" || type == "TYPE_MAGNETIC_FIELD") {
-            var dSource = [];
+		if(eventTarget == "TYPE_LIGHT" || eventTarget =="TYPE_PRESSURE" || eventTarget == "TYPE_MAGNETIC_FIELD") {
+            
+			var standardized = 100/(maxValue - minValue);
+			var camera =
+				  new THREE.PerspectiveCamera(
+				    VIEW_ANGLE,
+				    ASPECT,
+				    NEAR,
+				    FAR);
 
-            for (var j = 0; j < timeStamps.length; j++) {
-                var dEntry = {"Time": timeStamps[j],"Value":xValues[j] };
-                dSource.push(dEntry)
-            }
+				var scene = new THREE.Scene();
+				
+				scene.add(camera);
+				
+				// the camera starts at 0,0,0
+				// so pull it back
+				camera.position.z = 300;
+				camera.position.y = 200;
+				camera.position.x = 100;
 
-            $(function ()
-            {
-                $("#chartContainer").dxChart({
-                    dataSource: [
-                        {day: "Monday", oranges: 3},
-                        {day: "Tuesday", oranges: 2},
-                        {day: "asd", oranges: 3},
-                        {day: "Thursday", oranges: 4},
-                        {day: "Friday", oranges: 6},
-                        {day: "Saturday", oranges: 11},
-                        {day: "Sunday", oranges: 4} ],
+				// start the renderer
+				renderer.setSize(WIDTH, HEIGHT);
 
-                    series: {
-                        argumentField: "day",
-                        valueField: "oranges",
-                        name: "My oranges",
-                        type: "bar",
-                        color: "orange"
-                    }
-                });}
+				// attach the render-supplied DOM element
+				$container.append(renderer.domElement);
+				
+				
+					
 
-            );
+				// create a point light
+				var pointLight =
+				  new THREE.PointLight(0xFFFFFF);
 
+				// set its position
+				pointLight.position.x = 10;
+				pointLight.position.y = 50;
+				pointLight.position.z = 130;
 
+				// add to the scene
+				scene.add(pointLight);
+				
+				var material = new THREE.LineBasicMaterial({
+			        color: 0x0000ff
+			    });
+				
+				var geometry = new THREE.Geometry();
+				geometry.vertices.push(new THREE.Vector3(0, 0, 0));
+				geometry.vertices.push(new THREE.Vector3(0, 100, 0));
+				
+				var line = new THREE.Line(geometry, material);
+				scene.add(line);
+				
+				var geometry = new THREE.Geometry();
+				geometry.vertices.push(new THREE.Vector3(0, 0, 0));
+				geometry.vertices.push(new THREE.Vector3(0, 0, 100));
+				
+				var line = new THREE.Line(geometry, material);
+				scene.add(line);
+				
+				var geometry = new THREE.Geometry();
+				geometry.vertices.push(new THREE.Vector3(0, 0, 0));
+				geometry.vertices.push(new THREE.Vector3(100,0 , 0));
+				
+				var line = new THREE.Line(geometry, material);
+				scene.add(line);
+				camera.lookAt( scene.position );
+				
+			var j = 0;
+			while(j < xValues.length && j < 5) {
 
+				if (xValues.length > 1 ) {
+					cubeY = (parseFloat(xValues[j]) - minValue) * standardized;
+				} else {
+					cubeY = parseFloat(xValues[j]) * standardized;
+				}
+				
+				if (cubeY == 0) cubeY = 1;
+
+				var geometry = new THREE.CubeGeometry( cubeX, cubeY, cubeZ );
+
+        		for ( var i = 0; i < geometry.faces.length; i += 2 ) {
+					var hex = Math.random() * 0xffffff;
+        			geometry.faces[ i ].color.setHex( hex );
+        			geometry.faces[ i + 1 ].color.setHex( hex );
+        		}
+
+        		var material = new THREE.MeshBasicMaterial( { vertexColors: THREE.FaceColors, overdraw: 0.5 } );
+        		cube = new THREE.Mesh( geometry, material );
+        		cube.position.y = cubeY/2;
+        		cube.position.x = cubeX/2 + j*20; //5 pixels space between bars after first
+        		cube.position.z = cubeZ/2;
+        		scene.add( cube );
+        	 
+        		j++
+        		
+        		
+				
+			}
+			
+			var canvas1 = document.createElement('canvas');
+    		var context1 = canvas1.getContext('2d');
+    		context1.font = "14px Arial";
+    		context1.fillStyle = "rgba(0,0,0,0.95)";
+    		    context1.fillText("Value range: " +parseFloat(minValue).toFixed(2) + " - " + parseFloat(maxValue).toFixed(2), 0, 50);
+    		    
+    		// canvas contents will be used for a texture
+    		var texture1 = new THREE.Texture(canvas1)
+    		texture1.needsUpdate = true;
+    		      
+    		    var material1 = new THREE.MeshBasicMaterial( {map: texture1, side:THREE.DoubleSide } );
+    		    material1.transparent = true;
+
+    		    var mesh1 = new THREE.Mesh(
+    		        new THREE.PlaneGeometry(canvas1.width, canvas1.height),
+    		        material1
+    		      );
+    		mesh1.position.set(0,20,-300);
+    		scene.add( mesh1 );
+			renderer.render(scene, camera);
 		} 
 	}
 
@@ -163,9 +276,9 @@
           };
           ws.onmessage = function (evt)
           {
-        	document.getElementById("content_left").innerHTML = evt.data;
-            json = JSON.parse(document.getElementById("content_left").innerHTML);
-            document.getElementById("content_left").innerHTML = "";
+        	document.getElementById("holder").innerHTML = evt.data;
+            json = JSON.parse(document.getElementById("holder").innerHTML);
+            document.getElementById("holder").innerHTML = "";
             setContent();
 
           };

@@ -45,7 +45,8 @@ public final class R {
         public static final int dialog_title_exit=0x7f050006;
         public static final int dialog_yes_button=0x7f050005;
         public static final int main_no_connection_notification=0x7f05000e;
-        public static final int request_enable_bluetooth=0x7f05000f;
+        public static final int main_no_wifi_notification=0x7f05000f;
+        public static final int request_enable_bluetooth=0x7f050010;
         public static final int service_main_title=0x7f05000d;
         public static final int service_started_notification=0x7f050009;
         public static final int service_stopped_notification=0x7f05000a;

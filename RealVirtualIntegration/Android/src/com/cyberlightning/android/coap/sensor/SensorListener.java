@@ -131,6 +131,9 @@ public class SensorListener implements Runnable,SensorEventListener  {
 				break;
 			case Sensor.TYPE_SIGNIFICANT_MOTION:name = "TYPE_SIGNIFICANT_MOTION";
 				break;
+			case Sensor.TYPE_ORIENTATION:name = "TYPE_ORIENTATION";
+				break;
+			
 			}
 			
 			return name;
