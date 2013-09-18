@@ -60,7 +60,7 @@ var onFailSoHard = function(e) {
 		 //image.onload = function(){
 		 localcanvas.style.position="fixed";
 		 localcanvas.style.top="10px";
-		 localcanvas.style.left=(videowidth+150)+"px";		 
+		 localcanvas.style.left=(videowidth+400+20)+"px";		 
 		 localcontext.drawImage(video, 0, 0);
 		 document.body.appendChild(localcanvas);
 		 if ("WebSocket" in window)
@@ -80,7 +80,8 @@ var onFailSoHard = function(e) {
  
  var setupConnection = function() {
 	 log("WebSockets supported");
-	 connection = new WebSocket("ws://localhost:17000/");
+	 //connection = new WebSocket("ws://localhost:17000/");
+	 connection = new WebSocket("ws://dev.cyberlightning.com:17000/");
 	 connection.binaryType = "arraybuffer";
 	 var handler = new ConnectionHandler;
 	 connection.onopen = handler.onOpen;
@@ -102,7 +103,8 @@ var onFailSoHard = function(e) {
  ConnectionHandler.prototype.onOpen= function() {
 	 log("Connection opened-->"+connection.readyState);
 	 var d = new Date();
-	 var time=d.getFullYear()+d.getMonth()+d.getDate()+"_"+d.getHours()+d.getMinutes()+d.getSeconds();	 
+	 var time=d.getFullYear()+"."+d.getMonth()+"."+d.getUTCDay()+"_"+d.getHours()+"."+d.getMinutes()+"."+d.getSeconds();
+	 //alert(time); 
 	 var imagematadata={
 		 type:"image",
 		 time:time, 
