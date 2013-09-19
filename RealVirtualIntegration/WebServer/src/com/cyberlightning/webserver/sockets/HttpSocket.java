@@ -87,7 +87,7 @@ public void run() {
 private void handGETMethod(String _query) throws Exception {
 	
 	if (_query.equals("/")) {
-		sendResponse(200, "index.html", true); //absolute path for local dev
+		sendResponse(200, "dev.cyberlightning.com/~tsarni/index.html", true); //absolute path for local dev
 		
 	} else {
 		//This is interpreted as a file name

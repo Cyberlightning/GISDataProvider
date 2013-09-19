@@ -62,8 +62,8 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
         
         setContentView(R.layout.activity_coapclient);
         //this.getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.title);
-        //StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        //StrictMode.setThreadPolicy(policy); 
+        	StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy); 
         this.initNetworkConnection();
         this.statustext = (TextView) findViewById(R.id.displayStatus);
   
