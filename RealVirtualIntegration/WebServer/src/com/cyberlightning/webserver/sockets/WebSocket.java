@@ -113,12 +113,11 @@ public class WebSocket implements Runnable  {
 	
 	public void removeSocket(Socket _socket) {
 		
-
-		
 		for (int i = 0; i < this.spawnedThreads.size(); i++) {
 			if(this.spawnedThreads.get(i).getId() == this.connectedWebSockets.get(_socket.getInetAddress())) {
 				this.spawnedThreads.remove(i);
 				this.connectedWebSockets.remove(_socket);
+				break;
 			}
 		}
 		
