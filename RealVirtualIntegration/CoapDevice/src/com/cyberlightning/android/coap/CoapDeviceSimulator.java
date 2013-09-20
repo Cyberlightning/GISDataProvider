@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 
+import com.cyberlightning.android.coap.memory.RomMemory;
+
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdManager.DiscoveryListener;
 import android.net.nsd.NsdServiceInfo;
@@ -27,6 +29,9 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_coap_device_simulator);
 		this.serviceListener.startDiscovery();
+		Runnable sensorListener = new SensorListener(this);
+		Thread t = new Thread(sensorListener);
+		t.start();
 	}
 
 	@Override
@@ -55,23 +60,19 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		//TODO parse
 	}
 	
-	private void encodePacket(String _payload, int _receiver) {
-	
-		
-	}
 	
 	private class ServiceListener implements DiscoveryListener {
 
 		
 		//http://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xml
 	
-		private static final String SERVICE_NAME = "coap";
+	
 		private String serviceName;
 		private NsdManager _NsdManager;
 		
 		
 		public ServiceListener() {
-			this(SERVICE_NAME);
+			this(RomMemory.DEFAULT_SERVICE_NAME);
 		}
 		
 		public ServiceListener (String _serviceName ){
@@ -79,6 +80,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		}
 		
 		public void startDiscovery() {
+			
 			this._NsdManager = ((NsdManager) getSystemService(NSD_SERVICE));
 			_NsdManager.discoverServices(this.serviceName, NsdManager.PROTOCOL_DNS_SD, this);
 		}
@@ -100,15 +102,15 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		public void onServiceFound(NsdServiceInfo serviceInfo) {
 			// A service was found!  Do something with it.
             Log.d(TAG, "Service discovery success" + serviceInfo);
-            if (!serviceInfo.getServiceType().equals(PersistentMemory.getInstance().SERVICE_TYPE)) {
+            if (!serviceInfo.getServiceType().equals(RomMemory.DEFAULT_SERVICE_TYPE)) {
                 // Service type is the string containing the protocol and
                 // transport layer for this service.
                 Log.d(TAG, "Unknown Service Type: " + serviceInfo.getServiceType());
-            } else if (serviceInfo.getServiceName().equals(SERVICE_NAME)) {
+            } else if (serviceInfo.getServiceName().equals(this.serviceName)) {
                 // The name of the service tells the user what they'd be
                 // connecting to. It could be "Bob's Chat App".
-                Log.d(TAG, "Same machine: " + SERVICE_NAME);
-            } else if (serviceInfo.getServiceName().contains(SERVICE_NAME)){
+                Log.d(TAG, "Same machine: " + this.serviceName);
+            } else if (serviceInfo.getServiceName().contains(this.serviceName)){
                // mNsdManager.resolveService(service, mResolveListener);
             	devices.add(new NetworkDevice(serviceInfo.getHost(),serviceInfo.getPort(),serviceInfo.getServiceName(),serviceInfo.getServiceType()));
             	openSocket();

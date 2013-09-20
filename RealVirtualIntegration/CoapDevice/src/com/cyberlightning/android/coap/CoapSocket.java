@@ -5,6 +5,8 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.Observable;
 
+import com.cyberlightning.android.coap.memory.RomMemory;
+
 import android.os.Message;
 
 public class CoapSocket extends Observable  implements Runnable,ICoapSocket {
@@ -13,7 +15,7 @@ public class CoapSocket extends Observable  implements Runnable,ICoapSocket {
 	private int port;
 	
 	public CoapSocket() {
-		this(PersistentMemory.getInstance().DEFAULT_PORT);
+		this(RomMemory.DEFAULT_PORT);
 	}
 	public CoapSocket(int _port) {
 		this.port = _port;
@@ -24,8 +26,8 @@ public class CoapSocket extends Observable  implements Runnable,ICoapSocket {
 		try {
 			
 			localCoapSocket = new DatagramSocket(this.port);
-			localCoapSocket.setReceiveBufferSize(PersistentMemory.getInstance().DEFAULT_BUFFER_SIZE);
-			byte[] receiveByte = new byte[PersistentMemory.getInstance().DEFAULT_BUFFER_SIZE]; 
+			localCoapSocket.setReceiveBufferSize(RomMemory.DEFAULT_BUFFER_SIZE);
+			byte[] receiveByte = new byte[RomMemory.DEFAULT_BUFFER_SIZE]; 
 			DatagramPacket receivedPacket = new DatagramPacket(receiveByte, receiveByte.length);
 	
 			

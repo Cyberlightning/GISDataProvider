@@ -18,11 +18,13 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.provider.Settings.Secure;
 
 
-public class SensorListener implements SensorEventListener,ISensorListener  {
+public class SensorListener implements SensorEventListener,ISensorListener,Runnable  {
 
 	private Activity context;
 	private List<Sensor> deviceSensors;
@@ -36,6 +38,18 @@ public class SensorListener implements SensorEventListener,ISensorListener  {
 		this.registerSensorListeners();
 	}
 	
+	@Override
+	public void run() {
+		Looper.prepare();
+	    Handler handler = new Handler();
+	    this.deviceSensors = ((SensorManager) this.context.getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).getSensorList(Sensor.TYPE_ALL);
+
+		for (Sensor sensor : this.deviceSensors) {
+			((SensorManager) this.context.getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI,handler);
+		}	
+	    Looper.loop();
+		
+	}
 	
 	private void registerSensorListeners(){
 			
@@ -161,6 +175,9 @@ public class SensorListener implements SensorEventListener,ISensorListener  {
 			this.unregisterSpecificSensor(_type);
 			
 		}
+
+
+		
 	
 	
 }
