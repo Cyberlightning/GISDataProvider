@@ -13,6 +13,7 @@ public class CoapSocket extends Observable  implements Runnable,ICoapSocket {
 	
 	private DatagramSocket localCoapSocket;
 	private int port;
+	public boolean isConnectected = false;
 	
 	public CoapSocket() {
 		this(RomMemory.DEFAULT_PORT);
@@ -29,7 +30,7 @@ public class CoapSocket extends Observable  implements Runnable,ICoapSocket {
 			localCoapSocket.setReceiveBufferSize(RomMemory.DEFAULT_BUFFER_SIZE);
 			byte[] receiveByte = new byte[RomMemory.DEFAULT_BUFFER_SIZE]; 
 			DatagramPacket receivedPacket = new DatagramPacket(receiveByte, receiveByte.length);
-	
+			this.isConnectected = true;
 			
 			while(true) {
 				
@@ -44,7 +45,7 @@ public class CoapSocket extends Observable  implements Runnable,ICoapSocket {
 		} catch(IOException e) {
 			e.printStackTrace();
 		} 
-		
+		this.isConnectected = false;
 		return; 
 		
 		

@@ -48,7 +48,7 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
 		public void onServiceConnected(ComponentName name, IBinder service){
 			//Service is connected.
 			coapService = (BaseStationServiceBinder<BaseStationService>) service;
-			initiateSensorListener();
+			//initiateSensorListener();
 		}
 	};
 

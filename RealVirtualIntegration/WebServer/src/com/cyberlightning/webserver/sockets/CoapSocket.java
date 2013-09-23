@@ -1,9 +1,12 @@
 package com.cyberlightning.webserver.sockets;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 
 import com.cyberlightning.webserver.StaticResources;
@@ -85,7 +88,17 @@ public class CoapSocket implements Runnable,IMessageEvent  {
 
 	@Override
 	public void coapMessageEvent(DatagramPacket _datagramPacket) {
-		// TODO Auto-generated method stub
+		InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(_datagramPacket.getData()), Charset.forName("UTF-8"));
+		try {
+			StringBuilder str = new StringBuilder();
+			for (int value; (value = input.read()) != -1; )
+			    str.append((char) value);
+			String s = str.toString();
+			String d = str.toString();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
 		
 	}
 

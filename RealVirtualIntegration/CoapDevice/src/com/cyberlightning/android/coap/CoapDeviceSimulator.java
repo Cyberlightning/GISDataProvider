@@ -2,6 +2,8 @@ package com.cyberlightning.android.coap;
 
 import java.net.DatagramPacket;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -9,6 +11,7 @@ import com.cyberlightning.android.coap.memory.RomMemory;
 
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdManager.DiscoveryListener;
+import android.net.nsd.NsdManager.ResolveListener;
 import android.net.nsd.NsdServiceInfo;
 import android.os.Bundle;
 import android.app.Activity;
@@ -20,8 +23,10 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	
 	protected static final String TAG = null;
 	private ServiceListener serviceListener = new ServiceListener();
+	private ServiceResolver serviceResolver = new ServiceResolver();
 	private CoapSocket coapSocket;
-	private ArrayList<NetworkDevice> devices = new ArrayList<NetworkDevice>();
+	private HashMap<String,NetworkDevice> foundDevices = new HashMap<String,NetworkDevice>();
+	private Thread sensorThread;
 	
 
 	@Override
@@ -30,8 +35,8 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		setContentView(R.layout.activity_coap_device_simulator);
 		this.serviceListener.startDiscovery();
 		Runnable sensorListener = new SensorListener(this);
-		Thread t = new Thread(sensorListener);
-		t.start();
+		this.sensorThread = new Thread(sensorListener);
+		this.sensorThread.start();
 	}
 
 	@Override
@@ -60,6 +65,21 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		//TODO parse
 	}
 	
+	private class ServiceResolver implements ResolveListener {
+
+		@Override
+		public void onResolveFailed(NsdServiceInfo arg0, int arg1) {
+			System.out.print(arg0.getServiceName() + " cannot be resolved");
+		}
+
+		@Override
+		public void onServiceResolved(NsdServiceInfo _nsdServiceInfo) {
+        	if(!foundDevices.containsKey(_nsdServiceInfo.getServiceName())) {
+        		foundDevices.put(_nsdServiceInfo.getServiceName(), new NetworkDevice(_nsdServiceInfo.getHost(),_nsdServiceInfo.getPort(),_nsdServiceInfo.getServiceName(),_nsdServiceInfo.getServiceType()));
+        		if (!coapSocket.isConnectected) openSocket();
+        	}
+		}
+	}
 	
 	private class ServiceListener implements DiscoveryListener {
 
@@ -80,9 +100,9 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		}
 		
 		public void startDiscovery() {
-			
 			this._NsdManager = ((NsdManager) getSystemService(NSD_SERVICE));
-			_NsdManager.discoverServices(this.serviceName, NsdManager.PROTOCOL_DNS_SD, this);
+			this._NsdManager.discoverServices(RomMemory.DEFAULT_SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, this);
+
 		}
 		
 
@@ -110,10 +130,14 @@ public class CoapDeviceSimulator extends Activity implements Observer {
                 // The name of the service tells the user what they'd be
                 // connecting to. It could be "Bob's Chat App".
                 Log.d(TAG, "Same machine: " + this.serviceName);
+//              
+                this._NsdManager.resolveService(serviceInfo, serviceResolver);
+
             } else if (serviceInfo.getServiceName().contains(this.serviceName)){
                // mNsdManager.resolveService(service, mResolveListener);
-            	devices.add(new NetworkDevice(serviceInfo.getHost(),serviceInfo.getPort(),serviceInfo.getServiceName(),serviceInfo.getServiceType()));
-            	openSocket();
+            	this._NsdManager.resolveService(serviceInfo, serviceResolver);
+
+
             	
             
             }

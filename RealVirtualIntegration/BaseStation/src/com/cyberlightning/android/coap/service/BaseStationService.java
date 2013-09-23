@@ -6,6 +6,7 @@ import java.lang.ref.WeakReference;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.UUID;
 
 import com.cyberlightning.android.coap.CoapBaseStation;
@@ -42,7 +43,7 @@ public class BaseStationService extends Service {
     
 	
 	private DatagramSocket remoteServerSocket;
-    private DatagramSocket localCoapSocket;
+	private DatagramSocket localServerSocket;
     private BaseStationServiceBinder<BaseStationService> serviceBinder;
 	
 	private RegistrationListener mRegistrationListener;
@@ -56,10 +57,16 @@ public class BaseStationService extends Service {
     @Override
     public void onCreate() {    
         NOTIFICATION_ID = UUID.randomUUID().hashCode(); 
-        this.openCoapSocket();
+        //this.openCoapSocket();
     
           //this.listenForLocalCoapDevices();
         this.showNotification(R.string.app_name,R.string.service_started_notification);
+        try {
+			this.registerService(5683);
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
   
 	@Override
@@ -110,17 +117,56 @@ public class BaseStationService extends Service {
 		
 	}
     
-    public void registerService(int port) {
+    public void registerService(int _port) throws UnknownHostException {
         NsdServiceInfo serviceInfo  = new NsdServiceInfo();
-        serviceInfo.setServiceName("NsdChat");
-        serviceInfo.setServiceType("_http._tcp.");
-        serviceInfo.setPort(port);
+        serviceInfo.setServiceName("BaseStation");
+        serviceInfo.setServiceType("_coap._udp");
+        serviceInfo.setPort(_port);
+        //this.openServiceSocket();
+        //serviceInfo.setHost(InetAddress.getLocalHost());
+        
+        
 
         mNsdManager = (NsdManager) getSystemService(Context.NSD_SERVICE);
+        this.initializeRegistrationListener();
 
         mNsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
     }
     
+    private void openServiceSocket() {
+		
+		new Thread(new Runnable() { 
+			
+		    public void run()  {
+				
+				try {
+					
+					localServerSocket= new DatagramSocket(Settings.COAP_DEFAULT_PORT);
+					localServerSocket.setReceiveBufferSize(1024);
+					byte[] receiveByte = new byte[1024]; //512 for IPv6 networks?
+					localServerSocket.connect(InetAddress.getLocalHost(), Settings.COAP_DEFAULT_PORT);
+					DatagramPacket receivedPacket = new DatagramPacket(receiveByte, receiveByte.length);
+			
+					
+					while(true) {
+						
+						localServerSocket.receive(receivedPacket);
+						if (receivedPacket.getSocketAddress() != null) {
+							processReceivedPacket(receivedPacket);
+							receivedPacket = null; //clear packet holder
+						}
+					}
+					//TODO handle socket closed
+					
+				} catch(IOException e) {
+					e.printStackTrace();
+				} 
+				
+				return; 
+				
+			}}).start();	
+		
+	}
     public void initializeRegistrationListener() {
         mRegistrationListener = new NsdManager.RegistrationListener() {
 
@@ -146,6 +192,7 @@ public class BaseStationService extends Service {
             @Override
             public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
                 // Unregistration failed.  Put debugging code here to determine why.
+            	
             }
         };
     }

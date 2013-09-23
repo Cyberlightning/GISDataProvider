@@ -4,8 +4,10 @@ package com.cyberlightning.android.coap;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,6 +32,8 @@ public class SensorListener implements SensorEventListener,ISensorListener,Runna
 	private List<Sensor> deviceSensors;
 	private String deviceID;
 	public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm";
+	private long broadcastInterval = 12000;
+	private CopyOnWriteArrayList<SensorEvent> sensorInput = new CopyOnWriteArrayList<SensorEvent>();
 
 	
 	public SensorListener(Activity _parent) {
@@ -40,15 +44,16 @@ public class SensorListener implements SensorEventListener,ISensorListener,Runna
 	
 	@Override
 	public void run() {
-		Looper.prepare();
-	    Handler handler = new Handler();
-	    this.deviceSensors = ((SensorManager) this.context.getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).getSensorList(Sensor.TYPE_ALL);
-
-		for (Sensor sensor : this.deviceSensors) {
-			((SensorManager) this.context.getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI,handler);
-		}	
-	    Looper.loop();
 		
+		while(true) {
+			try {
+				Thread.sleep(this.broadcastInterval);
+				
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	private void registerSensorListeners(){
@@ -81,6 +86,36 @@ public class SensorListener implements SensorEventListener,ISensorListener,Runna
 	@Override
 	public void onSensorChanged(SensorEvent event) { //TODO split to multiple methods
 			
+		this.sensorInput.add(event);
+		
+			
+
+		}
+	private void compressSensorEvents() {
+		
+		Iterator<SensorEvent> i = this.sensorInput.iterator();
+		HashMap<Integer,JSONArray> values = new HashMap<Integer,JSONArray>();
+		
+		while(i.hasNext()) {
+			SensorEvent event = i.next();
+			if(values.containsKey(event.sensor.getType())){
+				JSONArray jsonArray = values.get(event.sensor.getType());
+				for (float value : event.values) {
+					jsonArray.put(value);	
+				}
+				values.put(event.sensor.getType(), jsonArray);
+				
+			}else {
+				JSONArray jsonArray = new JSONArray();
+				for (float value : event.values) {
+					jsonArray.put(value);	
+				}
+				values.put(event.sensor.getType(), jsonArray);
+			}
+			this.sensorInput.remove(event);
+		}
+	
+		
 		JSONObject device = new JSONObject();
 		JSONObject properties = new JSONObject();			
 		JSONArray values = new JSONArray();
@@ -111,18 +146,19 @@ public class SensorListener implements SensorEventListener,ISensorListener,Runna
 				//TODO auto-generated method stub
 			}
 			
+		
 			Message message = new Message();
 			message.what = 4;
 			message.arg2 = event.sensor.getType(); //for UI
 			message.obj = device.toString();
 			
 			
-
-		}
+			if (this.sensorInput.co)
+	}
 	
-		private String resolveDeviceById(int _id) {
-			String name = null;
-			switch(_id){
+	private String resolveDeviceById(int _id) {
+		String name = null;
+		switch(_id){
 			case Sensor.TYPE_ACCELEROMETER: name = "TYPE_ACCELEROMETER";
 				break;
 			case Sensor.TYPE_AMBIENT_TEMPERATURE:name = "TYPE_AMBIENT_TEMPERATURE";

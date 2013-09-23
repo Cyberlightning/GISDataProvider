@@ -8,8 +8,8 @@ package com.cyberlightning.android.coap.memory;
 
 /** This class simulates ROM memory of devices, and can be accessed in a static way**/
 public class RomMemory {
-	public static final String DEFAULT_SERVICE_TYPE = "_coap._udp";
-	public static final String DEFAULT_SERVICE_NAME = "Base Station Service";
+	public static final String DEFAULT_SERVICE_TYPE = "_coap._udp.";
+	public static final String DEFAULT_SERVICE_NAME = "BaseStation";
 	public static final int DEFAULT_PORT = 5683;
 	public static final int DEFAULT_BUFFER_SIZE = 1024;
 	private static final long DEFAULT_BROADCAST_INTERVAL = 6000;
