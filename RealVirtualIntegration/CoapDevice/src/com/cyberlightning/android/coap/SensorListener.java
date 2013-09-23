@@ -29,11 +29,17 @@ import android.provider.Settings.Secure;
 public class SensorListener implements SensorEventListener,ISensorListener,Runnable  {
 
 	private Activity context;
+	private CopyOnWriteArrayList<SensorEvent> highPriorityEvents = new CopyOnWriteArrayList<SensorEvent>();
+	private CopyOnWriteArrayList<SensorEvent> lowPriorityEvents = new CopyOnWriteArrayList<SensorEvent>();
+	private HashMap<String,Boolean> priorityList = new HashMap<String,Boolean>();
 	private List<Sensor> deviceSensors;
 	private String deviceID;
+	
 	public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm";
 	private long broadcastInterval = 12000;
-	private CopyOnWriteArrayList<SensorEvent> sensorInput = new CopyOnWriteArrayList<SensorEvent>();
+	
+	private volatile boolean hasHighPriority = false;
+	private volatile boolean isRunningCompression = false;
 
 	
 	public SensorListener(Activity _parent) {
@@ -46,12 +52,15 @@ public class SensorListener implements SensorEventListener,ISensorListener,Runna
 	public void run() {
 		
 		while(true) {
-			try {
-				Thread.sleep(this.broadcastInterval);
-				
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			Iterator<SensorEvent> i = highPriorityEvents.iterator();
+			while(i.hasNext()) {
+				//TODO send high priority
+			}
+			this.hasHighPriority = false;
+			Iterator<SensorEvent> j = lowPriorityEvents.iterator();
+			while(j.hasNext()) {
+				if(this.hasHighPriority) continue;
+				//TODO send low priority
 			}
 		}
 	}
@@ -84,14 +93,41 @@ public class SensorListener implements SensorEventListener,ISensorListener,Runna
 	}
 	
 	@Override
-	public void onSensorChanged(SensorEvent event) { //TODO split to multiple methods
+	public void onSensorChanged(SensorEvent _event) { 
 			
-		this.sensorInput.add(event);
-		
-			
-
+		if(this.priorityList.get(_event.sensor.getName())) {
+			this.highPriorityEvents.add(_event);
+			this.hasHighPriority = true;
+		} else {
+			this.lowPriorityEvents.add(_event);
+			if (this.lowPriorityEvents.size() > 200) {
+				compressSensorEvents();
+			}
 		}
+		
+	
+	}
+	
+	private class CompressionRoutine implements Runnable {
+
+		
+		@Override
+		public void run() {
+			Iterator<SensorEvent> i = lowPriorityEvents.iterator();
+			while (i.hasNext()) {
+				
+			}
+			isRunningCompression = false;
+			return;
+		}
+		
+	}
 	private void compressSensorEvents() {
+		Runnable compressor = new CompressionRoutine();
+		Thread thread = new Thread(compressor);
+		this.isRunningCompression = true;
+		thread.start();
+		
 		
 		Iterator<SensorEvent> i = this.sensorInput.iterator();
 		HashMap<Integer,JSONArray> values = new HashMap<Integer,JSONArray>();
