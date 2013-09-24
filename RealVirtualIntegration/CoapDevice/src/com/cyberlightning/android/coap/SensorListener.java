@@ -108,15 +108,23 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	@Override
 	public void onSensorChanged(SensorEvent _event) { 
 			
-		if(this.priorityList.get(_event.sensor.getName()) || this.priorityList.isEmpty()) {
-			this.highPriorityEvents.add(_event);
-			this.hasHighPriority = true;
+		if(this.priorityList != null) {
+			if(this.priorityList.get(_event.sensor.getName()) && !this.priorityList.isEmpty()) {
+				this.highPriorityEvents.add(_event);
+				this.hasHighPriority = true;
+			} else {
+				this.lowPriorityEvents.add(_event);
+				if (this.lowPriorityEvents.size() > COMPRESSION_THRESHOLD && !this.isRunningCompression) {
+					compressSensorEvents();
+				}
+			}
 		} else {
 			this.lowPriorityEvents.add(_event);
 			if (this.lowPriorityEvents.size() > COMPRESSION_THRESHOLD && !this.isRunningCompression) {
 				compressSensorEvents();
 			}
 		}
+		
 	}
 	
 	/** This class is a local thread that compresses events of same sensor type to a single JSON object */

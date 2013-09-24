@@ -1,9 +1,7 @@
 package com.cyberlightning.android.coap;
 
 import java.net.DatagramPacket;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -36,10 +34,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_coap_device_simulator);
 		this.serviceListener.startDiscovery();
-		this.sensorListener = new SensorListener(this);
-		this.sensorListener.addObserver(this);
-		Thread t = new Thread(sensorListener);
-		t.start();
+		
 	}
 
 	@Override
@@ -48,7 +43,12 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		getMenuInflater().inflate(R.menu.coap_device_simulator, menu);
 		return true;
 	}
-	
+	private void startSensorListener() {
+		this.sensorListener = new SensorListener(this);
+		this.sensorListener.addObserver(this);
+		Thread t = new Thread(sensorListener);
+		t.start();
+	}
 	private void openSocket() {
 		this.coapSocket = new CoapSocket();
 		this.coapSocket.addObserver(this);
@@ -83,6 +83,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
         	if(!foundDevices.containsKey(_nsdServiceInfo.getServiceName())) {
         		foundDevices.put(_nsdServiceInfo.getServiceName(), new NetworkDevice(_nsdServiceInfo.getHost(),_nsdServiceInfo.getPort(),_nsdServiceInfo.getServiceName(),_nsdServiceInfo.getServiceType()));
         		if (!coapSocket.isConnectected) openSocket();
+        		startSensorListener();
         	}
 		}
 	}
