@@ -1,7 +1,6 @@
 
 package com.cyberlightning.android.coap;
 
-import com.cyberlightning.android.coap.sensor.SensorListener;
 import com.cyberlightning.android.coap.service.BaseStationService;
 import com.cyberlightning.android.coap.service.BaseStationService.BaseStationServiceBinder;
 import com.cyberlightning.android.coapclient.R;
@@ -48,7 +47,7 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
 		public void onServiceConnected(ComponentName name, IBinder service){
 			//Service is connected.
 			coapService = (BaseStationServiceBinder<BaseStationService>) service;
-			//initiateSensorListener();
+			
 		}
 	};
 
@@ -62,7 +61,7 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
         
         setContentView(R.layout.activity_coapclient);
         //this.getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.title);
-        	StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy); 
         this.initNetworkConnection();
         this.statustext = (TextView) findViewById(R.id.displayStatus);
@@ -105,12 +104,7 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
 		this.coapService.sendMessage(_msg);
 	}
 
-    private void initiateSensorListener() {
-		  Runnable sensorListener = new SensorListener(this);
-	      Thread sensorThread = new Thread(sensorListener);
-	      sensorThread.start();
-	}
-    
+   
     private void initNetworkConnection() { 
     	
     	boolean hasWifi = false;

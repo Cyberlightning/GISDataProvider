@@ -3,8 +3,15 @@ package com.cyberlightning.android.coap;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Observable;
+import java.util.Random;
 
+
+import com.cyberlightning.android.coap.interfaces.*;
+import com.cyberlightning.android.coap.message.*;
 import com.cyberlightning.android.coap.memory.RomMemory;
 
 import android.os.Message;
@@ -51,17 +58,47 @@ public class CoapSocket extends Observable  implements Runnable,ICoapSocket {
 		
 	}
 	
-
+	
 	@Override
-	public void broadCastMessage(Message _msg) {
-		// TODO Auto-generated method stub
+	public void broadCastMessage(Message _msg, HashMap<String,NetworkDevice> _devices) {
+		CoapRequest coapRequest = this.createRequest(true, CoapRequestCode.POST); //clientChannel.createRequest(true, CoapRequestCode.POST);
+	    coapRequest.setContentType(CoapMediaType.json);
+		//coapRequest.setUriPath("/devices");
+	    
+		coapRequest.setPayload(_msg.obj.toString());
+		CoapMessage coapMessage = (CoapMessage)coapRequest;
+		//coapRequest.setUriQuery(jsonSensorsList.toString());
+		ByteBuffer buf = ByteBuffer.wrap(coapMessage.serialize());
+		
+		Iterator<String> i = _devices.keySet().iterator();
+		while(i.hasNext()) {
+			NetworkDevice nd = _devices.get(i.next());
+			DatagramPacket packet = new DatagramPacket(buf.array(), buf.array().length, nd.getAddress(), nd.getPort());
+			try {
+				this.localCoapSocket.send(packet);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 		
 	}
-
+	
 	@Override
 	public void sendMessage(Message _msg) {
-		// TODO Auto-generated method stub
-		
+		//TODO auto-generated
+	}
+	
+	private BasicCoapRequest createRequest(boolean reliable, CoapRequestCode requestCode) {
+	    BasicCoapRequest msg = new BasicCoapRequest(reliable ? CoapPacketType.CON : CoapPacketType.NON, requestCode,this.getNewMessageID());
+	    return msg;
+	}
+	  
+	/** Creates a new, global message id for a new COAP message */ 
+	private synchronized int getNewMessageID() {
+	    Random random = new Random();
+	    return random.nextInt(RomMemory.MAX_MESSAGE_ID + 1);
 	}
 
 }

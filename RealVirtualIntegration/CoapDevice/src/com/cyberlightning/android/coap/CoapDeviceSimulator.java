@@ -14,6 +14,7 @@ import android.net.nsd.NsdManager.DiscoveryListener;
 import android.net.nsd.NsdManager.ResolveListener;
 import android.net.nsd.NsdServiceInfo;
 import android.os.Bundle;
+import android.os.Message;
 import android.app.Activity;
 import android.util.Log;
 import android.view.Menu;
@@ -25,8 +26,9 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	private ServiceListener serviceListener = new ServiceListener();
 	private ServiceResolver serviceResolver = new ServiceResolver();
 	private CoapSocket coapSocket;
+	private SensorListener sensorListener;
 	private HashMap<String,NetworkDevice> foundDevices = new HashMap<String,NetworkDevice>();
-	private Thread sensorThread;
+
 	
 
 	@Override
@@ -34,9 +36,10 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_coap_device_simulator);
 		this.serviceListener.startDiscovery();
-		Runnable sensorListener = new SensorListener(this);
-		this.sensorThread = new Thread(sensorListener);
-		this.sensorThread.start();
+		this.sensorListener = new SensorListener(this);
+		this.sensorListener.addObserver(this);
+		Thread t = new Thread(sensorListener);
+		t.start();
 	}
 
 	@Override
@@ -48,13 +51,16 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	
 	private void openSocket() {
 		this.coapSocket = new CoapSocket();
-		coapSocket.addObserver(this);
+		this.coapSocket.addObserver(this);
 		Thread thread = new Thread(coapSocket);
 		thread.start();
 	}
 	
 	@Override
 	public void update(Observable arg0, Object arg1) {
+		if (arg1 instanceof Message) {
+				this.coapSocket.broadCastMessage((Message) arg1,foundDevices);
+			}
 		if (arg1 instanceof DatagramPacket) {
 			this.decodePacket((DatagramPacket) arg1);
            //TODO

@@ -1,12 +1,12 @@
 package com.cyberlightning.android.coap;
 
-
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Observable;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.json.JSONArray;
@@ -20,23 +20,23 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import android.provider.Settings.Secure;
 
 
-public class SensorListener implements SensorEventListener,ISensorListener,Runnable  {
+public class SensorListener extends Observable implements SensorEventListener,ISensorListener,Runnable  {
 
 	private Activity context;
 	private CopyOnWriteArrayList<SensorEvent> highPriorityEvents = new CopyOnWriteArrayList<SensorEvent>();
 	private CopyOnWriteArrayList<SensorEvent> lowPriorityEvents = new CopyOnWriteArrayList<SensorEvent>();
+	private ConcurrentLinkedQueue<JSONObject> compressedLowPriority = new ConcurrentLinkedQueue<JSONObject>();
 	private HashMap<String,Boolean> priorityList = new HashMap<String,Boolean>();
 	private List<Sensor> deviceSensors;
 	private String deviceID;
 	
 	public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm";
 	private long broadcastInterval = 12000;
+	private static final int COMPRESSION_THRESHOLD = 200;
 	
 	private volatile boolean hasHighPriority = false;
 	private volatile boolean isRunningCompression = false;
@@ -51,16 +51,29 @@ public class SensorListener implements SensorEventListener,ISensorListener,Runna
 	@Override
 	public void run() {
 		
+		long lastRun = 0;
+		
 		while(true) {
 			Iterator<SensorEvent> i = highPriorityEvents.iterator();
 			while(i.hasNext()) {
-				//TODO send high priority
+				JSONObject jsonObject = createNewJSONObject(i.next());
+				sendMessage(jsonObject);
+				i.remove();
 			}
 			this.hasHighPriority = false;
+			
+			while(!this.compressedLowPriority.isEmpty()) {
+				if(this.hasHighPriority) continue;
+				sendMessage(this.compressedLowPriority.poll());
+				
+			}
+			if(!((System.currentTimeMillis() - lastRun) < this.broadcastInterval)) continue;
+			lastRun = System.currentTimeMillis();
 			Iterator<SensorEvent> j = lowPriorityEvents.iterator();
 			while(j.hasNext()) {
 				if(this.hasHighPriority) continue;
-				//TODO send low priority
+				JSONObject jsonObject = createNewJSONObject(i.next());
+				sendMessage(jsonObject);
 			}
 		}
 	}
@@ -95,69 +108,74 @@ public class SensorListener implements SensorEventListener,ISensorListener,Runna
 	@Override
 	public void onSensorChanged(SensorEvent _event) { 
 			
-		if(this.priorityList.get(_event.sensor.getName())) {
+		if(this.priorityList.get(_event.sensor.getName()) || this.priorityList.isEmpty()) {
 			this.highPriorityEvents.add(_event);
 			this.hasHighPriority = true;
 		} else {
 			this.lowPriorityEvents.add(_event);
-			if (this.lowPriorityEvents.size() > 200) {
+			if (this.lowPriorityEvents.size() > COMPRESSION_THRESHOLD && !this.isRunningCompression) {
 				compressSensorEvents();
 			}
 		}
-		
-	
 	}
 	
+	/** This class is a local thread that compresses events of same sensor type to a single JSON object */
 	private class CompressionRoutine implements Runnable {
 
-		
 		@Override
 		public void run() {
+			
+			HashMap<String,JSONObject> tempHolder = new HashMap<String,JSONObject>();
 			Iterator<SensorEvent> i = lowPriorityEvents.iterator();
+			JSONObject jsonObject;
+			JSONArray jsonArray;
+			
 			while (i.hasNext()) {
+				SensorEvent event = i.next();
 				
+				if(tempHolder.containsKey(event.sensor.getName())){
+					jsonObject = tempHolder.get(event.sensor.getType());
+					
+					try {
+						jsonArray = jsonObject.getJSONArray("event_values");
+						jsonObject.remove("event_values");
+						
+						for (float value : event.values) {
+							jsonArray.put(value);
+						}
+						jsonObject.put("event_values", jsonArray);
+						
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					
+				}else {
+					tempHolder.put(event.sensor.getName(), createNewJSONObject(event));	
+				}
+			
+			i.remove();	
+			}
+
+			Iterator<String> k = (tempHolder.keySet()).iterator();
+			while (k.hasNext()) {
+				compressedLowPriority.add(tempHolder.get(k.next()));
 			}
 			isRunningCompression = false;
 			return;
 		}
 		
 	}
-	private void compressSensorEvents() {
-		Runnable compressor = new CompressionRoutine();
-		Thread thread = new Thread(compressor);
-		this.isRunningCompression = true;
-		thread.start();
-		
-		
-		Iterator<SensorEvent> i = this.sensorInput.iterator();
-		HashMap<Integer,JSONArray> values = new HashMap<Integer,JSONArray>();
-		
-		while(i.hasNext()) {
-			SensorEvent event = i.next();
-			if(values.containsKey(event.sensor.getType())){
-				JSONArray jsonArray = values.get(event.sensor.getType());
-				for (float value : event.values) {
-					jsonArray.put(value);	
-				}
-				values.put(event.sensor.getType(), jsonArray);
-				
-			}else {
-				JSONArray jsonArray = new JSONArray();
-				for (float value : event.values) {
-					jsonArray.put(value);	
-				}
-				values.put(event.sensor.getType(), jsonArray);
-			}
-			this.sensorInput.remove(event);
-		}
 	
+	private JSONObject createNewJSONObject(SensorEvent event) {
 		
-		JSONObject device = new JSONObject();
-		JSONObject properties = new JSONObject();			
 		JSONArray values = new JSONArray();
+		JSONObject device = new JSONObject();
+		JSONObject properties=  new JSONObject();
 		
 		try {
-				
+			
 			properties.put("type", this.resolveDeviceById(event.sensor.getType()));
 			properties.put("version", event.sensor.getVersion());
 			properties.put("vendor", event.sensor.getVendor());
@@ -165,31 +183,36 @@ public class SensorListener implements SensorEventListener,ISensorListener,Runna
 			properties.put("delay", event.sensor.getMinDelay());
 			properties.put("power", event.sensor.getPower());
 			properties.put("resolution", event.sensor.getResolution());
-			
 			for (float value : event.values) {
-				values.put(value);	
+				values.put(value);
 			}
-			
-			
 			device.put("device_id", this.deviceID );
 			device.put("device_properties", properties);
 			device.put("device_uptime", event.timestamp);
 			device.put("event_timestamp", this.getTimeStamp());
 			device.put("event_accuracy", event.accuracy);
 			device.put("event_values", values);
-				
-			} catch (JSONException e) {
-				//TODO auto-generated method stub
-			}
 			
-		
-			Message message = new Message();
-			message.what = 4;
-			message.arg2 = event.sensor.getType(); //for UI
-			message.obj = device.toString();
-			
-			
-			if (this.sensorInput.co)
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return device;
+	}
+	
+	private void compressSensorEvents() {
+		Runnable compressor = new CompressionRoutine();
+		Thread thread = new Thread(compressor);
+		this.isRunningCompression = true;
+		thread.start();
+	}
+	
+	private void sendMessage(JSONObject _payload) { //TODO just a stub
+		Message message = new Message();
+		message.what = 4;
+		//message.arg2 = event.sensor.getType(); //for UI
+		message.obj = _payload.toString();
+		notifyObservers(message);
 	}
 	
 	private String resolveDeviceById(int _id) {

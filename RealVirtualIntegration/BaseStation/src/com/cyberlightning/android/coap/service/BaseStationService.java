@@ -7,8 +7,11 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.util.UUID;
 
+import com.cyberlightning.android.coap.w4ds.interfaces.*;
+import com.cyberlightning.android.coap.w4ds.messages.*;
 import com.cyberlightning.android.coap.CoapBaseStation;
 import com.cyberlightning.android.coap.resources.Settings;
 import com.cyberlightning.android.coapclient.R;
@@ -17,23 +20,15 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.app.TaskStackBuilder;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.net.nsd.NsdManager;
-import android.net.nsd.NsdManager.DiscoveryListener;
 import android.net.nsd.NsdManager.RegistrationListener;
 import android.net.nsd.NsdServiceInfo;
-import android.net.wifi.p2p.WifiP2pDeviceList;
-import android.net.wifi.p2p.WifiP2pManager;
-import android.net.wifi.p2p.WifiP2pManager.Channel;
-import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.Message;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 import android.widget.Toast;
 
 public class BaseStationService extends Service {
@@ -101,7 +96,7 @@ public class BaseStationService extends Service {
 						
 						remoteServerSocket.receive(receivedPacket);
 						if (receivedPacket.getSocketAddress() != null) {
-							processReceivedPacket(receivedPacket);
+							handleIncommingMessage(receivedPacket);
 							receivedPacket = null; //clear packet holder
 						}
 					}
@@ -123,10 +118,8 @@ public class BaseStationService extends Service {
         serviceInfo.setServiceType("_coap._udp");
         serviceInfo.setPort(_port);
         //this.openServiceSocket();
-        //serviceInfo.setHost(InetAddress.getLocalHost());
-        
-        
-
+        this.openCoapSocket();
+       
         mNsdManager = (NsdManager) getSystemService(Context.NSD_SERVICE);
         this.initializeRegistrationListener();
 
@@ -152,7 +145,7 @@ public class BaseStationService extends Service {
 						
 						localServerSocket.receive(receivedPacket);
 						if (receivedPacket.getSocketAddress() != null) {
-							processReceivedPacket(receivedPacket);
+							handleIncommingMessage(receivedPacket);
 							receivedPacket = null; //clear packet holder
 						}
 					}
@@ -197,11 +190,19 @@ public class BaseStationService extends Service {
         };
     }
     
-    private void processReceivedPacket (DatagramPacket _packet){
-    	//TODO processReceivedPacket
+    private void handleIncommingMessage(DatagramPacket _packet) {
     	
-    }
-
+    	ByteBuffer buffer = ByteBuffer.wrap(_packet.getData());
+    	
+		CoapMessage msg;
+		try {
+			 msg = AbstractCoapMessage.parseMessage(buffer.array(), buffer.position());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	
+	}
+    
     private void showNotification (int _title, int _content) {
     	
     	NotificationCompat.Builder mBuilder =new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_launcher).setContentTitle(this.getString(_title)).setContentText(this.getString(_content));
@@ -253,11 +254,8 @@ public class BaseStationService extends Service {
 		 }
 	}
 		 
-		 /** Interface for sending messages through the base station **/
-		 public interface IBaseStationServiceBinder {
-		 
+	/** Interface for sending messages through the base station **/
+	public interface IBaseStationServiceBinder {
 		public void sendMessage(Message _msg);
-	
-	}
-
+	}	 
 }
