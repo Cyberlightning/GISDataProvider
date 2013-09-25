@@ -76,6 +76,8 @@ public class CoapSocket extends Observable  implements Runnable,ICoapSocket {
 			NetworkDevice nd = _devices.get(i.next());
 			DatagramPacket packet = new DatagramPacket(buf.array(), buf.array().length, nd.getAddress(), nd.getPort());
 			try {
+				setChanged();
+				notifyObservers(packet);
 				this.localCoapSocket.send(packet);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block

@@ -1,9 +1,13 @@
 package com.cyberlightning.android.coap;
 
 import java.net.DatagramPacket;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import com.cyberlightning.android.coap.memory.RomMemory;
 
@@ -16,6 +20,10 @@ import android.os.Message;
 import android.app.Activity;
 import android.util.Log;
 import android.view.Menu;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.TextView;
 
 public class CoapDeviceSimulator extends Activity implements Observer {
 
@@ -26,6 +34,10 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	private CoapSocket coapSocket;
 	private SensorListener sensorListener;
 	private HashMap<String,NetworkDevice> foundDevices = new HashMap<String,NetworkDevice>();
+	
+	public TextView textDisplay;
+	public Button showButton;
+	private ArrayList<String> statusMessages = new ArrayList<String>();
 
 	
 
@@ -34,7 +46,26 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_coap_device_simulator);
 		this.serviceListener.startDiscovery();
+		this.textDisplay = (TextView)findViewById(R.id.statusText);
+		this.textDisplay.setText("TADAA!");
+		this.showButton = (Button)findViewById(R.id.showButton);
+		showButton.setOnClickListener(new OnClickListener()
+		{
+		public void onClick(View v)
+		{
+		showMessages();
+		}
+		                                });
+		     
 		
+		
+	}
+
+	private void showMessages() {
+		Iterator<String> i = statusMessages.iterator();
+		  while (i.hasNext()) {
+			  textDisplay.append(i.next());
+		  }
 	}
 
 	@Override
@@ -68,7 +99,8 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	}
 	
 	private void decodePacket (DatagramPacket _packet) {
-		//TODO parse
+		
+		statusMessages.add("packet send to " + _packet.getAddress().toString());
 	}
 	
 	private class ServiceResolver implements ResolveListener {
@@ -84,6 +116,8 @@ public class CoapDeviceSimulator extends Activity implements Observer {
         		foundDevices.put(_nsdServiceInfo.getServiceName(), new NetworkDevice(_nsdServiceInfo.getHost(),_nsdServiceInfo.getPort(),_nsdServiceInfo.getServiceName(),_nsdServiceInfo.getServiceType()));
         		if (coapSocket == null) openSocket();
         		startSensorListener();
+        		statusMessages.add("Service resolved \n");
+        		
         	}
 		}
 	}
@@ -116,6 +150,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		@Override
 		public void onDiscoveryStarted(String serviceType) {
 			Log.d(TAG, "Service discovery started");
+			statusMessages.add("Service discovery started :" + serviceType );
 		}
 
 		@Override
@@ -128,6 +163,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		public void onServiceFound(NsdServiceInfo serviceInfo) {
 			// A service was found!  Do something with it.
             Log.d(TAG, "Service discovery success" + serviceInfo);
+            statusMessages.add("Service discovery success" + serviceInfo + "\n");
             if (!serviceInfo.getServiceType().equals(RomMemory.DEFAULT_SERVICE_TYPE)) {
                 // Service type is the string containing the protocol and
                 // transport layer for this service.

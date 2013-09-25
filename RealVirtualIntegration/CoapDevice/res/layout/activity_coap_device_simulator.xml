@@ -9,8 +9,21 @@
     tools:context=".CoapDeviceSimulator" >
 
     <TextView
+        android:id="@+id/statusText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/hello_world" />
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="20dp"/>
+
+    <Button
+        android:id="@+id/showButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/statusText"
+        android:layout_below="@+id/statusText"
+        android:layout_marginTop="20dp"
+        android:text="Show"/>
 
 </RelativeLayout>
