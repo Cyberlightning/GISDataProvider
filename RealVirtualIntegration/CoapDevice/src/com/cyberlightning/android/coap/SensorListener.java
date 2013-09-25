@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Observable;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,19 +26,18 @@ import android.provider.Settings.Secure;
 public class SensorListener extends Observable implements SensorEventListener,ISensorListener,Runnable  {
 
 	private Activity context;
-	private CopyOnWriteArrayList<SensorEvent> highPriorityEvents = new CopyOnWriteArrayList<SensorEvent>();
-	private CopyOnWriteArrayList<SensorEvent> lowPriorityEvents = new CopyOnWriteArrayList<SensorEvent>();
-	private ConcurrentLinkedQueue<JSONObject> compressedLowPriority = new ConcurrentLinkedQueue<JSONObject>();
+	private ConcurrentLinkedQueue<SensorEvent> highPriorityEvents = new ConcurrentLinkedQueue<SensorEvent>();
+	private ConcurrentLinkedQueue<JSONObject> lowPriorityEvents = new ConcurrentLinkedQueue<JSONObject>();
+	private volatile HashMap<String,SensorEvent> sensorEventTable = new HashMap<String,SensorEvent>();
 	private HashMap<String,Boolean> priorityList = new HashMap<String,Boolean>();
 	private List<Sensor> deviceSensors;
 	private String deviceID;
 	
 	public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm";
 	private long broadcastInterval = 12000;
-	private static final int COMPRESSION_THRESHOLD = 200;
 	
 	private volatile boolean hasHighPriority = false;
-	private volatile boolean isRunningCompression = false;
+	private volatile boolean isHandlingLowPriorityEvents = false;
 
 	
 	public SensorListener(Activity _parent) {
@@ -51,29 +49,19 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	@Override
 	public void run() {
 		
-		long lastRun = 0;
 		
 		while(true) {
-			Iterator<SensorEvent> i = highPriorityEvents.iterator();
-			while(i.hasNext()) {
-				JSONObject jsonObject = createNewJSONObject(i.next());
+			
+			while(!highPriorityEvents.isEmpty()) {
+				JSONObject jsonObject = createNewJSONObject(highPriorityEvents.poll());
 				sendMessage(jsonObject);
-				i.remove();
 			}
 			this.hasHighPriority = false;
 			
-			while(!this.compressedLowPriority.isEmpty()) {
+			while(!this.lowPriorityEvents.isEmpty()) {
 				if(this.hasHighPriority) continue;
-				sendMessage(this.compressedLowPriority.poll());
-				
-			}
-			if(!((System.currentTimeMillis() - lastRun) < this.broadcastInterval)) continue;
-			lastRun = System.currentTimeMillis();
-			Iterator<SensorEvent> j = lowPriorityEvents.iterator();
-			while(j.hasNext()) {
-				if(this.hasHighPriority) continue;
-				JSONObject jsonObject = createNewJSONObject(i.next());
-				sendMessage(jsonObject);
+				JSONObject j = this.lowPriorityEvents.poll();
+				if(j != null) sendMessage(j);
 			}
 		}
 	}
@@ -107,70 +95,40 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	
 	@Override
 	public void onSensorChanged(SensorEvent _event) { 
-			
-		if(this.priorityList != null) {
-			if(this.priorityList.get(_event.sensor.getName()) && !this.priorityList.isEmpty()) {
-				this.highPriorityEvents.add(_event);
-				this.hasHighPriority = true;
-			} else {
-				this.lowPriorityEvents.add(_event);
-				if (this.lowPriorityEvents.size() > COMPRESSION_THRESHOLD && !this.isRunningCompression) {
-					compressSensorEvents();
-				}
-			}
-		} else {
-			this.lowPriorityEvents.add(_event);
-			if (this.lowPriorityEvents.size() > COMPRESSION_THRESHOLD && !this.isRunningCompression) {
-				compressSensorEvents();
-			}
-		}
 		
+		if(this.priorityList.containsKey(_event.sensor.getName())) {
+			this.highPriorityEvents.add(_event);
+			this.hasHighPriority = true;
+			
+		} else {
+			this.sensorEventTable.put(_event.sensor.getName(), _event);
+			if(!this.isHandlingLowPriorityEvents) this.startSensorEventUpdaterRoutine();
+		}
 	}
 	
 	/** This class is a local thread that compresses events of same sensor type to a single JSON object */
-	private class CompressionRoutine implements Runnable {
+	private class SensorEventUpdaterRoutine implements Runnable {
 
 		@Override
 		public void run() {
-			
-			HashMap<String,JSONObject> tempHolder = new HashMap<String,JSONObject>();
-			Iterator<SensorEvent> i = lowPriorityEvents.iterator();
-			JSONObject jsonObject;
-			JSONArray jsonArray;
-			
-			while (i.hasNext()) {
-				SensorEvent event = i.next();
-				
-				if(tempHolder.containsKey(event.sensor.getName())){
-					jsonObject = tempHolder.get(event.sensor.getType());
-					
-					try {
-						jsonArray = jsonObject.getJSONArray("event_values");
-						jsonObject.remove("event_values");
-						
-						for (float value : event.values) {
-							jsonArray.put(value);
-						}
-						jsonObject.put("event_values", jsonArray);
-						
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					
-					
-				}else {
-					tempHolder.put(event.sensor.getName(), createNewJSONObject(event));	
-				}
-			
-			i.remove();	
-			}
 
-			Iterator<String> k = (tempHolder.keySet()).iterator();
-			while (k.hasNext()) {
-				compressedLowPriority.add(tempHolder.get(k.next()));
+			while(isHandlingLowPriorityEvents) {
+				
+				try {
+					Thread.sleep(broadcastInterval);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				HashMap<String,SensorEvent> tempSensorEventTable = sensorEventTable;
+				Iterator<String> i = tempSensorEventTable.keySet().iterator();
+				while(i.hasNext()) {
+					JSONObject j = createNewJSONObject(tempSensorEventTable.get(i.next()));
+					lowPriorityEvents.offer(j);
+				}
+				
 			}
-			isRunningCompression = false;
+			isHandlingLowPriorityEvents = false;
 			return;
 		}
 		
@@ -208,10 +166,10 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		return device;
 	}
 	
-	private void compressSensorEvents() {
-		Runnable compressor = new CompressionRoutine();
+	private void startSensorEventUpdaterRoutine() {
+		Runnable compressor = new SensorEventUpdaterRoutine();
 		Thread thread = new Thread(compressor);
-		this.isRunningCompression = true;
+		this.isHandlingLowPriorityEvents = true;
 		thread.start();
 	}
 	
@@ -220,6 +178,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		message.what = 4;
 		//message.arg2 = event.sensor.getType(); //for UI
 		message.obj = _payload.toString();
+		setChanged();
 		notifyObservers(message);
 	}
 	

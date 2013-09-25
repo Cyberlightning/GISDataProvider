@@ -82,7 +82,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		public void onServiceResolved(NsdServiceInfo _nsdServiceInfo) {
         	if(!foundDevices.containsKey(_nsdServiceInfo.getServiceName())) {
         		foundDevices.put(_nsdServiceInfo.getServiceName(), new NetworkDevice(_nsdServiceInfo.getHost(),_nsdServiceInfo.getPort(),_nsdServiceInfo.getServiceName(),_nsdServiceInfo.getServiceType()));
-        		if (!coapSocket.isConnectected) openSocket();
+        		if (coapSocket == null) openSocket();
         		startSensorListener();
         	}
 		}
@@ -116,7 +116,6 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		@Override
 		public void onDiscoveryStarted(String serviceType) {
 			Log.d(TAG, "Service discovery started");
-			
 		}
 
 		@Override
@@ -144,9 +143,6 @@ public class CoapDeviceSimulator extends Activity implements Observer {
                // mNsdManager.resolveService(service, mResolveListener);
             	this._NsdManager.resolveService(serviceInfo, serviceResolver);
 
-
-            	
-            
             }
 			
 		}

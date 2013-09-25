@@ -43,6 +43,7 @@ public class CoapSocket extends Observable  implements Runnable,ICoapSocket {
 				
 				localCoapSocket.receive(receivedPacket);
 				if (receivedPacket.getSocketAddress() != null) {
+					setChanged();
 					notifyObservers(receivedPacket);
 					receivedPacket = null; //clear packet holder
 				}

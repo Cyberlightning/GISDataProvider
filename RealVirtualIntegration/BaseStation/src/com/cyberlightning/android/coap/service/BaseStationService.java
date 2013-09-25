@@ -174,17 +174,20 @@ public class BaseStationService extends Service {
             @Override
             public void onRegistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
                 // Registration failed!  Put debugging code here to determine why.
+            	System.out.print("failed registeration");
             }
 
             @Override
             public void onServiceUnregistered(NsdServiceInfo arg0) {
                 // Service has been unregistered.  This only happens when you call
                 // NsdManager.unregisterService() and pass in this listener.
+            	System.out.print(" unregisteration");
             }
 
             @Override
             public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
                 // Unregistration failed.  Put debugging code here to determine why.
+            	System.out.print("failed unregisteration");
             	
             }
         };
