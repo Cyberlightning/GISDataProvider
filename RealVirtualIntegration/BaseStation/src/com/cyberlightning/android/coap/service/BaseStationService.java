@@ -52,7 +52,7 @@ public class BaseStationService extends Service {
     @Override
     public void onCreate() {    
         NOTIFICATION_ID = UUID.randomUUID().hashCode(); 
-        //this.openCoapSocket();
+        this.openServiceSocket();
     
           //this.listenForLocalCoapDevices();
         this.showNotification(R.string.app_name,R.string.service_started_notification);
@@ -85,19 +85,19 @@ public class BaseStationService extends Service {
 				
 				try {
 					
-					remoteServerSocket = new DatagramSocket(Settings.COAP_DEFAULT_PORT);
-					remoteServerSocket.setReceiveBufferSize(1024);
+					localServerSocket = new DatagramSocket(Settings.COAP_DEFAULT_PORT);
+					localServerSocket.setReceiveBufferSize(1024);
 					byte[] receiveByte = new byte[1024]; //512 for IPv6 networks?
-					remoteServerSocket.connect(InetAddress.getByName(Settings.REMOTEHOST), Settings.REMOTE_SERVER_PORT);
+					//remoteServerSocket.connect(InetAddress.getByName(Settings.REMOTEHOST), Settings.REMOTE_SERVER_PORT);
 					DatagramPacket receivedPacket = new DatagramPacket(receiveByte, receiveByte.length);
 			
 					
 					while(true) {
 						
-						remoteServerSocket.receive(receivedPacket);
+						localServerSocket.receive(receivedPacket);
 						if (receivedPacket.getSocketAddress() != null) {
 							handleIncommingMessage(receivedPacket);
-							receivedPacket = null; //clear packet holder
+							
 						}
 					}
 					//TODO handle socket closed
@@ -134,16 +134,17 @@ public class BaseStationService extends Service {
 				
 				try {
 					
-					localServerSocket= new DatagramSocket(Settings.COAP_DEFAULT_PORT);
-					localServerSocket.setReceiveBufferSize(1024);
+					remoteServerSocket= new DatagramSocket(Settings.VPN_PORT);
+					remoteServerSocket.setReceiveBufferSize(1024);
 					byte[] receiveByte = new byte[1024]; //512 for IPv6 networks?
-					localServerSocket.connect(InetAddress.getLocalHost(), Settings.COAP_DEFAULT_PORT);
+					remoteServerSocket.connect(InetAddress.getByName(Settings.REMOTEHOST), Settings.REMOTE_SERVER_PORT);
 					DatagramPacket receivedPacket = new DatagramPacket(receiveByte, receiveByte.length);
 			
 					
 					while(true) {
 						
-						localServerSocket.receive(receivedPacket);
+						remoteServerSocket.receive(receivedPacket);
+						
 						if (receivedPacket.getSocketAddress() != null) {
 							handleIncommingMessage(receivedPacket);
 							receivedPacket = null; //clear packet holder
@@ -160,6 +161,7 @@ public class BaseStationService extends Service {
 			}}).start();	
 		
 	}
+    
     public void initializeRegistrationListener() {
         mRegistrationListener = new NsdManager.RegistrationListener() {
 
@@ -195,15 +197,30 @@ public class BaseStationService extends Service {
     
     private void handleIncommingMessage(DatagramPacket _packet) {
     	
+    	
     	ByteBuffer buffer = ByteBuffer.wrap(_packet.getData());
     	
-		CoapMessage msg;
+		CoapMessage msg = null;
 		try {
-			 msg = AbstractCoapMessage.parseMessage(buffer.array(), buffer.position());
+			msg = AbstractCoapMessage.parseMessage(buffer.array(), buffer.array().length);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	
+		String payload = null;
+		try {
+			payload = new String(msg.getPayload(), "utf8");
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.print(payload);
+		DatagramPacket udp = new DatagramPacket(msg.getPayload(), msg.getPayload().length);
+		try {
+			this.remoteServerSocket.send(udp);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
     
     private void showNotification (int _title, int _content) {

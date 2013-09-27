@@ -37,6 +37,7 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
 	private TextView statustext;
 	private ServiceConnection serviceConnection = new ServiceConnection() {
 	 
+		
 		@Override
 		public void onServiceDisconnected(ComponentName name){
 			//TODO onServiceDisconnected
@@ -105,9 +106,9 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
 	}
 
    
-    private void initNetworkConnection() { 
+    private void initNetworkConnection() {  //create code for Wifi-hotspot
     	
-    	boolean hasWifi = false;
+    	boolean hasWifi = true; //set to true to enable debugging. Hotspot disables wifi discovery thus failing this method.
       	boolean hasInternet = false;
     	
       	WifiManager wifiManager = (WifiManager)getBaseContext().getSystemService(Context.WIFI_SERVICE);

@@ -91,9 +91,11 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	public void update(Observable arg0, Object arg1) {
 		if (arg1 instanceof Message) {
 				this.coapSocket.broadCastMessage((Message) arg1,foundDevices);
+				statusMessages.add("message being sent: ");
 			}
 		if (arg1 instanceof DatagramPacket) {
-			this.decodePacket((DatagramPacket) arg1);
+			statusMessages.add("udp packet being send: ");
+			//this.decodePacket((DatagramPacket) arg1);
            //TODO
         }
 	}
@@ -112,7 +114,8 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 
 		@Override
 		public void onServiceResolved(NsdServiceInfo _nsdServiceInfo) {
-        	if(!foundDevices.containsKey(_nsdServiceInfo.getServiceName())) {
+			statusMessages.add("onServiceResolvedTriggered");
+			if(!foundDevices.containsKey(_nsdServiceInfo.getServiceName())) {
         		foundDevices.put(_nsdServiceInfo.getServiceName(), new NetworkDevice(_nsdServiceInfo.getHost(),_nsdServiceInfo.getPort(),_nsdServiceInfo.getServiceName(),_nsdServiceInfo.getServiceType()));
         		if (coapSocket == null) openSocket();
         		startSensorListener();
