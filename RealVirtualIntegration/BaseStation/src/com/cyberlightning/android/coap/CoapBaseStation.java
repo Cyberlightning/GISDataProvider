@@ -1,6 +1,9 @@
 
 package com.cyberlightning.android.coap;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import com.cyberlightning.android.coap.service.BaseStationService;
 import com.cyberlightning.android.coap.service.BaseStationService.BaseStationServiceBinder;
 import com.cyberlightning.android.coapclient.R;
@@ -21,7 +24,11 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.StrictMode;
 import android.provider.Settings;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -108,20 +115,32 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
    
     private void initNetworkConnection() {  //create code for Wifi-hotspot
     	
-    	boolean hasWifi = true; //set to true to enable debugging. Hotspot disables wifi discovery thus failing this method.
-      	boolean hasInternet = false;
-    	
+    	boolean hasHotSpot = false; //set to true to enable debugging. Hotspot disables wifi discovery thus failing this method.
+      	boolean hasInternet = false; 
+     	
       	WifiManager wifiManager = (WifiManager)getBaseContext().getSystemService(Context.WIFI_SERVICE);
-        
-         if (wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED) {
-        	 hasWifi = true;
-        	//wifiManager.setWifiEnabled(true); //TODO ask permission to set WIFI on
-         }
-    	
+      
+      	Method[] wmMethods = wifiManager.getClass().getDeclaredMethods();
+      		for(Method method: wmMethods){
+      			if(method.getName().equals("isWifiApEnabled")) {
+      				try {
+      					 hasHotSpot = (Boolean) method.invoke(wifiManager);
+      				} catch (IllegalArgumentException e) {
+      					e.printStackTrace();
+      				} catch (IllegalAccessException e) {
+      					e.printStackTrace();
+      				} catch (InvocationTargetException e) {
+      					e.printStackTrace();
+      				}
+      			}
+
+      		}
+      
     	if (this.haveNetworkConnection()) hasInternet = true;
-    	if (!hasWifi) {
+    	if (!hasHotSpot) {
     		
-    		Toast.makeText(this, R.string.main_no_wifi_notification, this.NOTIFICATION_DELAY).show();
+    		
+    		this.showToast(getString(R.string.main_no_wifi_notification));
     		Intent settingsIntent = new Intent( Settings.ACTION_WIFI_SETTINGS); 
     		this.startActivityForResult(settingsIntent, 1); //TODO onActivityResult() callback needs interception
     		this.finish();
@@ -138,6 +157,7 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
     		
     	}
     }
+    
     private boolean haveNetworkConnection() {
         final ConnectivityManager conMgr = (ConnectivityManager) getSystemService (Context.CONNECTIVITY_SERVICE);
            if (conMgr.getActiveNetworkInfo() != null && conMgr.getActiveNetworkInfo().isAvailable() &&    conMgr.getActiveNetworkInfo().isConnected()) {
@@ -147,7 +167,23 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
                return false;
            }
     }
+    
+    private void showToast(String _message) {
+    	
+    	LayoutInflater inflater = getLayoutInflater();
+    	View layout = inflater.inflate(R.layout.toast_layout,(ViewGroup) findViewById(R.id.toast_layout_root));
 
+    	TextView text = (TextView) layout.findViewById(R.id.text);
+    	text.setText(_message);
+
+    	Toast toast = new Toast(getApplicationContext());
+    	toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+    	toast.setDuration(Toast.LENGTH_LONG);
+    	toast.setView(layout);
+    	toast.show();
+    	
+    }
+    
     private void showExitDialog() { 
     	
     	AlertDialog.Builder builder = new AlertDialog.Builder(this);

@@ -16,14 +16,19 @@ import android.net.nsd.NsdManager.DiscoveryListener;
 import android.net.nsd.NsdManager.ResolveListener;
 import android.net.nsd.NsdServiceInfo;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Message;
 import android.app.Activity;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class CoapDeviceSimulator extends Activity implements Observer {
 
@@ -38,7 +43,13 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	public TextView textDisplay;
 	public Button showButton;
 	private ArrayList<String> statusMessages = new ArrayList<String>();
+	
+	final Handler mHandler = new Handler() { 
 
+	     public void handleMessage(Message msg) { 
+	    	 showMessages(msg);
+	     } 
+	 }; 
 	
 
 	@Override
@@ -47,25 +58,10 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		setContentView(R.layout.activity_coap_device_simulator);
 		this.serviceListener.startDiscovery();
 		this.textDisplay = (TextView)findViewById(R.id.statusText);
-		this.textDisplay.setText("TADAA!");
-		this.showButton = (Button)findViewById(R.id.showButton);
-		showButton.setOnClickListener(new OnClickListener()
-		{
-		public void onClick(View v)
-		{
-		showMessages();
-		}
-		                                });
-		     
-		
-		
 	}
 
-	private void showMessages() {
-		Iterator<String> i = statusMessages.iterator();
-		  while (i.hasNext()) {
-			  textDisplay.append(i.next());
-		  }
+	private void showMessages(Message _msg) {
+		textDisplay.append(_msg.obj.toString());  
 	}
 
 	@Override
@@ -91,12 +87,12 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	public void update(Observable arg0, Object arg1) {
 		if (arg1 instanceof Message) {
 				this.coapSocket.broadCastMessage((Message) arg1,foundDevices);
-				statusMessages.add("message being sent: ");
 			}
 		if (arg1 instanceof DatagramPacket) {
-			statusMessages.add("udp packet being send: ");
-			//this.decodePacket((DatagramPacket) arg1);
-           //TODO
+
+			Message msg = new Message(); //TODO
+			msg.obj = "Packet sent";
+			mHandler.sendMessage(msg);
         }
 	}
 	
@@ -104,6 +100,23 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		
 		statusMessages.add("packet send to " + _packet.getAddress().toString());
 	}
+	
+	private void showToast(String _message) {
+	    	
+	    	LayoutInflater inflater = getLayoutInflater();
+	    	View layout = inflater.inflate(R.layout.toast_layout,(ViewGroup) findViewById(R.id.toast_layout_root));
+
+	    	TextView text = (TextView) layout.findViewById(R.id.text);
+	    	text.setText(_message);
+
+	    	Toast toast = new Toast(getApplicationContext());
+	    	toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+	    	toast.setDuration(Toast.LENGTH_LONG);
+	    	toast.setView(layout);
+	    	toast.show();
+	    	
+	}
+	    
 	
 	private class ServiceResolver implements ResolveListener {
 

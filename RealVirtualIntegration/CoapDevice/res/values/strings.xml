@@ -4,5 +4,7 @@
     <string name="app_name">CoapDevice</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
+    
+    <string name="view_status_title">Device status:</string>
 
 </resources>

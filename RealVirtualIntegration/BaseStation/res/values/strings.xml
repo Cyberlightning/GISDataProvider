@@ -1,6 +1,6 @@
 <resources>
 	<string name="view_button_exit">exit</string>
-    <string name="view_status_title">Status:</string>
+    <string name="view_status_title">Connected clients:</string>
     <string name="view_main_title">CoAP base station</string>
     
     <string name="dialog_cancel_button">Cancel</string>
@@ -14,12 +14,12 @@
     <string name="service_stopped_notification">CoAP service stopped</string>
     <string name="action_settings">aasdasdadasdasdassd</string>
     
-    <string name="app_name">CoAP service</string>
-    <string name="service_main_title">Cyberlightning CoAP service</string>
+    <string name="app_name">CyberStation</string>
+    <string name="service_main_title">CyberStation Service</string>
     
     <string name="main_no_connection_notification">Program requires an Internet connection</string>
-    <string name="main_no_wifi_notification">Program requires WIFI to be turned on</string>
+    <string name="main_no_wifi_notification">Program requires this device to be set as WiFi hotspot</string>
     
     <string name="request_enable_bluetooth">Coap services requires bluetooth to be enabled, permission to enable bluetooth?</string>
-    
+ 
  </resources>
