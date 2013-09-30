@@ -3,11 +3,9 @@ package com.cyberlightning.android.coap;
 import java.net.DatagramPacket;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Timer;
-import java.util.TimerTask;
+
 
 import com.cyberlightning.android.coap.memory.RomMemory;
 
@@ -25,7 +23,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;

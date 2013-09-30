@@ -161,7 +161,7 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
     private boolean haveNetworkConnection() {
         final ConnectivityManager conMgr = (ConnectivityManager) getSystemService (Context.CONNECTIVITY_SERVICE);
            if (conMgr.getActiveNetworkInfo() != null && conMgr.getActiveNetworkInfo().isAvailable() &&    conMgr.getActiveNetworkInfo().isConnected()) {
-                 return true;
+        	   return true;
            } else {
                  System.out.println("Internet Connection Not Present");
                return false;

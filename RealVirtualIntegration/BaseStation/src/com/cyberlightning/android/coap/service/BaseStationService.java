@@ -8,11 +8,15 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Random;
 import java.util.UUID;
 
 import com.cyberlightning.android.coap.w4ds.interfaces.*;
 import com.cyberlightning.android.coap.w4ds.messages.*;
 import com.cyberlightning.android.coap.CoapBaseStation;
+import com.cyberlightning.android.coap.CoapDevice;
 import com.cyberlightning.android.coap.resources.Settings;
 import com.cyberlightning.android.coapclient.R;
 
@@ -40,7 +44,7 @@ public class BaseStationService extends Service {
 	private DatagramSocket remoteServerSocket;
 	private DatagramSocket localServerSocket;
     private BaseStationServiceBinder<BaseStationService> serviceBinder;
-	
+	private ArrayList<CoapDevice> devices = new ArrayList<CoapDevice>();
 	private RegistrationListener mRegistrationListener;
 	private NsdManager mNsdManager;
 	private String mServiceName;
@@ -146,8 +150,9 @@ public class BaseStationService extends Service {
 						remoteServerSocket.receive(receivedPacket);
 						
 						if (receivedPacket.getSocketAddress() != null) {
-							handleIncommingMessage(receivedPacket);
-							receivedPacket = null; //clear packet holder
+							handleIncommingMessageFromWebServer(receivedPacket);
+							registerDevice(receivedPacket);
+							
 						}
 					}
 					//TODO handle socket closed
@@ -160,6 +165,55 @@ public class BaseStationService extends Service {
 				
 			}}).start();	
 		
+	}
+    
+    private void handleIncommingMessageFromWebServer(DatagramPacket _packet) {
+    	Message message = new Message();
+    	try {
+			message.obj = new String(_packet.getData(),"utf8");
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	this.broadCastToAllCoapDevices(message);
+    }
+    
+    private void broadCastToAllCoapDevices (Message _msg) {
+    	
+    	CoapRequest coapRequest = this.createRequest(true, CoapRequestCode.POST); //clientChannel.createRequest(true, CoapRequestCode.POST);
+	    coapRequest.setContentType(CoapMediaType.text_plain);
+		//coapRequest.setUriPath("/devices");
+	    
+		coapRequest.setPayload(_msg.obj.toString());
+		CoapMessage coapMessage = (CoapMessage)coapRequest;
+		//coapRequest.setUriQuery(jsonSensorsList.toString());
+		ByteBuffer buf = ByteBuffer.wrap(coapMessage.serialize());
+		
+		Iterator<CoapDevice> i = this.devices.iterator();
+		while(i.hasNext()) {
+			CoapDevice device= i.next();
+			DatagramPacket packet = new DatagramPacket(buf.array(), buf.array().length, device.getIpAdress(), device.getPort());
+			try {
+				this.localServerSocket.send(packet);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+    	
+    	
+    }
+    
+    private BasicCoapRequest createRequest(boolean reliable, CoapRequestCode requestCode) {
+	    BasicCoapRequest msg = new BasicCoapRequest(reliable ? CoapPacketType.CON : CoapPacketType.NON, requestCode,this.getNewMessageID());
+	    return msg;
+	}
+	  
+	/** Creates a new, global message id for a new COAP message */ 
+	private synchronized int getNewMessageID() {
+	    Random random = new Random();
+	    return random.nextInt(Settings.MESSAGE_ID_MAX + 1);
 	}
     
     public void initializeRegistrationListener() {
@@ -195,8 +249,21 @@ public class BaseStationService extends Service {
         };
     }
     
-    private void handleIncommingMessage(DatagramPacket _packet) {
+    private void registerDevice(DatagramPacket _packet ) {
     	
+    	Iterator<CoapDevice> i = this.devices.iterator();
+    	boolean isRegistered = false;
+    	while (i.hasNext()) {
+    		if (i.next().getIpAdress().getHostAddress().contains(_packet.getAddress().getHostAddress())) {
+    			isRegistered = true;
+    		}
+    	}
+    	if (!isRegistered) {
+    		this.devices.add(new CoapDevice(_packet.getAddress(), _packet.getPort()));
+    	}
+    }
+    
+    private void handleIncommingMessage(DatagramPacket _packet) {
     	
     	ByteBuffer buffer = ByteBuffer.wrap(_packet.getData());
     	
@@ -225,7 +292,7 @@ public class BaseStationService extends Service {
     
     private void showNotification (int _title, int _content) {
     	
-    	NotificationCompat.Builder mBuilder =new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_launcher).setContentTitle(this.getString(_title)).setContentText(this.getString(_content));
+    	NotificationCompat.Builder mBuilder =new NotificationCompat.Builder(this).setSmallIcon(R.drawable.cyber_logo).setContentTitle(this.getString(_title)).setContentText(this.getString(_content));
     	   
     	Intent resultIntent = new Intent(this, CoapBaseStation.class);
     	    

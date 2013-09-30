@@ -70,10 +70,18 @@ public void run() {
 			String httpMethod = tokenizer.nextToken();
 			String httpQueryString = tokenizer.nextToken();
 			
-			if (httpMethod.equals("GET")) 			this.handGETMethod(httpQueryString);
-			else if (httpMethod.equals("POST"))  	this.handPOSTMethod(httpQueryString.replaceFirst("/", ""));
-			else if (httpMethod.equals("PUT")) 		this.handPUTMethod(httpQueryString);
-			else if (httpMethod.equals("DELETE")) 	this.handDELETEMethod(httpQueryString);
+			if (httpMethod.equals("GET")) 			{
+				this.handGETMethod(httpQueryString);
+			}
+			else if (httpMethod.equals("POST"))  	{
+				this.handPOSTMethod(httpQueryString.replaceFirst("/", ""));
+			}
+			else if (httpMethod.equals("PUT")) 		{
+				this.handPUTMethod(httpQueryString);
+			}
+			else if (httpMethod.equals("DELETE")) 	{
+				this.handDELETEMethod(httpQueryString);
+			}
 			else System.out.println(httpMethod.toString());
 	
 		} catch (Exception e) {
@@ -104,7 +112,7 @@ private void handGETMethod(String _query) throws Exception {
 }
 
 private void handPOSTMethod(String _action) {
-	MessageService.getInstance().broadcastHttpMessageEvent("Previous");	
+	MessageService.getInstance().broadcastHttpMessageEvent(_action);	
 
 }
 

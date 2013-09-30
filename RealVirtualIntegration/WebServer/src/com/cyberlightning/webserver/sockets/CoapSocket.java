@@ -19,7 +19,7 @@ public class CoapSocket implements Runnable,IMessageEvent  {
 	
 	private DatagramSocket serverSocket;
 	private ArrayList<DatagramPacket> sendBuffer= new ArrayList<DatagramPacket>();
-	
+	private ArrayList<Client> baseStations = new ArrayList<Client>();
 	private int port;
 	
 	public CoapSocket () {
@@ -76,14 +76,24 @@ public class CoapSocket implements Runnable,IMessageEvent  {
 	}
 	
     private  void handleConnectedClient(DatagramPacket _datagramPacket) {
-			Client client = new Client(_datagramPacket.getAddress().getHostAddress(), _datagramPacket.getPort(),StaticResources.CLIENT_PROTOCOL_COAP);
-			ProfileService.getInstance().registerClient(client);
+			Client client = new Client(_datagramPacket.getAddress(), _datagramPacket.getPort(),StaticResources.CLIENT_PROTOCOL_COAP);
+			client.setType(Client.TYPE_BASESTATION);
+			this.baseStations.add(client);
+			//ProfileService.getInstance().registerClient(client);
 	}
 	
 	@Override
 	public void httpMessageEvent(String msg) {
-		// TODO Auto-generated method stub
+		byte[] b = new byte[1024];
+		b = msg.getBytes();
 		
+		DatagramPacket packet = new DatagramPacket(b, b.length, this.baseStations.get(0).getAddress(), this.baseStations.get(0).getPort());
+		try {
+			this.serverSocket.send(packet);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override

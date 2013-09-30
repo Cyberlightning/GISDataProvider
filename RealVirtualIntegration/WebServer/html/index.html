@@ -17,6 +17,31 @@
 	 $(function() {
 		 $( "#accordion" ).accordion();
 		 });
+	 $(function() {
+		 var spinner = $( "#spinner" ).spinner();
+		 });
+	 $.widget("ui.formatSpinner", $.ui.spinner, {
+		    options: {
+		    },
+		    _parse: function (value) {
+		        if (typeof value === "string") {                
+		            return this.options.values.indexOf(value);
+		        }
+		        return value;            
+		    },
+		    _format: function (value) {
+		        //wrap around
+		        if (value < 0) {
+		            value = this.options.count-1;
+		        }
+		        if (value > this.options.count-1) {
+		            value = 0;
+		        }
+		        var format = this.options.values[value];
+		        return format;
+		    },          
+		});
+	
 	</script>
 	
 	<style>
@@ -26,36 +51,74 @@
 		background-color:#1F001F;
 	}
     canvas{
-
     }
+    
+    #buttons div {
+  		display: inline;
+  		width:100%;
+ 
+  	}
+  	
 	</style>
 </head>
 
+
+
 <body>
-	<div align="left" style="width:100%;height:100px">
-		<img alt="" src="assets/logo.png">	
-		
-	</div>
-<div style="width:100%;height:100%">
-  	
-  	
-  	<div id="content_left" style="background-color:#D2CCD2;height:650px;width:49%;float:left;">
-
-  	</div>
-  	
-  	<div style="background-color:#938F93;height:650px;width:0.3%;float:left;"></div>
-  	
-  	<div style="background-color:#D2CCD2;height:650px;width:50.7%;float:left;">
-		<div id="accordion"></div>
-  	</div>
-  	<div align="right" style="background-color:#4C334C;clear:both;color:white;font-size: 9">Copyright © 2013 Cyberlightning Ltd.</div>
-  	<div align="left"><button id="connect_button" onClick="WebSocketTest()">connect</button></div>
-</div>
-
-	<div id="holder"></div>
+		<div align="left" style="width:100%;height:100px">
+			<img alt="" src="assets/logo.png">	
+		</div>
+	
+		<div style="width:100%;height:100%">
+  			<div id="content_left" style="background-color:#D2CCD2;height:650px;width:49%;float:left;"></div>
+  			<div style="background-color:#938F93;height:650px;width:0.3%;float:left;"></div>
+  			<div style="background-color:#D2CCD2;height:650px;width:50.7%;float:left;">
+				<div id="accordion"></div>
+  			</div>
+  			<div align="right" style="background-color:#4C334C;clear:both;color:white;font-size: 9">Copyright © 2013 Cyberlightning Ltd.</div>
+ 			<div id="buttons" style="width:100%;">
+  				<button id="connect_button" onClick="WebSocketTest()">connect</button>
+  				<input id="spinner-sensors" type="text" value=""/>
+  				<form id="frm"><input id="command_input" type="text" placeholder="Command to be sent to sensor"></form>
+				<button id="send_button" onClick="sendData()">Send</button>
+  			</div>
+  		</div>
+		<div id="holder"></div> <!-- This needs to be removed, dummy layer for JSON data -->
+	
 	<script type="text/javascript">
+
+	//var arrPaperTypes = ["Standard 80g", "Standard 100g", "Gloss 100g", "Gloss 120g"];
+	var sensorTypes = [];
+
+	$(function() {
+	    $("#spinner-sensors").formatSpinner({
+	        values: sensorTypes,
+	        count: sensorTypes.length
+	    });
+	}); 
 	
+	function sendData() {
+		var input = frm.command_input.value;
+		$.ajax({
+	  	type: "POST",
+	  	url: "http://127.0.0.1:44446/" + input,
+	  	async: true,
+	  	cache: false,
+	  	timeout:50000,
+	  	success: function(data){
+	  		//TODO on success response
+	  	}, 
+	  	error: function(XMLHttpRequest, textStatus, errorThrown){
+			
+	  		alert("error: " + textStatus + " (" + errorThrown + ")");
+	             setTimeout(
+	                    sendData, /* Try again after.. */
+	                    30000); /* milliseconds (30 seconds) */
+	            }
+	    });
+	};
 	
+	//Global variables
 	
 	var WIDTH = $("#content_left").height();
 	var HEIGHT = $("#content_left").width();
@@ -75,7 +138,7 @@
 	// and a scene
 	renderer = new THREE.WebGLRenderer( {antialias:true} );
 	
-	
+	var ws; //websocket 
 	var json;
 	var sensors = [];
     var type;
@@ -97,12 +160,11 @@
 
 		if (!alreadyExists) {
             type =  json.device_properties.type;
+            sensorTypes.push(json.device_properties.type);
 			var active = $('#accordion').accordion('option', 'active');
 			$('#accordion').append('<h3><a href="#" onclick="drawCharts(event)">' + type + '</a></h3><div>'+ parseContent(json) +'</div>')
 			    .accordion('destroy').accordion({ active: active});
 		}
-		
-		
 	}
 
 	function parseContent(data) {
@@ -114,8 +176,7 @@
 
 	function drawCharts(e) {
 		
-		//var eventTarget = e.explicitOriginalTarget.data
-		var eventTarget = e.currentTarget.innerHTML;
+		var eventTarget = e.currentTarget.innerHTML; //works on both chrome and FF
 		var cubeX = 20;
 		var cubeZ = 20;
 		var cubeY = 0;
@@ -141,7 +202,7 @@
 			}
 		}
 		
-		if(eventTarget == "TYPE_LIGHT" || eventTarget =="TYPE_PRESSURE" || eventTarget == "TYPE_MAGNETIC_FIELD") {
+		if(eventTarget == "TYPE_LIGHT" || eventTarget =="TYPE_PRESSURE" || eventTarget == "TYPE_MAGNETIC_FIELD") { //TODO: implement more dynamic way to present data
             
 			var standardized = 100/(maxValue - minValue);
 			var camera =
@@ -151,64 +212,59 @@
 				    NEAR,
 				    FAR);
 
-				var scene = new THREE.Scene();
+			var scene = new THREE.Scene();
 				
-				scene.add(camera);
+			scene.add(camera);
 				
-				// the camera starts at 0,0,0
-				// so pull it back
-				camera.position.z = 300;
-				camera.position.y = 200;
-				camera.position.x = 100;
+			// the camera starts at 0,0,0
+			// so pull it back
+			camera.position.z = 300;
+			camera.position.y = 200;
+			camera.position.x = 100;
 
-				// start the renderer
-				renderer.setSize(WIDTH, HEIGHT);
+			// start the renderer
+			renderer.setSize(WIDTH, HEIGHT);
 
-				// attach the render-supplied DOM element
-				$container.append(renderer.domElement);
-				
-				
-					
+			// attach the render-supplied DOM element
+			$container.append(renderer.domElement);
 
-				// create a point light
-				var pointLight =
-				  new THREE.PointLight(0xFFFFFF);
+			// create a point light
+			var pointLight = new THREE.PointLight(0xFFFFFF);
 
-				// set its position
-				pointLight.position.x = 10;
-				pointLight.position.y = 50;
-				pointLight.position.z = 130;
+			// set its position
+			pointLight.position.x = 10;
+			pointLight.position.y = 50;
+			pointLight.position.z = 130;
 
-				// add to the scene
-				scene.add(pointLight);
+			// add to the scene
+			scene.add(pointLight);
 				
-				var material = new THREE.LineBasicMaterial({
-			        color: 0x0000ff
-			    });
+			var material = new THREE.LineBasicMaterial({color: 0x0000ff});
 				
-				var geometry = new THREE.Geometry();
-				geometry.vertices.push(new THREE.Vector3(0, 0, 0));
-				geometry.vertices.push(new THREE.Vector3(0, 100, 0));
+			var geometry = new THREE.Geometry();
+			geometry.vertices.push(new THREE.Vector3(0, 0, 0));
+			geometry.vertices.push(new THREE.Vector3(0, 100, 0));
 				
-				var line = new THREE.Line(geometry, material);
-				scene.add(line);
+			var line = new THREE.Line(geometry, material);
+			scene.add(line);
 				
-				var geometry = new THREE.Geometry();
-				geometry.vertices.push(new THREE.Vector3(0, 0, 0));
-				geometry.vertices.push(new THREE.Vector3(0, 0, 100));
+			var geometry = new THREE.Geometry();
+			geometry.vertices.push(new THREE.Vector3(0, 0, 0));
+			geometry.vertices.push(new THREE.Vector3(0, 0, 100));
 				
-				var line = new THREE.Line(geometry, material);
-				scene.add(line);
+			var line = new THREE.Line(geometry, material);
+			scene.add(line);
 				
-				var geometry = new THREE.Geometry();
-				geometry.vertices.push(new THREE.Vector3(0, 0, 0));
-				geometry.vertices.push(new THREE.Vector3(100,0 , 0));
+			var geometry = new THREE.Geometry();
+			geometry.vertices.push(new THREE.Vector3(0, 0, 0));
+			geometry.vertices.push(new THREE.Vector3(100,0 , 0));
 				
-				var line = new THREE.Line(geometry, material);
-				scene.add(line);
-				camera.lookAt( scene.position );
+			var line = new THREE.Line(geometry, material);
+			scene.add(line);
+			camera.lookAt( scene.position );
 				
 			var j = 0;
+			
 			while(j < xValues.length && j < 5) {
 
 				if (xValues.length > 1 ) {
@@ -230,21 +286,19 @@
         		var material = new THREE.MeshBasicMaterial( { vertexColors: THREE.FaceColors, overdraw: 0.5 } );
         		cube = new THREE.Mesh( geometry, material );
         		cube.position.y = cubeY/2;
-        		cube.position.x = cubeX/2 + j*20; //5 pixels space between bars after first
+        		cube.position.x = cubeX/2 + j*20; //20 pixels space between bars after first
         		cube.position.z = cubeZ/2;
         		scene.add( cube );
         	 
         		j++
-        		
-        		
-				
+
 			}
 			
 			var canvas1 = document.createElement('canvas');
     		var context1 = canvas1.getContext('2d');
     		context1.font = "14px Arial";
     		context1.fillStyle = "rgba(0,0,0,0.95)";
-    		    context1.fillText("Value range: " +parseFloat(minValue).toFixed(2) + " - " + parseFloat(maxValue).toFixed(2), 0, 50);
+    		context1.fillText("Value range: " + parseFloat(minValue).toFixed(2) + " - " + parseFloat(maxValue).toFixed(2), 0, 50);
     		    
     		// canvas contents will be used for a texture
     		var texture1 = new THREE.Texture(canvas1)
@@ -263,42 +317,35 @@
 		} 
 	}
 
-	function WebSocketTest()
-     {
-       if ("WebSocket" in window)
-       {
+	function WebSocketTest() {
+       
+		if ("WebSocket" in window) {
           
-          var ws = new WebSocket("ws://127.0.0.1:44445");
-          //var ws = new WebSocket("ws://dev.cyberlightning.com:44445");
-          ws.onopen = function()
-          {
+          //var ws = new WebSocket("ws://127.0.0.1:44445");
+          ws = new WebSocket("ws://dev.cyberlightning.com:44445");
+          ws.onopen = function() {
              // Web Socket is connected, send data using send()
              ws.send("Message to send");
-             alert("Connected to the web server.");
-           
-            	 
+             alert("Connected to the web server."); 	 
           };
-          ws.onmessage = function (evt)
-          {
+          ws.onmessage = function (evt) {
         	document.getElementById("holder").innerHTML = evt.data;
             json = JSON.parse(document.getElementById("holder").innerHTML);
             document.getElementById("holder").innerHTML = "";
             setContent();
-
           };
-          ws.onclose = function()
-          {
+          ws.onclose = function() {
              // websocket is closed.
              alert("Connection is closed...");
           };
        }
-       else
-       {
+       else {
           // The browser doesn't support WebSocket
           alert("WebSocket NOT supported by your Browser!");
        }
      }
-	 
+	
+	
 	 
 	</script>
 </body>

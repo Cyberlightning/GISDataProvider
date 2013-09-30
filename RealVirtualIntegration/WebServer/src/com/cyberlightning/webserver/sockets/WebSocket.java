@@ -150,7 +150,7 @@ public class WebSocket implements Runnable  {
 			}
 		}
 		
-		ProfileService.getInstance().registerClient(new Client(ip4v, Integer.parseInt(port), StaticResources.CLIENT_PROTOCOL_TCP));
+		//ProfileService.getInstance().registerClient(new Client(ip4v, Integer.parseInt(port), StaticResources.CLIENT_PROTOCOL_TCP));
 	}
 	
 	private String generateSecurityKeyAccept (String _secKey) {
