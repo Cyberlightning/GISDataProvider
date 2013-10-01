@@ -2,14 +2,15 @@ package com.cyberlightning.android.coap.service;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.ref.WeakReference;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -20,6 +21,7 @@ import com.cyberlightning.android.coap.CoapDevice;
 import com.cyberlightning.android.coap.resources.Settings;
 import com.cyberlightning.android.coapclient.R;
 
+import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -29,58 +31,92 @@ import android.content.Intent;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdManager.RegistrationListener;
 import android.net.nsd.NsdServiceInfo;
-import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
 
 public class BaseStationService extends Service {
 
-
-    protected static final String TAG = "BaseStationService";
-    
-	
-	private DatagramSocket remoteServerSocket;
-	private DatagramSocket localServerSocket;
-    private BaseStationServiceBinder<BaseStationService> serviceBinder;
 	private ArrayList<CoapDevice> devices = new ArrayList<CoapDevice>();
-	private RegistrationListener mRegistrationListener;
+	private DatagramSocket remoteServerSocket;
+	private DatagramSocket localServerSocket;	
 	private NsdManager mNsdManager;
+	private RegistrationListener serviceRegisterationListener;
 	private String mServiceName;
-
 	
+	private static List<Messenger> connectedActivities = new ArrayList<Messenger>(); 
+	private final Messenger messenger = new Messenger(new IncomingMessageHandler()); 
+	
+	public static final int MSG_REGISTER_CLIENT = 1;
+    public static final int MSG_UNREGISTER_CLIENT = 2;
+    public static final int MSG_RECEIVED_FROM_WEBSERVICE = 3;
+    public static final int MSG_RECEIVED_FROM_COAPDEVICE = 4;
+    public static final int MSG_UI_EVENT = 5;
+      
     private static int NOTIFICATION_ID;
+    private static boolean isRunning = false;
    
 
     @Override
     public void onCreate() {    
         NOTIFICATION_ID = UUID.randomUUID().hashCode(); 
+        this.isRunning = true;
         this.openServiceSocket();
-    
-          //this.listenForLocalCoapDevices();
         this.showNotification(R.string.app_name,R.string.service_started_notification);
+        
         try {
-			this.registerService(5683);
+			this.registerService();
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     }
   
+	
+	
 	@Override
-	public IBinder onBind(Intent arg0) {
-		this.serviceBinder = new BaseStationServiceBinder<BaseStationService>(this);
-		return this.serviceBinder;
-	}
+    public IBinder onBind(Intent intent) {
+            return this.messenger.getBinder();
+    }
+
    
     @Override
     public void onDestroy() {
         // Cancel the persistent notification.
-    	((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancel(R.string.service_started_notification);
+    	((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancel(this.NOTIFICATION_ID);
         Toast.makeText(this, R.string.service_stopped_notification, Toast.LENGTH_SHORT).show();
+        this.isRunning = false;
+        
+        this.stopSelf();
     }
+    
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        
+            return START_STICKY; // Run until explicitly stopped.
+    }
+    
+    public static boolean isRunning() {
+            return isRunning;
+    }
+    
+    /** Initiates a pending call that will restart the service to avoid it being shutdown by the Android device **/
+    private void initiateAwakeSelf() { //TODO whether to use this or not? 
+    	Calendar cal = Calendar.getInstance();
 
+    	Intent intent = new Intent(this, BaseStationService.class);
+    	PendingIntent pintent = PendingIntent.getService(this, 0, intent, 0);
+
+    	AlarmManager alarm = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+    	// Start every 30 seconds
+    	alarm.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 30*1000, pintent); 
+    }
+    
+    /** Opens a new socket for connected devices in local area network**/
     private void openCoapSocket() {
 		
 		new Thread(new Runnable() { 
@@ -90,46 +126,42 @@ public class BaseStationService extends Service {
 				try {
 					
 					localServerSocket = new DatagramSocket(Settings.COAP_DEFAULT_PORT);
-					localServerSocket.setReceiveBufferSize(1024);
-					byte[] receiveByte = new byte[1024]; //512 for IPv6 networks?
-					//remoteServerSocket.connect(InetAddress.getByName(Settings.REMOTEHOST), Settings.REMOTE_SERVER_PORT);
+					localServerSocket.setReceiveBufferSize(Settings.DEFAULT_BYTE_BUFFER_SIZE);
+					byte[] receiveByte = new byte[Settings.DEFAULT_BYTE_BUFFER_SIZE]; 
 					DatagramPacket receivedPacket = new DatagramPacket(receiveByte, receiveByte.length);
-			
-					
+
 					while(true) {
-						
 						localServerSocket.receive(receivedPacket);
 						if (receivedPacket.getSocketAddress() != null) {
 							handleIncommingMessage(receivedPacket);
-							
 						}
 					}
 					//TODO handle socket closed
-					
 				} catch(IOException e) {
 					e.printStackTrace();
 				} 
-				
 				return; 
 				
 			}}).start();	
 		
 	}
     
-    public void registerService(int _port) throws UnknownHostException {
-        NsdServiceInfo serviceInfo  = new NsdServiceInfo();
-        serviceInfo.setServiceName("BaseStation");
-        serviceInfo.setServiceType("_coap._udp");
-        serviceInfo.setPort(_port);
-        //this.openServiceSocket();
+    /** Register NSD-SD service and open port for handling inbound messages */
+    public void registerService() throws UnknownHostException {
+        
+    	NsdServiceInfo serviceInfo  = new NsdServiceInfo();
+        serviceInfo.setServiceName(Settings.SERVICE_NAME);
+        serviceInfo.setServiceType(Settings.SERVICE_TYPE);
+        serviceInfo.setPort(Settings.COAP_DEFAULT_PORT);
         this.openCoapSocket();
        
         mNsdManager = (NsdManager) getSystemService(Context.NSD_SERVICE);
         this.initializeRegistrationListener();
 
-        mNsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
+        mNsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, this.serviceRegisterationListener);
     }
     
+    /** Opens a new socket for connected devices in local area network**/
     private void openServiceSocket() {
 		
 		new Thread(new Runnable() { 
@@ -138,22 +170,17 @@ public class BaseStationService extends Service {
 				
 				try {
 					
-					remoteServerSocket= new DatagramSocket(Settings.VPN_PORT);
-					remoteServerSocket.setReceiveBufferSize(1024);
-					byte[] receiveByte = new byte[1024]; //512 for IPv6 networks?
+					remoteServerSocket= new DatagramSocket(Settings.LOCAL_OUTBOUND_PORT);
+					remoteServerSocket.setReceiveBufferSize(Settings.DEFAULT_BYTE_BUFFER_SIZE);
 					remoteServerSocket.connect(InetAddress.getByName(Settings.REMOTEHOST), Settings.REMOTE_SERVER_PORT);
+					
+					byte[] receiveByte = new byte[Settings.DEFAULT_BYTE_BUFFER_SIZE];
 					DatagramPacket receivedPacket = new DatagramPacket(receiveByte, receiveByte.length);
-			
 					
 					while(true) {
-						
 						remoteServerSocket.receive(receivedPacket);
-						
-						if (receivedPacket.getSocketAddress() != null) {
-							handleIncommingMessageFromWebServer(receivedPacket);
-							registerDevice(receivedPacket);
-							
-						}
+						broadCastToAllCoapDevices(Message.obtain(null, BaseStationService.MSG_RECEIVED_FROM_WEBSERVICE,  new String(receivedPacket.getData(),"utf8")));
+						registerDevice(receivedPacket);
 					}
 					//TODO handle socket closed
 					
@@ -167,20 +194,10 @@ public class BaseStationService extends Service {
 		
 	}
     
-    private void handleIncommingMessageFromWebServer(DatagramPacket _packet) {
-    	Message message = new Message();
-    	try {
-			message.obj = new String(_packet.getData(),"utf8");
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	this.broadCastToAllCoapDevices(message);
-    }
-    
+    /** Serializes message in to a CoAP message and sends it to all registered devices on local area network */
     private void broadCastToAllCoapDevices (Message _msg) {
     	
-    	CoapRequest coapRequest = this.createRequest(true, CoapRequestCode.POST); //clientChannel.createRequest(true, CoapRequestCode.POST);
+    	CoapRequest coapRequest = this.createRequest(true, CoapRequestCode.POST);
 	    coapRequest.setContentType(CoapMediaType.text_plain);
 		//coapRequest.setUriPath("/devices");
 	    
@@ -200,11 +217,13 @@ public class BaseStationService extends Service {
 				e.printStackTrace();
 			}
 		}
-		
-    	
-    	
     }
-    
+    /** Forms a basic CoAP message
+     * 
+     * @param reliable set to true for confirmable message and false for non-confirmable message
+     * @param requestCode HTTP POST/GET/PUT/DELETE
+     * @return BasicCoapRequest
+     */
     private BasicCoapRequest createRequest(boolean reliable, CoapRequestCode requestCode) {
 	    BasicCoapRequest msg = new BasicCoapRequest(reliable ? CoapPacketType.CON : CoapPacketType.NON, requestCode,this.getNewMessageID());
 	    return msg;
@@ -217,7 +236,7 @@ public class BaseStationService extends Service {
 	}
     
     public void initializeRegistrationListener() {
-        mRegistrationListener = new NsdManager.RegistrationListener() {
+        this.serviceRegisterationListener = new NsdManager.RegistrationListener() {
 
             @Override
             public void onServiceRegistered(NsdServiceInfo NsdServiceInfo) {
@@ -226,29 +245,26 @@ public class BaseStationService extends Service {
                 // with the name Android actually used.
                 mServiceName = NsdServiceInfo.getServiceName();
             }
-
             @Override
             public void onRegistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
                 // Registration failed!  Put debugging code here to determine why.
             	System.out.print("failed registeration");
             }
-
             @Override
             public void onServiceUnregistered(NsdServiceInfo arg0) {
                 // Service has been unregistered.  This only happens when you call
                 // NsdManager.unregisterService() and pass in this listener.
             	System.out.print(" unregisteration");
             }
-
             @Override
             public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
                 // Unregistration failed.  Put debugging code here to determine why.
-            	System.out.print("failed unregisteration");
-            	
+            	System.out.print("failed unregisteration");	
             }
         };
     }
     
+    /***/
     private void registerDevice(DatagramPacket _packet ) {
     	
     	Iterator<CoapDevice> i = this.devices.iterator();
@@ -263,6 +279,7 @@ public class BaseStationService extends Service {
     	}
     }
     
+    /***/
     private void handleIncommingMessage(DatagramPacket _packet) {
     	
     	ByteBuffer buffer = ByteBuffer.wrap(_packet.getData());
@@ -290,9 +307,13 @@ public class BaseStationService extends Service {
 		}
 	}
     
+    /** Display service notification
+     * @param _title Title of the notification
+     * @param _content Notification description
+     */
     private void showNotification (int _title, int _content) {
     	
-    	NotificationCompat.Builder mBuilder =new NotificationCompat.Builder(this).setSmallIcon(R.drawable.cyber_logo).setContentTitle(this.getString(_title)).setContentText(this.getString(_content));
+    	NotificationCompat.Builder mBuilder =new NotificationCompat.Builder(this).setSmallIcon(R.drawable.cyber_icon).setContentTitle(this.getString(_title)).setContentText(this.getString(_content));
     	   
     	Intent resultIntent = new Intent(this, CoapBaseStation.class);
     	    
@@ -306,43 +327,43 @@ public class BaseStationService extends Service {
     	((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, mBuilder.build());
     }
     
-    /** Binder class for binding activities to base station server**/
-	public class BaseStationServiceBinder<T> extends Binder implements IBaseStationServiceBinder {
-		 private WeakReference<T> coapService;
-		 
-		public BaseStationServiceBinder(T service) {
-			coapService = new WeakReference<T>(service);
-		}
-		 
-		public T getService() {
-		 return coapService.get();
-		}
-		 
-		 
-		 /** Message is being captured by base station service**/
-		@Override
-		 public void sendMessage(Message _msg) {
-			
-			if (remoteServerSocket.isConnected()) {
-				
-				try {
-					byte[] byteBuffer = _msg.obj.toString().getBytes("UTF8");
-					DatagramPacket packet = new DatagramPacket(byteBuffer,byteBuffer.length,InetAddress.getByName(Settings.REMOTEHOST),Settings.REMOTE_SERVER_PORT);
-					packet.setData(byteBuffer);
-					remoteServerSocket.send(packet);
-				} catch (UnsupportedEncodingException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		 }
-	}
-		 
-	/** Interface for sending messages through the base station **/
-	public interface IBaseStationServiceBinder {
-		public void sendMessage(Message _msg);
-	}	 
+    /**
+     * Send the data to all clients.
+     * @param _msg payload to send 
+     * @param _origin original sender
+     */
+    private void sendMessageToUI(Object _msg, int _origin) {
+            Iterator<Messenger> messengerIterator = connectedActivities.iterator();            
+            while(messengerIterator.hasNext()) {
+                    Messenger messenger = messengerIterator.next();
+                    try {                              
+                            messenger.send(Message.obtain(null, _origin, _msg));
+
+                    } catch (RemoteException e) {
+                            // The client is dead. Remove it from the list.
+                    	connectedActivities.remove(messenger);
+                    }
+            }
+    }
+
+	/** Handle incoming messages from MainActivity*/
+    static class IncomingMessageHandler extends Handler { // Handler of incoming messages from clients.
+            @Override
+            public void handleMessage(Message msg) {
+                   
+                    switch (msg.what) {
+                    case BaseStationService.MSG_REGISTER_CLIENT:
+                    	connectedActivities.add(msg.replyTo);
+                            break;
+                    case BaseStationService.MSG_UNREGISTER_CLIENT:
+                    	connectedActivities.remove(msg.replyTo);
+                            break;
+                    case BaseStationService.MSG_RECEIVED_FROM_COAPDEVICE:
+                            //incrementBy = msg.arg1;
+                            break;
+                    default:
+                            super.handleMessage(msg);
+                    }
+            }
+    }
 }

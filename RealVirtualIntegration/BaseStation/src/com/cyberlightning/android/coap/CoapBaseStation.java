@@ -5,7 +5,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import com.cyberlightning.android.coap.service.BaseStationService;
-import com.cyberlightning.android.coap.service.BaseStationService.BaseStationServiceBinder;
 import com.cyberlightning.android.coapclient.R;
 
 import android.app.Activity;
@@ -20,9 +19,11 @@ import android.content.ServiceConnection;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.os.StrictMode;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.provider.Settings;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -34,47 +35,31 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-public class CoapBaseStation extends Activity implements DialogInterface.OnClickListener {
+public class CoapBaseStation extends Activity implements DialogInterface.OnClickListener,ServiceConnection {
    
    
-	private boolean hasServiceStopped = false;
-	private final int NOTIFICATION_DELAY = 12000;
-	
-	private BaseStationServiceBinder<BaseStationService> coapService;
+	private Messenger serviceMessenger = null;
 	private TextView statustext;
-	private ServiceConnection serviceConnection = new ServiceConnection() {
-	 
-		
-		@Override
-		public void onServiceDisconnected(ComponentName name){
-			//TODO onServiceDisconnected
-		}
-
-		@SuppressWarnings("unchecked")
-		@Override
-		public void onServiceConnected(ComponentName name, IBinder service){
-			//Service is connected.
-			coapService = (BaseStationServiceBinder<BaseStationService>) service;
-			
-		}
-	};
+	
+	private boolean hasServiceStopped = false;
+	private boolean isBound;
+	
+	private final int NOTIFICATION_DELAY = 12000;
+	private final Messenger messenger = new Messenger(new IncomingMessageHandler());
+	private ServiceConnection serviceConnection = this;
+	
+	
 
    
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-       //requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        
-        setContentView(R.layout.activity_coapclient);
-        //this.getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.title);
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy); 
+        this.setContentView(R.layout.activity_coapclient);
+    
         this.initNetworkConnection();
         this.statustext = (TextView) findViewById(R.id.displayStatus);
-  
-   
 	}
 	
 	@Override
@@ -102,17 +87,15 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
     @Override
     protected void onDestroy() {
     	super.onDestroy(); 
+    	//doUnbindService();  needed?
     }
-	
+    
+	/** Get application context */
     public Context getContext() {
 		return this.getApplicationContext();
 	}
-	
-    public void sendMessage(Message _msg) {
-		this.coapService.sendMessage(_msg);
-	}
 
-   
+    /** Detects connection preferences required to run the application */
     private void initNetworkConnection() {  //create code for Wifi-hotspot
     	
     	boolean hasHotSpot = false; //set to true to enable debugging. Hotspot disables wifi discovery thus failing this method.
@@ -133,41 +116,42 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
       					e.printStackTrace();
       				}
       			}
-
       		}
-      
+    
     	if (this.haveNetworkConnection()) hasInternet = true;
     	if (!hasHotSpot) {
-    		
-    		
     		this.showToast(getString(R.string.main_no_wifi_notification));
     		Intent settingsIntent = new Intent( Settings.ACTION_WIFI_SETTINGS); 
     		this.startActivityForResult(settingsIntent, 1); //TODO onActivityResult() callback needs interception
     		this.finish();
-    		
     	} else {
+    		
     		if (hasInternet) {
-    			bindService(new Intent(this, BaseStationService.class), this.serviceConnection, Service.BIND_AUTO_CREATE);
-    			
+    			this.doBindService();
+    			bindService(new Intent(this, BaseStationService.class), this.serviceConnection, Service.BIND_AUTO_CREATE);	
     		} else {
     			Toast.makeText(this, R.string.main_no_connection_notification, this.NOTIFICATION_DELAY).show();
         		this.finish();	
     		}
-    		
-    		
+
     	}
     }
     
+    /** Detects connection preferences required to run the application */
     private boolean haveNetworkConnection() {
-        final ConnectivityManager conMgr = (ConnectivityManager) getSystemService (Context.CONNECTIVITY_SERVICE);
-           if (conMgr.getActiveNetworkInfo() != null && conMgr.getActiveNetworkInfo().isAvailable() &&    conMgr.getActiveNetworkInfo().isConnected()) {
+        
+    	final ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService (Context.CONNECTIVITY_SERVICE);
+           if (connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isAvailable() &&    connectivityManager.getActiveNetworkInfo().isConnected()) {
         	   return true;
            } else {
-                 System.out.println("Internet Connection Not Present");
+                 this.showToast(getText(R.string.main_no_connection_notification).toString());
                return false;
            }
     }
     
+    /** Display custom Toast
+     * @param _message : A string message to be displayed on Toast
+     * */
     private void showToast(String _message) {
     	
     	LayoutInflater inflater = getLayoutInflater();
@@ -184,9 +168,12 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
     	
     }
     
+    /** Display exit dialog with options to leave service running */
     private void showExitDialog() { 
     	
     	AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    	builder.setIcon(R.drawable.cyber_icon);
+    	builder.setInverseBackgroundForced(true);
     	
     	if(this.hasServiceStopped) {
     		builder.setMessage(getString(R.string.dialog_exit_program_notification_no_service));
@@ -205,6 +192,70 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
     	alert.show();
     }
 
+	/**
+     * Send data to the service
+     * @param _msg The data to send
+     */
+    private void sendMessageToService(Object _msg) {
+    	
+    	if (this.isBound && this.serviceMessenger != null) {
+            
+    		try {
+            	Message msg = Message.obtain(null, BaseStationService.MSG_UI_EVENT, _msg);
+            	msg.replyTo = messenger;
+            	this.serviceMessenger.send(msg);
+            } catch (RemoteException e) {
+                //TODO handle exception
+            }         
+        }
+    }
+    
+    /** Bind this Activity to BaseStationService */
+    private void doBindService() {
+            bindService(new Intent(this, BaseStationService.class), this.serviceConnection, Context.BIND_AUTO_CREATE);
+            this.isBound = true;
+    }
+    
+    /** Unbind this Activity from BaseStationService */
+	private void doUnbindService() {
+         if (this.isBound) {
+                 // If we have received the service, and hence registered with it, then now is the time to unregister.
+                 if (this.serviceMessenger != null) {
+                         try {
+                                 Message msg = Message.obtain(null, BaseStationService.MSG_UNREGISTER_CLIENT);
+                                 msg.replyTo = messenger;
+                                 serviceMessenger.send(msg);
+                         } catch (RemoteException e) {
+                                 // There is nothing special we need to do if the service has crashed.
+                         }
+                 }
+                 // Detach our existing connection.
+                 unbindService(this.serviceConnection);
+                 this.isBound = false;
+               
+         }
+	 }
+
+	@Override
+	public void onServiceConnected(ComponentName name, IBinder service) {
+		this.serviceMessenger = new Messenger(service);
+        
+		try {
+        	Message msg = Message.obtain(null, BaseStationService.MSG_REGISTER_CLIENT);
+            msg.replyTo = this.messenger;
+            this. serviceMessenger.send(msg);
+        } 
+        catch (RemoteException e) {
+                // TODO handle exception
+        } 
+	}
+
+	@Override
+	public void onServiceDisconnected(ComponentName name) {
+		this.serviceMessenger = null;
+		
+	}
+	
 	@Override
 	public void onClick(DialogInterface dialog, int action) {
 		
@@ -216,11 +267,32 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
 			case Dialog.BUTTON_NEGATIVE: this.finish();
 			break;
 
-			case Dialog.BUTTON_NEUTRAL:  this.finish(); //this.stopService();
+			case Dialog.BUTTON_NEUTRAL:  this.finish();
+									 	 this.doUnbindService(); //TODO check 
 			break;
 
 		}	
 	}
+	
+	/** Handle incoming messages from BaseStation service process */
+	private static class IncomingMessageHandler extends Handler {          
+
+		 @Override
+        public void handleMessage(Message msg) {
+                
+                switch (msg.what) {
+                	case BaseStationService.MSG_RECEIVED_FROM_COAPDEVICE:
+                        //TODO handle message
+                        break;
+                	case BaseStationService.MSG_RECEIVED_FROM_WEBSERVICE:
+                		 //TODO handle message
+                        break;
+                	default:
+                        super.handleMessage(msg);
+                }
+        }
+	}
+
 
 }
 
