@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<script type="text/javascript" src="js_api.js"></script>
 <script type="text/javascript" src="camerafeed.js"></script>
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -10,8 +11,8 @@
 	<textarea id="imagedata" rows="" cols=""></textarea>
 	<textarea id="bufferdata" rows="" cols=""></textarea> -->
 	
-	<button onclick="videostart()" id='videobutton'>video Start</button>
-	<button onclick="snapshot()" id='snapbutton'>Take and upload Snapshot</button>
+	<button onclick="startVideoCliecked()" id='videobutton'>video Start</button>
+	<button onclick="uploadSnapshotClicket()" id='snapbutton'>Take and upload Snapshot</button>
 	<button onclick="stream()" id='streambutton'>Stream video</button>
 	<button onclick="clearlogs()" id='clearlog'>Clear Logs</button>
 	<textarea rows="50" cols="175" id="consolelog"></textarea>
