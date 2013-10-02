@@ -189,12 +189,6 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 	}
 	
 	@Override
-	public void httpMessageEvent(String msg) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
 	public void coapMessageEvent(DatagramPacket _datagramPacket) {
 		
 		InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(_datagramPacket.getData()), Charset.forName("UTF-8"));
@@ -213,6 +207,12 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 	@Override
 	public void webSocketMessageEvent(String _msg) {
 		System.out.println("message from client: " + _msg);
+		
+	}
+
+	@Override
+	public void httpMessageEvent(String address, String msg) {
+		// TODO Auto-generated method stub
 		
 	}
 

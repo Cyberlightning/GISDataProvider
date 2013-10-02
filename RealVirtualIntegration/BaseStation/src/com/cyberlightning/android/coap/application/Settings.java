@@ -1,6 +1,10 @@
+/** @author Tomi Sarni (tomi.sarni@cyberlightning.com)
+ *  Copyright: Cyberlightning Ltd.
+ *  
+ */
 
 
-package com.cyberlightning.android.coap.resources;
+package com.cyberlightning.android.coap.application;
 
 /**
  * @author Tomi sarni <tomi.sarni@cyberlightning.com>

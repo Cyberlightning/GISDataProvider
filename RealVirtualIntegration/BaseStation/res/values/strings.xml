@@ -1,6 +1,7 @@
 <resources>
 	<string name="view_button_exit">exit</string>
     <string name="view_status_title">Connected clients:</string>
+    <string name="view_traffic_status">Latest communication:</string>
     <string name="view_main_title">CoAP base station</string>
     
     <string name="dialog_cancel_button">Cancel</string>

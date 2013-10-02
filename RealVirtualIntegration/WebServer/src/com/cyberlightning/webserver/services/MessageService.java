@@ -37,10 +37,10 @@ public class MessageService {
 
 	}
 	
-	public void broadcastHttpMessageEvent(String msg) {
+	public void broadcastHttpMessageEvent(String _target, String msg) {
 		
 		for (IMessageEvent client : this.registeredReceivers) {
-			client.httpMessageEvent(msg);
+			client.httpMessageEvent(_target, msg);
 		}
 	}
 	

@@ -101,7 +101,7 @@
 		var input = frm.command_input.value;
 		$.ajax({
 	  	type: "POST",
-	  	url: "http://127.0.0.1:44446/" + input,
+	  	url: "http://dev.cyberlightning.com:44446/" + input,
 	  	async: true,
 	  	cache: false,
 	  	timeout:50000,
@@ -321,7 +321,7 @@
        
 		if ("WebSocket" in window) {
           
-          //var ws = new WebSocket("ws://127.0.0.1:44445");
+          //ws = new WebSocket("ws://127.0.0.1:44445");
           ws = new WebSocket("ws://dev.cyberlightning.com:44445");
           ws.onopen = function() {
              // Web Socket is connected, send data using send()

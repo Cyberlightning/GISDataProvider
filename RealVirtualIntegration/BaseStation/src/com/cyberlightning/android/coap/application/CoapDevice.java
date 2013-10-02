@@ -1,4 +1,10 @@
-package com.cyberlightning.android.coap;
+/** @author Tomi Sarni (tomi.sarni@cyberlightning.com)
+ *  Copyright: Cyberlightning Ltd.
+ *  
+ */
+
+
+package com.cyberlightning.android.coap.application;
 
 import java.net.InetAddress;
 
@@ -6,7 +12,12 @@ public class CoapDevice {
 	
 	private InetAddress ipAdress;
 	private String macAddress;
+	private String lastKnownActivity;
 	private int port;
+	
+	public CoapDevice (InetAddress _adress) {
+		this.setIpAdress(_adress);
+	}
 	
 	public CoapDevice (InetAddress _adress, int _port) {
 		this.setIpAdress(_adress);
@@ -35,6 +46,14 @@ public class CoapDevice {
 
 	public void setIpAdress(InetAddress ipAdress) {
 		this.ipAdress = ipAdress;
+	}
+
+	public String getLastKnownActivity() {
+		return lastKnownActivity;
+	}
+
+	public void setLastKnownActivity(String lastKnownActivity) {
+		this.lastKnownActivity = lastKnownActivity;
 	}
 	
 	

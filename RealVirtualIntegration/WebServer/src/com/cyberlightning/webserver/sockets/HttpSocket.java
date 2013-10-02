@@ -74,7 +74,7 @@ public void run() {
 				this.handGETMethod(httpQueryString);
 			}
 			else if (httpMethod.equals("POST"))  	{
-				this.handPOSTMethod(httpQueryString.replaceFirst("/", ""));
+				this.handPOSTMethod(this.clientSocket.getInetAddress().getHostAddress(), httpQueryString.replaceFirst("/", ""));
 			}
 			else if (httpMethod.equals("PUT")) 		{
 				this.handPUTMethod(httpQueryString);
@@ -86,6 +86,7 @@ public void run() {
 	
 		} catch (Exception e) {
 			e.printStackTrace();
+			System.out.print(e.getLocalizedMessage());
 		}
 		
 	}
@@ -111,8 +112,8 @@ private void handGETMethod(String _query) throws Exception {
 	}
 }
 
-private void handPOSTMethod(String _action) {
-	MessageService.getInstance().broadcastHttpMessageEvent(_action);	
+private void handPOSTMethod(String _address, String _content) {
+	MessageService.getInstance().broadcastHttpMessageEvent(_address, _content);	
 
 }
 
@@ -178,7 +179,7 @@ public void sendFile (FileInputStream fin, DataOutputStream out) throws Exceptio
 }
 
 @Override
-public void httpMessageEvent(String msg) {
+public void httpMessageEvent(String address, String msg) {
 	// TODO Auto-generated method stub
 	
 }

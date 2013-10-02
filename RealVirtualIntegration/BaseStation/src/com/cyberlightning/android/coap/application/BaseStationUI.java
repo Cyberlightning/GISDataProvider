@@ -1,10 +1,13 @@
+/** @author Tomi Sarni (tomi.sarni@cyberlightning.com)
+ *  Copyright: Cyberlightning Ltd.
+ *  
+ */
 
-package com.cyberlightning.android.coap;
+package com.cyberlightning.android.coap.application;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import com.cyberlightning.android.coap.service.BaseStationService;
 import com.cyberlightning.android.coapclient.R;
 
 import android.app.Activity;
@@ -35,22 +38,20 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-public class CoapBaseStation extends Activity implements DialogInterface.OnClickListener,ServiceConnection {
+public class BaseStationUI extends Activity implements DialogInterface.OnClickListener,ServiceConnection {
    
    
 	private Messenger serviceMessenger = null;
-	private TextView statustext;
+	private ServiceConnection serviceConnection = this;
+	private static TextView connectedClientsDisplay;
+	private static TextView trafficDataDisplay;
 	
 	private boolean hasServiceStopped = false;
 	private boolean isBound;
 	
 	private final int NOTIFICATION_DELAY = 12000;
 	private final Messenger messenger = new Messenger(new IncomingMessageHandler());
-	private ServiceConnection serviceConnection = this;
-	
-	
 
-   
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,7 +60,8 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
         this.setContentView(R.layout.activity_coapclient);
     
         this.initNetworkConnection();
-        this.statustext = (TextView) findViewById(R.id.displayStatus);
+        connectedClientsDisplay = (TextView) findViewById(R.id.connectedDisplay);
+        trafficDataDisplay = (TextView) findViewById(R.id.trafficDisplay);
 	}
 	
 	@Override
@@ -234,7 +236,8 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
                  this.isBound = false;
                
          }
-	 }
+	}
+
 
 	@Override
 	public void onServiceConnected(ComponentName name, IBinder service) {
@@ -253,7 +256,6 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
 	@Override
 	public void onServiceDisconnected(ComponentName name) {
 		this.serviceMessenger = null;
-		
 	}
 	
 	@Override
@@ -276,20 +278,22 @@ public class CoapBaseStation extends Activity implements DialogInterface.OnClick
 	
 	/** Handle incoming messages from BaseStation service process */
 	private static class IncomingMessageHandler extends Handler {          
-
+		
 		 @Override
         public void handleMessage(Message msg) {
-                
-                switch (msg.what) {
-                	case BaseStationService.MSG_RECEIVED_FROM_COAPDEVICE:
-                        //TODO handle message
-                        break;
-                	case BaseStationService.MSG_RECEIVED_FROM_WEBSERVICE:
-                		 //TODO handle message
-                        break;
-                	default:
-                        super.handleMessage(msg);
-                }
+			 
+			 MessageEvent messageEvent = (MessageEvent) msg.obj;
+			 
+			 switch (msg.what) {
+	     		case BaseStationService.MSG_RECEIVED_FROM_COAPDEVICE:
+	     			connectedClientsDisplay.append(messageEvent.getSenderAddress());
+	     			break;
+	     		case BaseStationService.MSG_RECEIVED_FROM_WEBSERVICE:
+	     			trafficDataDisplay.setText(messageEvent.getSenderAddress() + " -> " + messageEvent.getTargetAddress() + "(" + messageEvent.getContent().getBytes().length + " B)");
+	     			break;
+	     		default: super.handleMessage(msg);break;
+	     		
+			}
         }
 	}
 

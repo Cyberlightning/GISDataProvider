@@ -11,55 +11,40 @@
     tools:context=".SensorListener" >
     
     <TextView
-        android:id="@+id/displayStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/view_traffic_status"
+        android:textColor="#FFF"/>
+    
+    <LinearLayout 
+              android:orientation="vertical"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:layout_marginBottom="5dp"
+              android:padding="8dp"
+              android:background="@drawable/border">
+    <TextView android:id="@+id/connectedDisplay"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:textColor="#FFF"
+              android:textSize="12sp"/>
+	</LinearLayout>
+	
+	 
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/view_status_title"
         android:textColor="#FFF"/>
-    
-    <LinearLayout android:id="@+id/statusDisplayHolder"
-              android:orientation="vertical"
-              android:layout_width="fill_parent"
-              android:layout_height="wrap_content"
-              android:padding="8dp"
-              android:background="@drawable/border">
-    <TextView android:id="@+id/text"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:textColor="#FFF"/>
+	<LinearLayout android:id="@+id/trafficDisplayHolder"
+	     android:layout_width="fill_parent"
+         android:layout_height="wrap_content"
+         android:padding="8dp"
+	     android:background="@drawable/border">
+	<TextView
+        android:id="@+id/trafficDisplay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#66CCFF"/>
 	</LinearLayout>
-<!-- 	<LinearLayout -->
-<!-- 	     android:orientation="horizontal" -->
-<!-- 	     android:background="@drawable/border" -->
-<!-- 	     android:layout_marginTop="5dp"> -->
-<!-- 	<TextView -->
-<!--         android:id="@+id/sendPacketsIndicator" -->
-<!--         android:layout_width="wrap_content" -->
-<!--         android:layout_height="wrap_content" -->
-<!--         android:text="@string/view_status_title" -->
-<!--         android:textColor="#66CCFF"/> -->
-<!-- 	<TextView -->
-<!--         android:id="@+id/sendPacketCount" -->
-<!--         android:layout_width="wrap_content" -->
-<!--         android:layout_height="wrap_content" -->
-<!--         android:text="@string/view_status_title" -->
-<!--         android:textColor="#66CCFF"/> -->
-<!-- 	</LinearLayout> -->
-<!-- 	<LinearLayout -->
-<!-- 	     android:orientation="horizontal" -->
-<!-- 	     android:background="@drawable/border" -->
-<!-- 	     android:layout_marginTop="5dp"> -->
-<!-- 	<TextView -->
-<!--         android:id="@+id/receivedPacketsIndicator" -->
-<!--         android:layout_width="wrap_content" -->
-<!--         android:layout_height="wrap_content" -->
-<!--          android:text="@string/view_status_title" -->
-<!--         android:textColor="#66CCFF"/> -->
-<!-- 	<TextView -->
-<!--         android:id="@+id/receivedPacketCount" -->
-<!--         android:layout_width="wrap_content" -->
-<!--         android:layout_height="wrap_content" -->
-<!--          android:text="@string/view_status_title" -->
-<!--         android:textColor="#66CCFF"/> -->
-<!-- 	</LinearLayout> -->
 </LinearLayout>

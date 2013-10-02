@@ -9,6 +9,8 @@ import java.net.SocketException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 
+import org.json.simple.JSONObject;
+
 import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.entities.Client;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
@@ -83,9 +85,18 @@ public class CoapSocket implements Runnable,IMessageEvent  {
 	}
 	
 	@Override
-	public void httpMessageEvent(String msg) {
+	public void httpMessageEvent(String _address, String _msg) {
+		
+		JSONObject device = new JSONObject();
+		device.put("DeviceID", "*");
+		JSONObject root = new JSONObject();
+		root.put("notificationURI", _address);
+		root.put("request", _msg);
+		root.put("contextEntities", device);
+		
+		
 		byte[] b = new byte[1024];
-		b = msg.getBytes();
+		b = root.toJSONString().getBytes();
 		
 		DatagramPacket packet = new DatagramPacket(b, b.length, this.baseStations.get(0).getAddress(), this.baseStations.get(0).getPort());
 		try {
