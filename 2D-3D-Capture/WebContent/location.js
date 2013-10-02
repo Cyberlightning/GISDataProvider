@@ -8,47 +8,6 @@ var crd;
 var latitude;
 var latestLocation = new Boolean();
 
-
-//function deviceOrientationSupported() {
-//	if (window.DeviceOrientationEvent) {		
-//		return true;
-//	} else {		  
-//		return false;
-//	}
-//}
-//
-//function deviceAccelerometerSupported()
-//{
-//	if(window.DeviceMotionEvent) 
-//		return true;
-//	else 
-//		return false;
-//}
-//
-//function suportForGeolocationAvailablity()
-//{
-//	if ("geolocation" in navigator) {		
-//		return true;
-//	} 
-//	else { 
-//		return false;
-//	}
-//}
-
-//function getLocation(callback){
-//	navigator.geolocation.getCurrentPosition(
-//		function (pos){
-//			if (typeof callback === "function") {				    
-//			        callback(pos.coords);
-//			    }
-//		}, error, options);	
-//}
-
-//function registerToAccelerationEvent(){
-//	
-//}
-
-
 function locationRetrieved(pos) {
   crd = pos.coords;
   initGoogleMaps(crd);
@@ -97,17 +56,17 @@ function initGoogleMaps(pos) {
 
 window.onload=function(){
 	readSystemInfo();
-	if(suportForGeolocationAvailablity()){
+	if(isGeolocationSupported()){
 		document.getElementById("location").innerHTML = "Supported";		
 		getLocation(initGoogleMaps);
 	}	else
 		document.getElementById("location").innerHTML = "Not supported";
-	if(deviceOrientationSupported()) {
+	if(isDeviceOrientationSupported()) {
 		document.getElementById("orientation").innerHTML = "supported.<a href=\'orientationTest.html\'>See Demo</a>";
 	}	
 	else
 		document.getElementById("orientation").innerHTML = "Not supported";
-	if(deviceAccelerometerSupported()) {
+	if(isDeviceMotionSupported()) {
 		document.getElementById("accleration").innerHTML = "Supported. <a href=\'accelerometer.html\'>See Demo</a>";
 	} else 
 		document.getElementById("accleration").innerHTML = "Not Supported";	
