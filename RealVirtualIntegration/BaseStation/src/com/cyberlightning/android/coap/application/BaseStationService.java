@@ -216,7 +216,12 @@ public class BaseStationService extends Service {
 					remoteServerSocket.connect(InetAddress.getByName(Settings.REMOTEHOST), Settings.REMOTE_SERVER_PORT);
 					
 					byte[] receiveByte = new byte[Settings.DEFAULT_BYTE_BUFFER_SIZE];
+					byte[] triggerByte = new byte[Settings.DEFAULT_BYTE_BUFFER_SIZE];
+					DatagramPacket triggerPacket = new DatagramPacket(triggerByte,triggerByte.length);
 					DatagramPacket receivedPacket = new DatagramPacket(receiveByte, receiveByte.length);
+					String s = "TESTI";
+					triggerPacket.setData(s.getBytes());
+					remoteServerSocket.send(triggerPacket);
 					
 					while(true) {
 						remoteServerSocket.receive(receivedPacket);
@@ -258,17 +263,10 @@ public class BaseStationService extends Service {
 		}
     	
     	boolean isNewClient = this.registerClient(address);
-    	this.sendMessageToSpecificSensor(targetDevice, message);
-    	
-    	MessageEvent messageEvent = new MessageEvent(message,targetDevice,isNewClient);
-    	messageEvent.setSenderAddress(address);
-    	
-    	this.sendMessageToUI(Message.obtain(null, MSG_RECEIVED_FROM_WEBSERVICE,messageEvent ));
-    	
-    
+    	this.sendMessageToSpecificSensor(targetDevice, message, address, isNewClient);
     }
     	
-    private void sendMessageToSpecificSensor(String _deviceId, String _message) {
+    private void sendMessageToSpecificSensor(String _deviceId, String _message,String sender, boolean isNewClient) {
     	
     	CoapRequest coapRequest = this.createRequest(true, CoapRequestCode.POST);
 	    coapRequest.setContentType(CoapMediaType.text_plain);
@@ -280,12 +278,17 @@ public class BaseStationService extends Service {
 		ByteBuffer buf = ByteBuffer.wrap(coapMessage.serialize());
 		
 		Iterator<CoapDevice> i = this.devices.iterator();
-		
+		int foundCount = 0;
 		while(i.hasNext()) {
 			CoapDevice device = i.next();
-			if (device.getIpAdress().getHostAddress().contentEquals(_deviceId)) {
+			if (device.getIpAdress().getHostAddress().contentEquals(_deviceId) || _deviceId.contentEquals("*")) { // if * -> send to all
 				DatagramPacket packet = new DatagramPacket(buf.array(), buf.array().length, device.getIpAdress(), device.getPort());
-				try {
+				foundCount++;
+				MessageEvent messageEvent = new MessageEvent(_message,sender,isNewClient,device.getIpAdress().getHostAddress());
+		    	messageEvent.setSenderAddress(sender);
+		    	this.sendMessageToUI(Message.obtain(null, MSG_RECEIVED_FROM_WEBSERVICE,messageEvent ));
+				
+		    	try {
 					this.localServerSocket.send(packet);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
@@ -293,6 +296,12 @@ public class BaseStationService extends Service {
 				}
 			}
 			
+		}
+		
+		if (foundCount == 0) { //handle if message received and was not able to find a target device
+			MessageEvent messageEvent = new MessageEvent(_message,sender,isNewClient, "None Connected");
+	    	messageEvent.setSenderAddress(sender);
+	    	this.sendMessageToUI(Message.obtain(null, MSG_RECEIVED_FROM_WEBSERVICE,messageEvent ));
 		}
     }
     
@@ -356,7 +365,7 @@ public class BaseStationService extends Service {
 			e.printStackTrace();
 		} 
 		
-		this.sendMessageToUI(Message.obtain(null,BaseStationService.MSG_RECEIVED_FROM_COAPDEVICE , new MessageEvent(payload,address.getHostAddress(),isNewDevice)));
+		this.sendMessageToUI(Message.obtain(null,BaseStationService.MSG_RECEIVED_FROM_COAPDEVICE , new MessageEvent(payload,address.getHostAddress(),isNewDevice, Settings.REMOTEHOST)));
 		
 		//TODO input logic to handle ACK,NON,RST, .. 
 		
@@ -374,16 +383,16 @@ public class BaseStationService extends Service {
     private boolean registerDevice(InetAddress _address ) {
     	
     	Iterator<CoapDevice> i = this.devices.iterator();
-    	boolean isRegistered = false;
+    	boolean isNewDevice = true;
     	while (i.hasNext()) {
     		if (i.next().getIpAdress().getHostAddress().contains(_address.getHostAddress())) {
-    			isRegistered = true;
+    			isNewDevice = false;
     		}
     	}
-    	if (!isRegistered) {
+    	if (isNewDevice) {
     		this.devices.add(new CoapDevice(_address));
     	}
-    	return isRegistered;
+    	return isNewDevice;
     }
     
     /**

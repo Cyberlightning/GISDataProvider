@@ -7,6 +7,7 @@ package com.cyberlightning.android.coap.application;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 
 import com.cyberlightning.android.coapclient.R;
 
@@ -130,7 +131,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
     		
     		if (hasInternet) {
     			this.doBindService();
-    			bindService(new Intent(this, BaseStationService.class), this.serviceConnection, Service.BIND_AUTO_CREATE);	
+    			//bindService(new Intent(this, BaseStationService.class), this.serviceConnection, Service.BIND_AUTO_CREATE);	
     		} else {
     			Toast.makeText(this, R.string.main_no_connection_notification, this.NOTIFICATION_DELAY).show();
         		this.finish();	
@@ -277,19 +278,31 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 	}
 	
 	/** Handle incoming messages from BaseStation service process */
-	private static class IncomingMessageHandler extends Handler {          
+	private static class IncomingMessageHandler extends Handler {  
 		
-		 @Override
+		@Override
         public void handleMessage(Message msg) {
 			 
 			 MessageEvent messageEvent = (MessageEvent) msg.obj;
 			 
 			 switch (msg.what) {
 	     		case BaseStationService.MSG_RECEIVED_FROM_COAPDEVICE:
-	     			connectedClientsDisplay.append(messageEvent.getSenderAddress());
+	     			if (messageEvent.isNewSender()) {
+	     				connectedClientsDisplay.append(messageEvent.getSenderAddress());
+	     			}
+	     			if (trafficDataDisplay.getHeight() < 500) {
+	     				trafficDataDisplay.append(messageEvent.getSenderAddress() + " -> " + messageEvent.getTargetAddress() + "(" + messageEvent.getContent().getBytes().length + " B)" + "\n");
+	     			} else {
+	     				trafficDataDisplay.setText(messageEvent.getSenderAddress() + " -> " + messageEvent.getTargetAddress() + "(" + messageEvent.getContent().getBytes().length + " B)" + "\n");
+	     			}
+	     			
 	     			break;
 	     		case BaseStationService.MSG_RECEIVED_FROM_WEBSERVICE:
-	     			trafficDataDisplay.setText(messageEvent.getSenderAddress() + " -> " + messageEvent.getTargetAddress() + "(" + messageEvent.getContent().getBytes().length + " B)");
+	     			if (trafficDataDisplay.getHeight() < 500) {
+	     				trafficDataDisplay.append(messageEvent.getSenderAddress() + " -> " + messageEvent.getTargetAddress() + "(" + messageEvent.getContent().getBytes().length + " B)" + "\n");
+	     			} else {
+	     				trafficDataDisplay.setText(messageEvent.getSenderAddress() + " -> " + messageEvent.getTargetAddress() + "(" + messageEvent.getContent().getBytes().length + " B)" + "\n");
+	     			}
 	     			break;
 	     		default: super.handleMessage(msg);break;
 	     		

@@ -51,10 +51,10 @@ public class MessageService {
 		}
 	}
 	
-	public void broadcastWebSocketMessageEvent(String msg) {
+	public void broadcastWebSocketMessageEvent(String msg, String address) {
 		
 		for (IMessageEvent client : this.registeredReceivers) {
-			client.webSocketMessageEvent(msg);
+			client.webSocketMessageEvent(msg, address);
 		}
 	}
 }

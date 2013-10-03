@@ -12,6 +12,7 @@
 	<script src="js/jquery-1.9.1.js"></script>
 	<script src="js/jquery-ui-1.10.3.custom.js"></script>
 	<script src="js/three.min.js"></script>
+	
 
     <script type="text/javascript">
 	 $(function() {
@@ -97,25 +98,30 @@
 	    });
 	}); 
 	
+	
+	
+	
 	function sendData() {
 		var input = frm.command_input.value;
-		$.ajax({
-	  	type: "POST",
-	  	url: "http://dev.cyberlightning.com:44446/" + input,
-	  	async: true,
-	  	cache: false,
-	  	timeout:50000,
-	  	success: function(data){
-	  		//TODO on success response
-	  	}, 
-	  	error: function(XMLHttpRequest, textStatus, errorThrown){
+// 		$.ajax({
+// 	  	type: "POST",
+// 	  	url: "http://dev.cyberlightning.com:44446/" + input,
+// 	  	async: true,
+// 	  	cache: false,
+// 	  	timeout:50000,
+// 	  	success: function(data){
+// 	  		alert("success: "+data);
+// 	  	}, 
+// 	  	error: function(XMLHttpRequest, textStatus, errorThrown){
 			
-	  		alert("error: " + textStatus + " (" + errorThrown + ")");
-	             setTimeout(
-	                    sendData, /* Try again after.. */
-	                    30000); /* milliseconds (30 seconds) */
-	            }
-	    });
+// 	  		alert("error: " + textStatus + " (" + errorThrown + ")");
+// 	             setTimeout(
+// 	                    sendData, 
+// 	                    30000); 
+// 	            }
+// 	    });
+
+		 ws.send(input);
 	};
 	
 	//Global variables
@@ -325,7 +331,7 @@
           ws = new WebSocket("ws://dev.cyberlightning.com:44445");
           ws.onopen = function() {
              // Web Socket is connected, send data using send()
-             ws.send("Message to send");
+            //ws.send("Message to send");
              alert("Connected to the web server."); 	 
           };
           ws.onmessage = function (evt) {

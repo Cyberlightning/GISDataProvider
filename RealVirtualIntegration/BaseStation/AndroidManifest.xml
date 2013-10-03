@@ -30,7 +30,7 @@
         </activity>
         <service
 			android:name="com.cyberlightning.android.coap.application.BaseStationService"
-			android:process=":base_station"
+			
 			android:icon="@drawable/ic_launcher"
 			android:label="@string/service_main_title">
 		</service>  

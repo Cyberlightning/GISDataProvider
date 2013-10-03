@@ -61,7 +61,7 @@ public void run() {
 			this.input =  new BufferedReader(new InputStreamReader (clientSocket.getInputStream()));
 			this.output = new DataOutputStream(clientSocket.getOutputStream());
 			String request = "";
-			
+			System.out.print("SOME QUERY ARRIVED");
 			while(input.ready()){
 				request += input.readLine(); 
 		}
@@ -113,6 +113,7 @@ private void handGETMethod(String _query) throws Exception {
 }
 
 private void handPOSTMethod(String _address, String _content) {
+	System.out.print("HTTP query arrived: " + _content + ", " + _address);
 	MessageService.getInstance().broadcastHttpMessageEvent(_address, _content);	
 
 }
@@ -191,7 +192,7 @@ public void coapMessageEvent(DatagramPacket _datagramPacket) {
 }
 
 @Override
-public void webSocketMessageEvent(String msg) {
+public void webSocketMessageEvent(String msg, String address) {
 	// TODO Auto-generated method stub
 	
 }

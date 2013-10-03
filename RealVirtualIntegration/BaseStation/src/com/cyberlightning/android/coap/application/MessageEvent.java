@@ -14,10 +14,12 @@ public class MessageEvent {
 		this.setSenderAddress(_address);
 	}
 	
-	public MessageEvent (String _content, String _address, boolean _isnew) {
+	public MessageEvent (String _content, String _receiveAddress, boolean _isnew, String _targetAddress) {
 		this.content = _content;
 		this.isNewSender =  _isnew;
-		this.setTargetAddress((_address));
+		this.senderAddress = _receiveAddress;
+		this.targetAddress = _targetAddress;
+		
 	}
 	
 	

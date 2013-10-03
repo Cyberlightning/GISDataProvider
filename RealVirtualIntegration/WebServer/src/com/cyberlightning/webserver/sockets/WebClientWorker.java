@@ -60,7 +60,7 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 				     opcode = opcode & 0xF;
 				     System.out.println("Client message type: " + opcode);
 				     if (opcode != 8) { 
-				    	 MessageService.getInstance().broadcastWebSocketMessageEvent(read()); 
+				    	 MessageService.getInstance().broadcastWebSocketMessageEvent(read(), this.clientSocket.getInetAddress().getHostAddress()); 
 				     } else {
 					    /*|Opcode  | Meaning                             | Reference |
 					     -+--------+-------------------------------------+-----------|
@@ -205,7 +205,7 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 	}
 
 	@Override
-	public void webSocketMessageEvent(String _msg) {
+	public void webSocketMessageEvent(String _msg, String address) {
 		System.out.println("message from client: " + _msg);
 		
 	}

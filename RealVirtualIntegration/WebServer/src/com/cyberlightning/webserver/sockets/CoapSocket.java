@@ -3,6 +3,7 @@ package com.cyberlightning.webserver.sockets;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
@@ -54,6 +55,7 @@ public class CoapSocket implements Runnable,IMessageEvent  {
     		try {
         		
 				serverSocket.receive(receivedPacket);
+				System.out.print("Basestation packet received from " + receivedPacket.getAddress().getHostAddress());
 				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -124,10 +126,35 @@ public class CoapSocket implements Runnable,IMessageEvent  {
 	}
 
 	@Override
-	public void webSocketMessageEvent(String msg) {
-		// TODO Auto-generated method stub
+	public void webSocketMessageEvent(String msg, String _address) {
+		JSONObject device = new JSONObject();
+		device.put("DeviceID", "*");
+		JSONObject root = new JSONObject();
+		root.put("notificationURI", _address);
+		root.put("request", msg);
+		root.put("contextEntities", device);
+		
+		System.out.print(root.toJSONString());
+		byte[] b = new byte[1024];
+		try {
+			b = root.toJSONString().getBytes("UTF8");
+			System.out.print(new String(b,"utf8"));
+		} catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		DatagramPacket packet = new DatagramPacket(b, b.length, this.baseStations.get(0).getAddress(), this.baseStations.get(0).getPort());
+		try {
+			this.serverSocket.send(packet);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
+	
+
 	
 	
 }
