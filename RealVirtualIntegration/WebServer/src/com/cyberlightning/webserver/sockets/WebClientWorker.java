@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.Socket;
 import java.nio.charset.Charset;
@@ -191,17 +192,17 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 	@Override
 	public void coapMessageEvent(DatagramPacket _datagramPacket) {
 		
-		InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(_datagramPacket.getData()), Charset.forName("UTF-8"));
 		try {
-			StringBuilder str = new StringBuilder();
-			for (int value; (value = input.read()) != -1; )
-			    str.append((char) value);
-			this.send(str.toString());
+			String _content = new String(_datagramPacket.getData(), "utf8");
+			System.out.println(_content);
+			this.send(_content);
+		} catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}  
-		
+		}
 	}
 
 	@Override

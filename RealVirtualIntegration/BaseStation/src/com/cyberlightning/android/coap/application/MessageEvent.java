@@ -14,6 +14,11 @@ public class MessageEvent {
 		this.setSenderAddress(_address);
 	}
 	
+	/** Constructor for MessageEvent
+	 * @param _content String content of the message event
+	 * @param _receivedAddress String representation of IP address of the sender of this message
+	 * @param _isnew boolean type to determine whether the sender address is a new previously unknown address
+	 * @param _targetAddress String representation of IP address for the intended target of this message */
 	public MessageEvent (String _content, String _receiveAddress, boolean _isnew, String _targetAddress) {
 		this.content = _content;
 		this.isNewSender =  _isnew;

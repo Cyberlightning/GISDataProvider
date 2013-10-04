@@ -1,6 +1,7 @@
 package com.cyberlightning.android.coap;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.nio.ByteBuffer;
@@ -8,7 +9,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Observable;
 import java.util.Random;
-
 
 import com.cyberlightning.android.coap.interfaces.*;
 import com.cyberlightning.android.coap.message.*;
@@ -40,13 +40,10 @@ public class CoapSocket extends Observable  implements Runnable,ICoapSocket {
 			this.isConnectected = true;
 			
 			while(true) {
-				
 				localCoapSocket.receive(receivedPacket);
-				if (receivedPacket.getSocketAddress() != null) {
-					setChanged();
-					notifyObservers(receivedPacket);
-					receivedPacket = null; //clear packet holder
-				}
+				handleInboundMessage(receivedPacket);
+//				setChanged();
+//				notifyObservers(receivedPacket);
 			}
 			//TODO handle socket closed
 			
@@ -59,6 +56,27 @@ public class CoapSocket extends Observable  implements Runnable,ICoapSocket {
 		
 	}
 	
+	/** */
+    private void handleInboundMessage(DatagramPacket _packet) {
+    	
+    	ByteBuffer buffer = ByteBuffer.wrap(_packet.getData());
+    	
+		CoapMessage msg = null;
+		String payload = null;
+
+		try {
+			msg = AbstractCoapMessage.parseMessage(buffer.array(), buffer.array().length);
+			payload = new String(msg.getPayload(), "utf8");
+		} catch (Exception e) {
+			e.printStackTrace();
+		} 
+		MessageEvent messageEvent = new MessageEvent(payload, _packet.getAddress().getHostAddress(), false, "");
+		setChanged();
+		notifyObservers(messageEvent);
+		
+		//TODO input logic to handle ACK,NON,RST, .. 
+
+	}
 	
 	@Override
 	public void broadCastMessage(Message _msg, HashMap<String,NetworkDevice> _devices) {
@@ -70,22 +88,19 @@ public class CoapSocket extends Observable  implements Runnable,ICoapSocket {
 		CoapMessage coapMessage = (CoapMessage)coapRequest;
 		//coapRequest.setUriQuery(jsonSensorsList.toString());
 		ByteBuffer buf = ByteBuffer.wrap(coapMessage.serialize());
-		
+
 		Iterator<String> i = _devices.keySet().iterator();
 		while(i.hasNext()) {
 			NetworkDevice nd = _devices.get(i.next());
 			DatagramPacket packet = new DatagramPacket(buf.array(), buf.array().length, nd.getAddress(), nd.getPort());
 			try {
-				setChanged();
-				notifyObservers(packet);
+				
 				this.localCoapSocket.send(packet);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		
-		
 	}
 	
 	@Override

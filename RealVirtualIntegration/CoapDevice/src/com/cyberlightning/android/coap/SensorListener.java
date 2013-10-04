@@ -89,7 +89,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	}
 	
 	@SuppressLint("SimpleDateFormat")
-	private String getTimeStamp() {
+	public static String getTimeStamp() {
 		return  new SimpleDateFormat(DATE_FORMAT).format(new Date(System.currentTimeMillis()));
 	}
 	
@@ -155,7 +155,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 			device.put("device_id", this.deviceID );
 			device.put("device_properties", properties);
 			device.put("device_uptime", event.timestamp);
-			device.put("event_timestamp", this.getTimeStamp());
+			device.put("event_timestamp", getTimeStamp());
 			device.put("event_accuracy", event.accuracy);
 			device.put("event_values", values);
 			
@@ -174,12 +174,8 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	}
 	
 	private void sendMessage(JSONObject _payload) { //TODO just a stub
-		Message message = new Message();
-		message.what = 4;
-		//message.arg2 = event.sensor.getType(); //for UI
-		message.obj = _payload.toString();
 		setChanged();
-		notifyObservers(message);
+		notifyObservers(Message.obtain(null, 4, _payload.toString()));
 	}
 	
 	private String resolveDeviceById(int _id) {

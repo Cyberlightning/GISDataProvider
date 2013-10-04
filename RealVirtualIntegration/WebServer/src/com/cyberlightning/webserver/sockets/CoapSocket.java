@@ -6,9 +6,11 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.json.simple.JSONObject;
 
@@ -55,7 +57,7 @@ public class CoapSocket implements Runnable,IMessageEvent  {
     		try {
         		
 				serverSocket.receive(receivedPacket);
-				System.out.print("Basestation packet received from " + receivedPacket.getAddress().getHostAddress());
+				System.out.println("Basestation packet received from " + receivedPacket.getAddress().getHostAddress());
 				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -76,82 +78,88 @@ public class CoapSocket implements Runnable,IMessageEvent  {
    				} 
         	   this.sendBuffer.remove(sendBuffer.size() - 1);
            }
-           }
+		}
 	}
 	
-    private  void handleConnectedClient(DatagramPacket _datagramPacket) {
-			Client client = new Client(_datagramPacket.getAddress(), _datagramPacket.getPort(),StaticResources.CLIENT_PROTOCOL_COAP);
-			client.setType(Client.TYPE_BASESTATION);
-			this.baseStations.add(client);
-			//ProfileService.getInstance().registerClient(client);
-	}
-	
-	@Override
-	public void httpMessageEvent(String _address, String _msg) {
-		
-		JSONObject device = new JSONObject();
+    private boolean handleConnectedClient(DatagramPacket _datagramPacket ) {
+    	
+    	Iterator<Client> i = this.baseStations.iterator();
+    	boolean isRegistered = false;
+    	while (i.hasNext()) {
+    		if (i.next().getAddress().getHostAddress().contentEquals(_datagramPacket.getAddress().getHostAddress())) {
+    			isRegistered = true;
+    		}
+    	}
+    	if (!isRegistered) {
+    		this.baseStations.add(new Client(_datagramPacket.getAddress(), _datagramPacket.getPort(),StaticResources.CLIENT_PROTOCOL_COAP, Client.TYPE_BASESTATION));
+    	}
+    	return isRegistered;
+    }
+    
+    private byte[] formatJSON(String _msg, String _address) {
+    	
+    	JSONObject device = new JSONObject();
 		device.put("DeviceID", "*");
 		JSONObject root = new JSONObject();
 		root.put("notificationURI", _address);
 		root.put("request", _msg);
 		root.put("contextEntities", device);
 		
-		
-		byte[] b = new byte[1024];
-		b = root.toJSONString().getBytes();
-		
-		DatagramPacket packet = new DatagramPacket(b, b.length, this.baseStations.get(0).getAddress(), this.baseStations.get(0).getPort());
-		try {
-			this.serverSocket.send(packet);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	@Override
-	public void coapMessageEvent(DatagramPacket _datagramPacket) {
-		InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(_datagramPacket.getData()), Charset.forName("UTF-8"));
-		try {
-			StringBuilder str = new StringBuilder();
-			for (int value; (value = input.read()) != -1; )
-			    str.append((char) value);
-			String s = str.toString();
-			String d = str.toString();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} 
-		
-	}
-
-	@Override
-	public void webSocketMessageEvent(String msg, String _address) {
-		JSONObject device = new JSONObject();
-		device.put("DeviceID", "*");
-		JSONObject root = new JSONObject();
-		root.put("notificationURI", _address);
-		root.put("request", msg);
-		root.put("contextEntities", device);
-		
-		System.out.print(root.toJSONString());
 		byte[] b = new byte[1024];
 		try {
-			b = root.toJSONString().getBytes("UTF8");
-			System.out.print(new String(b,"utf8"));
+			b = root.toJSONString().getBytes("UTF-8");
 		} catch (UnsupportedEncodingException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
-		DatagramPacket packet = new DatagramPacket(b, b.length, this.baseStations.get(0).getAddress(), this.baseStations.get(0).getPort());
-		try {
-			this.serverSocket.send(packet);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		return b;
+    }
+    
+    private void sendToClients(String _msg, String _address) {
+    	
+    	Iterator<Client> i = this.baseStations.iterator();
+    	byte[] b = this.formatJSON(_msg, _address);
 		
+
+    	while (i.hasNext()) {
+    		
+    		Client client = i.next();
+    		DatagramPacket packet = new DatagramPacket(b, b.length, client.getAddress() , client.getPort());
+    		
+    		try {
+    			this.serverSocket.send(packet);
+    		} catch (IOException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}
+    	}
+    }
+    
+	@Override
+	public void httpMessageEvent(String _address, String _msg) {
+		this.sendToClients(_msg, _address);
+	}
+
+	@Override
+	public void coapMessageEvent(DatagramPacket _datagramPacket) {
+//		InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(_datagramPacket.getData()), Charset.forName("UTF-8"));
+//		try {
+//			StringBuilder str = new StringBuilder();
+//			for (int value; (value = input.read()) != -1; )
+//			    str.append((char) value);
+//			String s = str.toString();
+//			String d = str.toString();
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} 
+		
+	}
+
+	@Override
+	public void webSocketMessageEvent(String _msg, String _address) {
+		this.sendToClients(_msg, _address);
 	}
 	
 

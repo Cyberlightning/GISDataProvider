@@ -22,6 +22,13 @@ public class Client {
 		this.protocol = _protocol;
 	}
 	
+	public Client(InetAddress _address, int _port, int _protocol, int type) {
+		this.ip4v = _address;
+		this.port = _port;
+		this.protocol = _protocol;
+		this.type = type;
+	}
+	
 	public InetAddress getAddress() {
 		return this.ip4v;
 	}

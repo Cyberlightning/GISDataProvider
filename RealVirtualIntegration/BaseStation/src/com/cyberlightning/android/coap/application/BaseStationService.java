@@ -332,10 +332,11 @@ public class BaseStationService extends Service {
 					
 					localServerSocket = new DatagramSocket(Settings.COAP_DEFAULT_PORT);
 					localServerSocket.setReceiveBufferSize(Settings.DEFAULT_BYTE_BUFFER_SIZE);
-					byte[] receiveByte = new byte[Settings.DEFAULT_BYTE_BUFFER_SIZE]; 
-					DatagramPacket receivedPacket = new DatagramPacket(receiveByte, receiveByte.length);
+					
 
 					while(true) {
+						byte[] receiveByte = new byte[Settings.DEFAULT_BYTE_BUFFER_SIZE]; 
+						DatagramPacket receivedPacket = new DatagramPacket(receiveByte, receiveByte.length);
 						localServerSocket.receive(receivedPacket);
 						handleInboundLocalMessages(receivedPacket);
 					}
@@ -357,7 +358,7 @@ public class BaseStationService extends Service {
     	
 		CoapMessage msg = null;
 		String payload = null;
-		
+
 		try {
 			msg = AbstractCoapMessage.parseMessage(buffer.array(), buffer.array().length);
 			payload = new String(msg.getPayload(), "utf8");

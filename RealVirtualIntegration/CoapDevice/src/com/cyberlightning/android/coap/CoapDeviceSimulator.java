@@ -3,9 +3,17 @@ package com.cyberlightning.android.coap;
 import java.net.DatagramPacket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Observable;
 import java.util.Observer;
 
+
+
+
+
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import com.cyberlightning.android.coap.memory.RomMemory;
 
@@ -16,6 +24,7 @@ import android.net.nsd.NsdServiceInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.StrictMode;
 import android.app.Activity;
 import android.util.Log;
 import android.view.Gravity;
@@ -37,14 +46,15 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	private SensorListener sensorListener;
 	private HashMap<String,NetworkDevice> foundDevices = new HashMap<String,NetworkDevice>();
 	
-	public TextView textDisplay;
+	public TextView receivedMessages;
+	public TextView sendMessages;
 	public Button showButton;
 	private ArrayList<String> statusMessages = new ArrayList<String>();
 	
 	final Handler mHandler = new Handler() { 
 
 	     public void handleMessage(Message msg) { 
-	    	 showMessages(msg);
+	    	 showMessage(msg);
 	     } 
 	 }; 
 	
@@ -54,12 +64,45 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_coap_device_simulator);
 		this.serviceListener.startDiscovery();
-		this.textDisplay = (TextView)findViewById(R.id.statusText);
+		this.receivedMessages = (TextView)findViewById(R.id.inboundMessagesDisplay);
+		this.sendMessages = (TextView)findViewById(R.id.outboundMessagesDisplay);
 	}
+	
+	private void showMessage(Message msg) { //shows messy, clean up needed
+		
+		if (msg.obj instanceof Message) {
+			
+			this.coapSocket.broadCastMessage((Message) msg.obj,foundDevices);
+			Message message = (Message) msg.obj;
+			String deviceType = "";
+			try {
+				JSONObject content = new JSONObject(message.obj.toString());
+				deviceType = content.getJSONObject("device_properties").getString("type");
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			if (sendMessages.getHeight() > 500) this.sendMessages.setText("");
+			this.sendMessages.append(deviceType + "\n");
+			Iterator<String> i = this.foundDevices.keySet().iterator();
+			while (i.hasNext()) {
+				NetworkDevice nd = this.foundDevices.get(i.next());
+				this.sendMessages.append(deviceType + " -> " + nd.getAddress().getHostAddress() + "\n");
+			}
+	
+		} if (msg.obj instanceof MessageEvent) {
+			MessageEvent messageEvent = (MessageEvent) msg.obj;
+			
+			if (receivedMessages.getHeight() < 500) {
+				receivedMessages.append(messageEvent.getSenderAddress() + " : " + messageEvent.getContent()  + "\n");
+ 			} else {
+ 				receivedMessages.setText(messageEvent.getSenderAddress() + " : " + messageEvent.getContent()  + "\n");
+ 			}
+        }
 
-	private void showMessages(Message _msg) {
-		textDisplay.append(_msg.obj.toString());  
 	}
+	
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -73,6 +116,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		Thread t = new Thread(sensorListener);
 		t.start();
 	}
+	
 	private void openSocket() {
 		this.coapSocket = new CoapSocket();
 		this.coapSocket.addObserver(this);
@@ -82,16 +126,10 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	
 	@Override
 	public void update(Observable arg0, Object arg1) {
-		if (arg1 instanceof Message) {
-				this.coapSocket.broadCastMessage((Message) arg1,foundDevices);
-			}
-		if (arg1 instanceof DatagramPacket) {
-
-			Message msg = new Message(); //TODO
-			msg.obj = "Packet sent";
-			mHandler.sendMessage(msg);
-        }
+		mHandler.sendMessage(Message.obtain(null, 1, arg1));
+		
 	}
+	
 	
 	private void decodePacket (DatagramPacket _packet) {
 		
@@ -136,11 +174,9 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	}
 	
 	private class ServiceListener implements DiscoveryListener {
-
 		
 		//http://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xml
-	
-	
+
 		private String serviceName;
 		private NsdManager _NsdManager;
 		
