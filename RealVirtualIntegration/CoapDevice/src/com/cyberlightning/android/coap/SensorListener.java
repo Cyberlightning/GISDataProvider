@@ -34,8 +34,8 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	private String deviceID;
 	
 	public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm";
-	private long broadcastInterval = 12000;
 	
+	private volatile long broadcastInterval = 12000;
 	private volatile boolean hasHighPriority = false;
 	private volatile boolean isHandlingLowPriorityEvents = false;
 
@@ -212,7 +212,16 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 			
 			return name;
 		}
-
+		
+		private void togglePriority(String _sensorId) {
+			
+			if (this.priorityList.containsKey(_sensorId)) {
+				this.priorityList.put(_sensorId, !this.priorityList.get(_sensorId)); //Toggles boolean value
+			} else {
+				this.priorityList.put(_sensorId, true); //low priority event is being changed to high priority by default
+			}
+		
+		}
 
 		@Override
 		public void pause() {
@@ -233,6 +242,20 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 			this.unregisterSpecificSensor(_type);
 			
 		}
+
+		@Override
+		public void changeBroadCastInterval(int _duration) {
+			this.broadcastInterval = _duration*1000;
+			
+		}
+
+		@Override
+		public void changeSensorPriority(String _sensorId) {
+			this.togglePriority(_sensorId);
+			
+		}
+
+		
 
 
 		

@@ -93,11 +93,17 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	
 		} if (msg.obj instanceof MessageEvent) {
 			MessageEvent messageEvent = (MessageEvent) msg.obj;
-			
+			String content = messageEvent.getContent();
+			if (content.contains("[high]")) {
+				content = content.replace(": [high]", "");
+				ISensorListener is = this.sensorListener;
+				is.changeSensorPriority(content);
+				
+			}
 			if (receivedMessages.getHeight() < 500) {
-				receivedMessages.append(messageEvent.getSenderAddress() + " : " + messageEvent.getContent()  + "\n");
+				receivedMessages.append(messageEvent.getSenderAddress() + " : " + content  + "\n");
  			} else {
- 				receivedMessages.setText(messageEvent.getSenderAddress() + " : " + messageEvent.getContent()  + "\n");
+ 				receivedMessages.setText(messageEvent.getSenderAddress() + " : " + content  + "\n");
  			}
         }
 

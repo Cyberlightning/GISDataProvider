@@ -332,11 +332,11 @@ public class BaseStationService extends Service {
 					
 					localServerSocket = new DatagramSocket(Settings.COAP_DEFAULT_PORT);
 					localServerSocket.setReceiveBufferSize(Settings.DEFAULT_BYTE_BUFFER_SIZE);
-					
+					byte[] receiveByte = new byte[Settings.DEFAULT_BYTE_BUFFER_SIZE]; 
+					DatagramPacket receivedPacket = new DatagramPacket(receiveByte, receiveByte.length);	
 
 					while(true) {
-						byte[] receiveByte = new byte[Settings.DEFAULT_BYTE_BUFFER_SIZE]; 
-						DatagramPacket receivedPacket = new DatagramPacket(receiveByte, receiveByte.length);
+						
 						localServerSocket.receive(receivedPacket);
 						handleInboundLocalMessages(receivedPacket);
 					}
@@ -352,7 +352,7 @@ public class BaseStationService extends Service {
     private void handleInboundLocalMessages(DatagramPacket _packet) {
     	
     	InetAddress address = _packet.getAddress();
-    	boolean isNewDevice = this.registerDevice(address);
+    	boolean isNewDevice = this.registerDevice(address,_packet.getPort());
     
     	ByteBuffer buffer = ByteBuffer.wrap(_packet.getData());
     	
@@ -381,7 +381,7 @@ public class BaseStationService extends Service {
     
     /** Checks whether a device with InetAddress has been registered already and registers it if not. 
      * @return true if already registered*/
-    private boolean registerDevice(InetAddress _address ) {
+    private boolean registerDevice(InetAddress _address, int _port ) {
     	
     	Iterator<CoapDevice> i = this.devices.iterator();
     	boolean isNewDevice = true;
@@ -391,7 +391,7 @@ public class BaseStationService extends Service {
     		}
     	}
     	if (isNewDevice) {
-    		this.devices.add(new CoapDevice(_address));
+    		this.devices.add(new CoapDevice(_address,_port));
     	}
     	return isNewDevice;
     }

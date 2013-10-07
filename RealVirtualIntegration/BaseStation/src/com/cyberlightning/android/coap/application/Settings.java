@@ -6,10 +6,6 @@
 
 package com.cyberlightning.android.coap.application;
 
-/**
- * @author Tomi sarni <tomi.sarni@cyberlightning.com>
- */
-
 public final class Settings {
    
     public final static int COAP_MESSAGE_SIZE_MAX = 1152;
@@ -27,7 +23,7 @@ public final class Settings {
 	
 	public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm";
 	public final static String LOCALHOST_EMULATOR = "10.0.2.2";
-	 public final static String REMOTEHOST = "dev.cyberlightning.com";
+	public final static String REMOTEHOST = "dev.cyberlightning.com";
 	public static final String SERVICE_TYPE = "_coap._udp"; 
 	public static final String SERVICE_NAME = "BaseStation"; 
     

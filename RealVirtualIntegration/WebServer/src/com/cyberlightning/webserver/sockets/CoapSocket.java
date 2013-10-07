@@ -1,14 +1,10 @@
 package com.cyberlightning.webserver.sockets;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.SocketException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -18,7 +14,6 @@ import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.entities.Client;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.services.MessageService;
-import com.cyberlightning.webserver.services.ProfileService;
 
 public class CoapSocket implements Runnable,IMessageEvent  {
 	
@@ -104,13 +99,14 @@ public class CoapSocket implements Runnable,IMessageEvent  {
 		root.put("notificationURI", _address);
 		root.put("request", _msg);
 		root.put("contextEntities", device);
-		
+	
 		byte[] b = new byte[1024];
 		try {
 			b = root.toJSONString().getBytes("UTF-8");
 		} catch (UnsupportedEncodingException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
+			System.out.println("UnsupportedEncodingException: " + e1.getMessage());
 		}
 		
 		return b;
@@ -129,9 +125,11 @@ public class CoapSocket implements Runnable,IMessageEvent  {
     		
     		try {
     			this.serverSocket.send(packet);
+    			System.out.println("Packet send to basestation :" + client.getAddress().getHostAddress());
     		} catch (IOException e) {
     			// TODO Auto-generated catch block
     			e.printStackTrace();
+    			System.out.println("IOException: " + e.getMessage());
     		}
     	}
     }
@@ -139,6 +137,7 @@ public class CoapSocket implements Runnable,IMessageEvent  {
 	@Override
 	public void httpMessageEvent(String _address, String _msg) {
 		this.sendToClients(_msg, _address);
+		
 	}
 
 	@Override
@@ -160,6 +159,7 @@ public class CoapSocket implements Runnable,IMessageEvent  {
 	@Override
 	public void webSocketMessageEvent(String _msg, String _address) {
 		this.sendToClients(_msg, _address);
+		System.out.println("webSocketMessageEvent: " + _address);
 	}
 	
 

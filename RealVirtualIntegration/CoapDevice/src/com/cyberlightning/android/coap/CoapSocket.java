@@ -1,7 +1,6 @@
 package com.cyberlightning.android.coap;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.nio.ByteBuffer;
@@ -42,8 +41,6 @@ public class CoapSocket extends Observable  implements Runnable,ICoapSocket {
 			while(true) {
 				localCoapSocket.receive(receivedPacket);
 				handleInboundMessage(receivedPacket);
-//				setChanged();
-//				notifyObservers(receivedPacket);
 			}
 			//TODO handle socket closed
 			
@@ -70,9 +67,11 @@ public class CoapSocket extends Observable  implements Runnable,ICoapSocket {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 
-		MessageEvent messageEvent = new MessageEvent(payload, _packet.getAddress().getHostAddress(), false, "");
+		//MessageEvent messageEvent = new MessageEvent(payload, _packet.getAddress().getHostAddress(), false, "");
+		
 		setChanged();
-		notifyObservers(messageEvent);
+		notifyObservers(Message.obtain(null, 2, payload));
+		
 		
 		//TODO input logic to handle ACK,NON,RST, .. 
 
