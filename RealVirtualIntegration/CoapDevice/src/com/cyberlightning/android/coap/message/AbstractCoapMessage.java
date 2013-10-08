@@ -155,7 +155,7 @@ public abstract class AbstractCoapMessage implements CoapMessage {
         
         /* allocate memory for the complete packet */
         int length = HEADER_LENGTH + optionsLength + payloadLength;
-        byte[] serializedPacket = new byte[length];
+        byte[] serializedPacket = new byte[1024]; //TODO CHECK THIS HER
         
         /* serialize header */
         serializedPacket[0] = (byte) ((this.version & 0x03) << 6);

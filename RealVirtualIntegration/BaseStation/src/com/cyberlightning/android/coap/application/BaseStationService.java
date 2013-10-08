@@ -353,7 +353,7 @@ public class BaseStationService extends Service {
     	
     	InetAddress address = _packet.getAddress();
     	boolean isNewDevice = this.registerDevice(address,_packet.getPort());
-    
+    	
     	ByteBuffer buffer = ByteBuffer.wrap(_packet.getData());
     	
 		CoapMessage msg = null;

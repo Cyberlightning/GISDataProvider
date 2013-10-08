@@ -63,6 +63,8 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_coap_device_simulator);
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+		StrictMode.setThreadPolicy(policy);
 		this.serviceListener.startDiscovery();
 		this.receivedMessages = (TextView)findViewById(R.id.inboundMessagesDisplay);
 		this.sendMessages = (TextView)findViewById(R.id.outboundMessagesDisplay);
@@ -70,43 +72,53 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	
 	private void showMessage(Message msg) { //shows messy, clean up needed
 		
-		if (msg.obj instanceof Message) {
+		switch (msg.what) {
+		
+			case RomMemory.INBOUND_MESSAGE:
 			
-			this.coapSocket.broadCastMessage((Message) msg.obj,foundDevices);
-			Message message = (Message) msg.obj;
-			String deviceType = "";
-			try {
-				JSONObject content = new JSONObject(message.obj.toString());
-				deviceType = content.getJSONObject("device_properties").getString("type");
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			if (sendMessages.getHeight() > 500) this.sendMessages.setText("");
-			this.sendMessages.append(deviceType + "\n");
-			Iterator<String> i = this.foundDevices.keySet().iterator();
-			while (i.hasNext()) {
-				NetworkDevice nd = this.foundDevices.get(i.next());
-				this.sendMessages.append(deviceType + " -> " + nd.getAddress().getHostAddress() + "\n");
-			}
-	
-		} if (msg.obj instanceof MessageEvent) {
-			MessageEvent messageEvent = (MessageEvent) msg.obj;
-			String content = messageEvent.getContent();
-			if (content.contains("[high]")) {
-				content = content.replace(": [high]", "");
-				ISensorListener is = this.sensorListener;
-				is.changeSensorPriority(content);
+				MessageEvent messageEvent = (MessageEvent) msg.obj;
+				String content = messageEvent.getContent();
+		
+				if (content.contains("[GPS]")) {
+					ISensorListener listener = this.sensorListener;		
+					if (content.contains("high")) {
+						listener.toggleGps(true);
+					}else {
+						listener.toggleGps(false);
+					}
+				}
 				
-			}
-			if (receivedMessages.getHeight() < 500) {
-				receivedMessages.append(messageEvent.getSenderAddress() + " : " + content  + "\n");
- 			} else {
- 				receivedMessages.setText(messageEvent.getSenderAddress() + " : " + content  + "\n");
- 			}
-        }
-
+				if (receivedMessages.getHeight() < 500) {
+					receivedMessages.append(messageEvent.getSenderAddress() + " : " + content  + "\n");
+				} else {
+					receivedMessages.setText(messageEvent.getSenderAddress() + " : " + content  + "\n");
+				}
+				
+			break;
+			
+			case RomMemory.OUTBOUND_MESSAGE:
+			
+				ICoapSocket socket = this.coapSocket;
+				socket.broadCastMessage(msg,foundDevices); //throws networkonmainthread exception if not in st
+				
+				String deviceType = "";
+				
+				try {
+					JSONObject jsonContent = new JSONObject(msg.obj.toString());
+					deviceType = jsonContent.getJSONObject("device_properties").getString("type");
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			
+				if (sendMessages.getHeight() > 500) this.sendMessages.setText("");
+					Iterator<String> i = this.foundDevices.keySet().iterator();
+					while (i.hasNext()) {
+						NetworkDevice nd = this.foundDevices.get(i.next());
+						this.sendMessages.append(deviceType + " -> " + nd.getAddress().getHostAddress() + "\n");
+					}
+			break;
+		}
 	}
 	
 
@@ -132,7 +144,8 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	
 	@Override
 	public void update(Observable arg0, Object arg1) {
-		mHandler.sendMessage(Message.obtain(null, 1, arg1));
+		
+		mHandler.sendMessage((Message) arg1);
 		
 	}
 	
@@ -173,6 +186,9 @@ public class CoapDeviceSimulator extends Activity implements Observer {
         		foundDevices.put(_nsdServiceInfo.getServiceName(), new NetworkDevice(_nsdServiceInfo.getHost(),_nsdServiceInfo.getPort(),_nsdServiceInfo.getServiceName(),_nsdServiceInfo.getServiceType()));
         		if (coapSocket == null) openSocket();
         		startSensorListener();
+        		
+        		ISensorListener listener = sensorListener;		//TODO remove test only
+				listener.toggleGps(true);
         		statusMessages.add("Service resolved \n");
         		
         	}

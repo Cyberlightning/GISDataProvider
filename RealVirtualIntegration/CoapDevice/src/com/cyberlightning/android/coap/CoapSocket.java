@@ -32,7 +32,7 @@ public class CoapSocket extends Observable  implements Runnable,ICoapSocket {
 		
 		try {
 			
-			localCoapSocket = new DatagramSocket(this.port);
+			localCoapSocket = new DatagramSocket(55555);
 			localCoapSocket.setReceiveBufferSize(RomMemory.DEFAULT_BUFFER_SIZE);
 			byte[] receiveByte = new byte[RomMemory.DEFAULT_BUFFER_SIZE]; 
 			DatagramPacket receivedPacket = new DatagramPacket(receiveByte, receiveByte.length);
@@ -67,10 +67,11 @@ public class CoapSocket extends Observable  implements Runnable,ICoapSocket {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 
-		//MessageEvent messageEvent = new MessageEvent(payload, _packet.getAddress().getHostAddress(), false, "");
+		
+		MessageEvent messageEvent = new MessageEvent(payload, _packet.getAddress().getHostAddress(), false, "");
 		
 		setChanged();
-		notifyObservers(Message.obtain(null, 2, payload));
+		notifyObservers(Message.obtain(null, RomMemory.INBOUND_MESSAGE, messageEvent));
 		
 		
 		//TODO input logic to handle ACK,NON,RST, .. 
@@ -86,7 +87,7 @@ public class CoapSocket extends Observable  implements Runnable,ICoapSocket {
 		coapRequest.setPayload(_msg.obj.toString());
 		CoapMessage coapMessage = (CoapMessage)coapRequest;
 		//coapRequest.setUriQuery(jsonSensorsList.toString());
-		ByteBuffer buf = ByteBuffer.wrap(coapMessage.serialize());
+		ByteBuffer buf = ByteBuffer.wrap(coapMessage.serialize()); //TODO FIXED SIZE BYTE[] TO 1024, can this be dynamic to save space?
 
 		Iterator<String> i = _devices.keySet().iterator();
 		while(i.hasNext()) {

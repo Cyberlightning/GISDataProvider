@@ -207,7 +207,7 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 
 	@Override
 	public void webSocketMessageEvent(String _msg, String address) {
-		System.out.println("message from client: " + _msg);
+		//System.out.println("message from client: " + _msg);
 		
 	}
 

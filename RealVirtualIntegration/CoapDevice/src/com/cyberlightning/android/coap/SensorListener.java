@@ -12,6 +12,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.cyberlightning.android.coap.memory.RomMemory;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -19,6 +21,10 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
 import android.os.Message;
 import android.provider.Settings.Secure;
 
@@ -26,7 +32,7 @@ import android.provider.Settings.Secure;
 public class SensorListener extends Observable implements SensorEventListener,ISensorListener,Runnable  {
 
 	private Activity context;
-	private ConcurrentLinkedQueue<SensorEvent> highPriorityEvents = new ConcurrentLinkedQueue<SensorEvent>();
+	private ConcurrentLinkedQueue<Object> highPriorityEvents = new ConcurrentLinkedQueue<Object>();
 	private ConcurrentLinkedQueue<JSONObject> lowPriorityEvents = new ConcurrentLinkedQueue<JSONObject>();
 	private volatile HashMap<String,SensorEvent> sensorEventTable = new HashMap<String,SensorEvent>();
 	private HashMap<String,Boolean> priorityList = new HashMap<String,Boolean>();
@@ -53,8 +59,15 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		while(true) {
 			
 			while(!highPriorityEvents.isEmpty()) {
-				JSONObject jsonObject = createNewJSONObject(highPriorityEvents.poll());
-				sendMessage(jsonObject);
+				Object eventObject = highPriorityEvents.poll();
+				if (eventObject instanceof SensorEvent) {
+					JSONObject jsonObject = createFromSensorEvent((SensorEvent)eventObject);
+					sendMessage(jsonObject);
+				} else if (eventObject instanceof Location) {
+					JSONObject jsonObject = createFromLocation((Location)eventObject);
+					sendMessage(jsonObject);
+				}
+				
 			}
 			this.hasHighPriority = false;
 			
@@ -123,7 +136,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 				HashMap<String,SensorEvent> tempSensorEventTable = sensorEventTable;
 				Iterator<String> i = tempSensorEventTable.keySet().iterator();
 				while(i.hasNext()) {
-					JSONObject j = createNewJSONObject(tempSensorEventTable.get(i.next()));
+					JSONObject j = createFromSensorEvent(tempSensorEventTable.get(i.next())); //TODO check type cast for Location objects
 					lowPriorityEvents.offer(j);
 				}
 				
@@ -134,7 +147,34 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		
 	}
 	
-	private JSONObject createNewJSONObject(SensorEvent event) {
+	private JSONObject createFromLocation(Location event) {
+		
+		JSONArray values = new JSONArray();
+		JSONObject device = new JSONObject();
+		JSONObject properties=  new JSONObject();
+		
+		try {
+			
+			properties.put("type", "TYPE_GPS");
+			
+			values.put(event.getLatitude());
+			values.put(event.getLongitude());
+			if (event.hasAltitude()) values.put(event.getAltitude());
+			
+			device.put("device_id", this.deviceID );
+			device.put("device_properties", properties);
+			device.put("event_timestamp", getTimeStamp());
+			if (event.hasAccuracy())device.put("event_accuracy", event.getAccuracy());
+			device.put("event_values", values);
+			
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return device;
+	}
+	
+	private JSONObject createFromSensorEvent(SensorEvent event) {
 		
 		JSONArray values = new JSONArray();
 		JSONObject device = new JSONObject();
@@ -175,7 +215,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	
 	private void sendMessage(JSONObject _payload) { //TODO just a stub
 		setChanged();
-		notifyObservers(Message.obtain(null, 4, _payload.toString()));
+		notifyObservers(Message.obtain(null, RomMemory.OUTBOUND_MESSAGE, _payload.toString()));
 	}
 	
 	private String resolveDeviceById(int _id) {
@@ -253,6 +293,46 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		public void changeSensorPriority(String _sensorId) {
 			this.togglePriority(_sensorId);
 			
+		}
+
+		@Override
+		public void toggleGps(boolean _isHighPriority) {
+			
+			LocationListener locationListener = new GpsListener();  
+			((LocationManager) this.context.getSystemService(Context.LOCATION_SERVICE)).requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, locationListener);
+			this.priorityList.put("TYPE_GPS", _isHighPriority);
+		}
+		
+		/*----------Listener class to get coordinates ------------- */
+		private class GpsListener implements LocationListener {
+
+			
+		    @Override
+		    public void onProviderDisabled(String provider) {}
+
+		    @Override
+		    public void onProviderEnabled(String provider) {}
+
+		    
+
+			@Override
+			public void onLocationChanged(Location location) {
+				
+				if(priorityList.containsKey("TYPE_GPS")) {
+					highPriorityEvents.add(location);
+					hasHighPriority = true;
+					
+				} else {
+					//this.sensorEventTable.put(_event.sensor.getName(), _event);
+					//if(!this.isHandlingLowPriorityEvents) this.startSensorEventUpdaterRoutine();
+				}
+				
+			}
+
+			@Override
+			public void onStatusChanged(String provider, int status, Bundle extras) {
+				
+			}
 		}
 
 		

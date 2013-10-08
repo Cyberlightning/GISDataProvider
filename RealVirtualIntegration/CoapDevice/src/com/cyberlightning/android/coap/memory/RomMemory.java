@@ -13,7 +13,10 @@ public class RomMemory {
 	public static final int DEFAULT_PORT = 5683;
 	public static final int DEFAULT_BUFFER_SIZE = 1024;
 	public static final int MAX_MESSAGE_ID = 65535;
+	public static final int INBOUND_MESSAGE = 1;
+	public static final int OUTBOUND_MESSAGE = 2;
 	private static final long DEFAULT_BROADCAST_INTERVAL = 6000;
+	
 	
 	
 	/* 0                   1                   2                   3

@@ -12,8 +12,8 @@
 	<script src="js/jquery-1.9.1.js"></script>
 	<script src="js/jquery-ui-1.10.3.custom.js"></script>
 	<script src="js/three.min.js"></script>
+	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
 	
-
     <script type="text/javascript">
 	 $(function() {
 		 $( "#accordion" ).accordion();
@@ -42,7 +42,11 @@
 		        return format;
 		    },          
 		});
+	 
+	   
 	
+	    
+
 	</script>
 	
 	<style>
@@ -98,9 +102,12 @@
 	    });
 	}); 
 	
+	var map;
+	var lat;
+	var lon;
 	
 	
-	
+
 	function sendData() {
 		var input = frm.command_input.value;
 // 		$.ajax({
@@ -165,11 +172,26 @@
         sensors.push(json);
 
 		if (!alreadyExists) {
-            type =  json.device_properties.type;
-            sensorTypes.push(json.device_properties.type);
-			var active = $('#accordion').accordion('option', 'active');
-			$('#accordion').append('<h3><a href="#" onclick="drawCharts(event)">' + type + '</a></h3><div>'+ parseContent(json) +'</div>')
-			    .accordion('destroy').accordion({ active: active});
+			
+			if(json.device_properties.type == "TYPE_GPS") {
+				lat = parseDouble(json.event_values[0]);
+				lon = parseDouble(json.event_values[1]);
+				type =  json.device_properties.type;
+	            sensorTypes.push(json.device_properties.type);
+				var active = $('#accordion').accordion('option', 'active');
+				$('#accordion').append('<h3><a href="#" onclick="loadMap(event)">' + type + '</a></h3><div  id="map-canvas"></div>') 
+				    .accordion('destroy').accordion({ active: active});	
+				
+				
+				
+			} else {
+				type =  json.device_properties.type;
+	            sensorTypes.push(json.device_properties.type);
+				var active = $('#accordion').accordion('option', 'active');
+				$('#accordion').append('<h3><a href="#" onclick="drawCharts(event)">' + type + '</a></h3><div>'+ parseContent(json) +'</div>')
+				    .accordion('destroy').accordion({ active: active});	
+			}
+            
 		}
 	}
 
@@ -179,7 +201,17 @@
         content += "<b>Latest recorded sensor event: </b><i>" + data.event_timestamp + "</i>";
         return content;
     }
-
+	
+	function loadMap(e) {
+		  var mapOptions = {
+		    zoom: 8,
+		    center: new google.maps.LatLng(lat, lon),
+		    mapTypeId: google.maps.MapTypeId.ROADMAP
+		  };
+		  map = new google.maps.Map(document.getElementById('map-canvas'),mapOptions);
+		  google.maps.event.addDomListener(window, 'load', initialize);
+	}
+	
 	function drawCharts(e) {
 		
 		var eventTarget = e.currentTarget.innerHTML; //works on both chrome and FF
