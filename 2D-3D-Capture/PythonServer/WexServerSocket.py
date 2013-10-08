@@ -1,3 +1,4 @@
+
 import re  
 import struct   
 from base64 import b64encode,b64decode
@@ -8,7 +9,9 @@ from gevent import socket
 from PIL import Image
 import json
 import sys 
-
+import MySQLdb
+import logging
+import argparse
 
 
 '''
@@ -36,23 +39,44 @@ def encodeMessage( message):
     header = struct.pack('>BB', b1, payload_len)
     message= header +message
     return message
+
+def dbsave(jsondata):
+    dbconn = MySQLdb.connect (host = "localhost",
+                        user = "twijethilake",
+                        passwd = "twj1672$1",
+                        db = "2d3dcapture")
+    cursor = dbconn.cursor ()
+    filename = jsondata["type"]+"_"+jsondata["time"]+"."+jsondata["ext"]
+    heading = str(jsondata["device"]["ax"]);
+    logging.debug( heading +str(jsondata["motion"]["heading"])+","+str(jsondata["motion"]["speed"]))
+#     print
+    sqlstring1 = "insert into Imagedata values (\'"+filename+"\',"+str(jsondata["position"]["lat"])+","+str(jsondata["position"]["lon"])+","+str(jsondata["position"]["acc"])+","+str(jsondata["position"]["alt"])
+    sqlstring2 =","+str(jsondata["motion"]["heading"])+","+str(jsondata["motion"]["speed"])+","+str(jsondata["device"]["ax"])+","+str(jsondata["device"]["ay"])+","+str(jsondata["device"]["az"])+",0.00,0.00,0.00,"
+    sqlstring3 = str(jsondata["device"]["ra"])+","+str(jsondata["device"]["rb"])+","+str(jsondata["device"]["rg"])+",0.00,\'"+jsondata["device"]["orientation"]+"\',now())"
+    sqlstring = sqlstring1 + sqlstring2+ sqlstring3	
+    logging.info( "sql String %s" , sqlstring)
+    try:
+        cursor.execute (sqlstring)
+        dbconn.commit()
+    except :
+        dbconn.rollback() 
+    cursor.close ()
+    dbconn.close ()
+    print "Database transaction completed"
     
 def connectionHandler( conn, addr):
     filename= ""
     BUFFER = ""
     done=""             
-    print 'Connected with ' + addr[0] + ':' + str(addr[1])
+    logging.info(  'Connected with %s : %s',  addr[0] , str(addr[1]))
     while True:
         try:
                     #It is easier to define this rather than using numbers. Reason is the value should be updated on the value of the second byte(unmaksed)
-            print 'receiving data :' +filename 
+            #print 'receiving data :' +filename 
             data = conn.recv(4096)
             BUFFER += data   
-            buf = BUFFER           
-                #print 'Received data length'
-                #print len(data)
-                     
-                #working
+            buf = BUFFER  
+            logging.debug("recived data length %s",len(data))               
             if len(data) == 0:
                 return            
             key = re.search('Sec-WebSocket-Key:\s+(.*?)[\n\r]+', data)
@@ -63,10 +87,7 @@ def connectionHandler( conn, addr):
                 if key is not None:
                     response_key = b64encode(sha1(key + magic_string).digest())
                     response = '\r\n'.join(response_header).format(key=response_key)
-#                     print '#####################################'
-#                     print response
-#                     print len(response)
-#                     print '#####################################'
+                    logging.debug('##################################### \n %s \n %s \n #####################################',response,len(response))
                     conn.send(response)
                     message = "Hello Client\n..Server is listening..!"                                              
                     conn.send(encodeMessage(message))
@@ -84,12 +105,10 @@ def connectionHandler( conn, addr):
                 mask = b2 & 0x80    # high bit of the second byte
                 length = b2 & 0x7f   # low 7 bits of the second byte
                         #print "<!---------------------------------------!>"
-                #print "OPCODE"
-                #print opcode
-                #print "Length"                
-                #print length
-                #print "FIN"
-                #print fin
+                logging.debug("OPCODE %s",opcode)
+                logging.debug("Length %s", length)                
+                logging.debug("FIN %s", fin)
+                
                         # check that enough bytes remain
                 if len(buf) < payload_start + 4:
                     return
@@ -111,12 +130,13 @@ def connectionHandler( conn, addr):
                 #print "FULL LENGTH"
                 #print full_len
                 #print len(buf)
+                
                 if len(buf) < full_len:
-                    print "Not a complete frame"
+                    sys.stdout.write('-')
                 else:
-                    print 'There is a complete frame now' 
+                    sys.stdout.write('-|\n') 
                     #print "check the buffer"
-                    print len(buf)
+                    #print len(buf)
                     #print self.BUFFER
                     #print "<!---------------------------------------!>"
                     # remove leading bytes, decode if necessary, dispatch                                
@@ -135,13 +155,17 @@ def connectionHandler( conn, addr):
                         if opcode == 1:
                             if done=="":                                
                                 s = payload.decode("UTF8")
+                                print s
                                 jsondata = json.loads(s)
                                 filename= jsondata["type"]+"_"+jsondata["time"]+"."+jsondata["ext"]
-                                print(filename)
+                                logging.debug("File name %s", filename)
+                                logging.debug("Position ->logitude %s ", str(jsondata["position"]["lon"]))
+                                #print(jsondata["position"]["lat"])
+                                dbsave(jsondata);
                                 #time.sleep(1)
                                 message= "FILENAME"                            
                                 sent = conn.send(encodeMessage(message))                           
-                                print "BYTES SENT"
+                                logging.debug("Message %s sent.Length %s", message, sent)
                                 print sent
                                 BUFFER=""
                                 buf= ""
@@ -153,7 +177,7 @@ def connectionHandler( conn, addr):
                                 #print(splitplace)
                                 payload= payload[splitplace+1:]
                                 print "########################################"
-                                #print payload
+                                logging.debug("printing Payload %s", payload)
                                 try :
                                     payload = b64decode(payload)
                                     file_like = StringIO(payload)
@@ -161,7 +185,7 @@ def connectionHandler( conn, addr):
                                     i.save(filename)
                                 except RuntimeError as e:
                                     conn.close();
-                                    print e.strerror                                    
+                                    logging.critical( "Runtime error in decoding bnary system exit %s", e.strerror)                                    
                                     sys.exit(0)                                
                                 conn.close()
                                 BUFFER=""
@@ -170,12 +194,11 @@ def connectionHandler( conn, addr):
                                 done= ""
                                 break 
                         elif opcode == 2:                        
-                            print 'Handling binary data'                           
+                            logging.debug('Handling binary data')                           
                             size = 640 ,427
                             img = Image.frombuffer('RGBA', size, payload,'raw','RGBA',0,1)
-                            img.save(filename)      
-                            print '##### frame processed###'        
-                            print 'Closing the connection'
+                            img.save(filename)                                  
+                            logging.debug('Closing the connection')
                             conn.close()
                             BUFFER=""
                             buf= ""
@@ -183,7 +206,7 @@ def connectionHandler( conn, addr):
                             return
         except KeyboardInterrupt:
             conn.close();
-            print "INTERRUPTED!"
+            logging.critical(" keyboard Interuption. Program exiting.")
             sys.exit(0)   
     
 def frameHanlder()  :
@@ -191,14 +214,42 @@ def frameHanlder()  :
    
 def closeConnection(self):
     sock.close()
-             
-try :
-    sock= socket.socket()
-    sock.bind((ANY, PORT))
-    sock.listen(500)
-    while True:
-    #wait to accept a connection - blocking call
-        conn, addr = sock.accept()
-        gevent.spawn(connectionHandler, conn, addr)
-except socket.error as message:
-    print 'Bind failed. Error Code : '  + str(message[0]) + ' Message ' + message[1]              
+def main():
+
+    parser = argparse.ArgumentParser(description='Log level')
+    parser.add_argument('--log', help='Setting this would set the log level. Values DEBUG/INFO/WARNING/ERROR/CRITICAL')
+    
+    args = parser.parse_args()    
+    if args.log:
+        loglevel = args.log.upper()
+        if(loglevel =="DEBUG" or loglevel == "INFO" or loglevel == "WARNING" or loglevel == "ERROR" or loglevel == "CRITICAL"):
+            print "Set Log level to ", loglevel
+            loglevel_int=getattr(logging, loglevel.upper())
+            logging.basicConfig(level=loglevel_int) 
+        else :
+            print "Invalid Log level. Setting it to default  value INFO."
+            logging.basicConfig(level=logging.INFO)        
+    else :
+        print "Debug Level set to INFO"
+        logging.basicConfig(level=logging.INFO) 
+    fh = logging.FileHandler('eventlog.log')
+    fh.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    logging.getLogger('').addHandler(fh)   
+    try :    
+        sock= socket.socket()
+        sock.bind((ANY, PORT))
+        logging.debug('Server is listening to %s on port %s',ANY, PORT)
+        sock.listen(500)
+        while True:
+        #wait to accept a connection - blocking call
+            conn, addr = sock.accept()
+            
+            gevent.spawn(connectionHandler, conn, addr)
+    except socket.error as message:
+        logging.error('Bind failed. Error Code : %s Message %s' , str(message[0]), + message[1])
+        
+        
+if __name__ == "__main__":
+    main()

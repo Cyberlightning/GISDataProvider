@@ -44,5 +44,5 @@ var registerForAccelerometerEvents = function(handlacceleration, handleAccelerat
 }; 
 
 window.onload = function(){
-	registerForAccelerometerEvents(handleAccelerationEvent,handleAccelerationWithGravityEvent,handleRotationEvent);
+	registerDeviceMotionEvents(handleAccelerationEvent,handleAccelerationWithGravityEvent,handleRotationEvent);
 };

@@ -8,16 +8,28 @@ var connection;
 var image;
 var thisDevice;
 
+/**
+ * This javascript code is the underlying functionality to camera feed. It provides following functionality 
+ * to the demo.
+ * 1. Take snapshots from a browser app using the device camera
+ * 2. Upload them using a websocket connection as a jpeg or a png
+ * 3. Provide information related to all supported  the sensors to be stored in a database. 
+ * 
+ */
+
+/**
+ * Browser Object saves the supported sensor elements by the browser 
+ * that application is being used.
+ */
 var Browser = function(video,gps,socket){
 	this.videoSupport =video;
 	this.gpsSupport = gps;
 	this.webSocketSupport= socket;
 };
 
-var Location = function(){
-	
-};
-
+/**
+ * Encapsulates device related information.
+ */
 var Device = function (browser) {
 	this.browser=browser;
 };
@@ -33,53 +45,40 @@ Browser.prototype.getGPSSupport = function() {
 };
 Browser.prototype.getSocketSupport = function(){
 	return this.webSocketSupport;
-}
+};
 
+/**
+ * ConnectionHandler is responsible for handling the websocket connection.
+ * It implements functions that handles onOpen, onMessage, onClose and onError 
+ * events.
+ */
 var ConnectionHandler = function () {	 
 };
 
-
-//function hasGetUserMedia() {
-//	return !!(navigator.getUserMedia || navigator.webkitGetUserMedia ||
-//            navigator.mozGetUserMedia || navigator.msGetUserMedia);
-//}
 
 var onFailSoHard = function(e) {
 	log("Video not supported");
 };
   
- var videoStream = function(stream) {	
-	    var videoelement = document.querySelector('video');
-	    videoelement.src = window.URL.createObjectURL(stream);
-	    videoelement = stream;
- };
-  
-  var binaryCodeImage = function(imagedata){
+var binaryCodeImage = function(imagedata){
 	  var canvaspixelarray = imagedata.data;	    	    
-	    var canvaspixellen = canvaspixelarray.length;
-	    var bytearray = new Uint8Array(canvaspixellen);	    	    
-	    for (var i=0;i<canvaspixellen;++i) {
-	        bytearray[i] = canvaspixelarray[i];
+	  var canvaspixellen = canvaspixelarray.length;
+	  var bytearray = new Uint8Array(canvaspixellen);	    	    
+	  for (var i=0;i<canvaspixellen;++i) {
+	      bytearray[i] = canvaspixelarray[i];
 	        
-	    }
-	    return bytearray;
-  };
+	  }
+	  return bytearray;
+};
   
-  var getBinaryData = function() {
+ var getBinaryData = function() {
 	//FOLLOWING 2 LINE OF CODE CONVERTS THE IMAGEDATA TO BINARY
 	var imagedata = localcontext.getImageData(0, 0, videowidth,videoheight);
 	return  binaryCodeImage(imagedata);		
-};
-  
-// var send = function(message,type) {
-//	 
-//	 
-// };
- 
+}; 
 
 var snapshot = function(pos) {
-	thisDevice.position = pos.coords;
-	log("Imagepos-->"+thisDevice.position.latitude+"."+ thisDevice.position.longitude);
+	thisDevice.position = pos.coords;	
 	thisDevice.positionTime= pos.timestamp ;
 	if(video){
 		 localcanvas = document.createElement("canvas");
@@ -90,71 +89,85 @@ var snapshot = function(pos) {
 		 localcanvas.width = videowidth;
 		 localcanvas.height = videoheight;	
 		 localcanvas.style.position="fixed";
-		 localcanvas.style.top="10px";
-		 localcanvas.style.left=(videowidth+400+20)+"px";		 
+		 localcanvas.style.top="80px";
+		 localcanvas.style.left=(videowidth+400+20)+"px";
+		 localcanvas.style.zIndex= 10;
 		 localcontext.drawImage(video, 0, 0);
 		 document.body.appendChild(localcanvas);
 		 setupConnection();	   	 
-	};            
-	  //localcontext.drawImage(video, 0, 0);
-	  //input.value = localcanvas.toDataURL('image/jpeg');	  
+	};	  
 };
  
-var setupConnection = function() {	
-	 //connection = new WebSocket("ws://localhost:17000/");
-	 connection = new WebSocket("ws://dev.cyberlightning.com:17000/");
+var setupConnection = function() {
+	log("Imagepos-->"+thisDevice.position.latitude+"."+ thisDevice.position.longitude);
+	 connection = new WebSocket("ws://localhost:17000/");
+	 //connection = new WebSocket("ws://dev.cyberlightning.com:17000/");
 	 connection.binaryType = "arraybuffer";
 	 var handler = new ConnectionHandler;	 
 	 connection.onopen = handler.onOpen;
 	 connection.onmessage =	handler.onMessage;
-	 connection.onclose = function()
-	 { 
-		 log("Connection is closed...");
-		 localcontext.clearRect(0, 0, localcanvas.width, localcanvas.height);
-		 document.body.removeChild(localcanvas);
-	 };
-	 connection.onerror =  function  ( fault )  { 
-		 log('WebSocket Error'  + errors ); 
-	 };	
+	 connection.onclose = handler.onClose;
+	 connection.onerror =  handler.onError;
  };
  
-Device.prototype.getGPS = function(){
-	if(thisDevice.getBrowser().getGPSSupport()){		
-		
-	} else {
-		log("Location is not supported");
-	}
-}; 
-
-
 ConnectionHandler.prototype.onOpen= function() {
-//	log(thisDevice.position.latitude+"."+ thisDevice.position.longitude);
-//	log(thisDevice.position.altitude+"."+ thisDevice.position.accuracy);
-//	log(thisDevice.position.heading+"."+ thisDevice.position.speed);
-	log("Connection opened-->"+connection.readyState);
+	log("Imagepos-->"+thisDevice.position.latitude+"."+ thisDevice.position.longitude);
 	 var d = new Date();
-	 var time=d.getFullYear()+"."+d.getMonth()+"."+d.getUTCDay()+"_"+d.getHours()+"."+d.getMinutes()+"."+d.getSeconds();
-	 if(thisDevice.position.coords.heading===NaN)
-		 thisDevice.position.coords.heading=1000;
+	 var time=d.getFullYear()+"."+( d.getMonth()+1)+"."+d.getDate()+"_"+d.getHours()+"."+d.getMinutes()+"."+d.getSeconds();
+	 if(!thisDevice.position.longitude || thisDevice.position.longitude == null ){
+		 thisDevice.position.longitude = -181.0;
+	 }
+	 if(!thisDevice.position.latitude || thisDevice.position.latitude == null ){
+		 thisDevice.position.latitude = -181.0;
+	 }
+	 if(!thisDevice.position.altitude || thisDevice.position.altitude == null ){
+		 thisDevice.position.altitude = -1.0;
+	 }
+	 if(!thisDevice.position.accuracy || thisDevice.position.accuracy == null ){
+		 thisDevice.position.accuracy =-1.0;
+	 }
+	 if(!thisDevice.ax || thisDevice.ax == null)
+		 thisDevice.ax = 400.0;
+	 if(!thisDevice.ay || thisDevice.ay == null)
+		 thisDevice.ay = 400.0;
+	 if(!thisDevice.az || thisDevice.az == null)
+		 thisDevice.az = 400.0;
+	 if(!thisDevice.gx || thisDevice.gx == null)
+		 thisDevice.gx = 400.0;
+	 if(!thisDevice.gy || thisDevice.gy == null)
+		 thisDevice.gy = 400.0;
+	 if(!thisDevice.gz || thisDevice.gz == null)
+		 thisDevice.gz = 400.0;
+	 if(thisDevice.position.speed == null ||  thisDevice.position.speed == 0 ){
+		 thisDevice.position.speed=0;
+		 thisDevice.position.heading=400.0;
+	 }
+	 if(!thisDevice.heading || thisDevice.heading == null){
+		 thisDevice.heading = 400.0;
+	 }
+	if(!thisDevice.hor_Vir || thisDevice.hor_Vir == null){
+		thisDevice.hor_Vir = -181.0;
+		 }
+	if(!thisDevice.tiltAngle || thisDevice.tiltAngle == null){
+		thisDevice.tiltAngle = -181.0;
+	}
 	 var imagematadata={
 		 type:"image",
 		 time:time, 
 		 ext:"jpg",
-		 //lon:"25.4737936",
-         //lat :"65.012351",};
 		 position: {
-			 lon:thisDevice.position.coords.longitude,
-			 lat:thisDevice.position.coords.latitude,
-			 alt:thisDevice.position.coords.altitude,
-			 acc:thisDevice.position.coords.accuracy,
+			 lon:thisDevice.position.longitude,
+			 lat:thisDevice.position.latitude,
+			 alt:thisDevice.position.altitude,
+			 acc:thisDevice.position.accuracy,
 		 },
 		 motion : {
-			 heading:thisDevice.position.coords.heading ,
-			 speed:thisDevice.position.coords.speed,
+			 heading:thisDevice.position.heading ,
+			 speed:thisDevice.position.speed,
 		},
 		 device : {
 			 ax:thisDevice.ax,ay:thisDevice.ay,az:thisDevice.az,
-			 //gx:thisDevice.gx,gy:thisDevice.gy,gz:thisDevice.gz,
+			 gx:thisDevice.gx,gy:thisDevice.gy,gz:thisDevice.gz,
 			 ra:thisDevice.heading,rb:thisDevice.hor_Vir,rg:thisDevice.tiltAngle,
 			 orientation:thisDevice.orienation,
 		 },	 
@@ -169,19 +182,26 @@ ConnectionHandler.prototype.onOpen= function() {
 };
 
 ConnectionHandler.prototype.onMessage = function (event) {
-	//log("Message Arrived.");
 	message=window.atob(event.data);	
 	log(message);
-	if(message =="FILENAME"){		
-		//THIS PART TRIES TO EXTRACT DATA FROM THE CANVAS TO CREATE AN JPEG IMAGE
-		 var url = localcanvas.toDataURL("image/jpeg");
-		 //log(url.length);
-		 //log(url);
-		if(connection.readyState == 1) 
-			connection.send(url);
-//		else 
-//			log("Connecttion status is not OPEN -->"+connection.readyState);		 
-	}
+	//if(message =="Hello Client\n..Server is listening..!"){		
+	//THIS PART TRIES TO EXTRACT DATA FROM THE CANVAS TO CREATE AN JPEG IMAGE
+	var url = localcanvas.toDataURL("image/jpeg");
+	if(connection.readyState == 1) 
+		connection.send(url);		 
+	
+};
+
+ConnectionHandler.prototype.onClose = function()
+{ 
+	 log("Connection is closed...");
+	 var localcanvas =document.getElementById("snapshot");
+	 localcontext.clearRect(0, 0, localcanvas.width, localcanvas.height);	 
+	 document.body.removeChild(localcanvas);
+};
+
+ConnectionHandler.prototype.onError = function (errors){
+	log('WebSocket Error'  + errors ); 
 };
 
 function startVideoCliecked() {
@@ -209,11 +229,10 @@ function log(text){
 }
 
 function clearlogs(){
-	document.getElementById("consolelog").value = "";
-	
+	document.getElementById("consolelog").value = "";	
 }
 
-//https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Events/Orientation_and_motion_data_explained?redirectlocale=en-US&redirectslug=Web%2FGuide%2FDOM%2FEvents%2FOrientation_and_motion_data_explained
+
 function handleOrientationChanges(alpha, gamma, beta , abs , orientation){
 	thisDevice.orienation = orientation;
 	thisDevice.heading=alpha;//Rotation arround z axis
@@ -246,7 +265,7 @@ function handleRotation(r) {
 
 function onLocationSearchSuccess(pos){
 	log("Pos-->"+pos.coords.latitude+ ":"+pos.coords.longitude+":"+pos.coords.accuracy+ ":"+pos.coords.altitude);
-	thisDevice.position = pos;
+	//thisDevice.position = pos;
 }
 
 function onLocationServiceSearchError(){
@@ -278,7 +297,12 @@ window.onload=function() {
 	if(isDeviceMotionSupported()){
 		log("Subscribing for deviceMotionEvent");
 		registerDeviceMotionEvents(handlacceleration, handleAccelerationWithGravity, handleRotation);
-		registerForDeviceMovements(onLocationSearchSuccess,onLocationServiceSearchError);
+		var mapoptions = {
+				  enableHighAccuracy: true,
+				  timeout: 27000,
+				  maximumAge: 30000
+				};
+		registerForDeviceMovements(onLocationSearchSuccess,onLocationServiceSearchError,mapoptions);
 	} else
 		log("Device Could care less if you move or not");
 

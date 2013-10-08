@@ -5,8 +5,8 @@
      This code is public domain: do what you like with it. -->
 
 
-<!-- Load linear math utilities -->
-<script type="text/javascript" src="glDegmatrix.js"></script><style type="text/css"></style>
+<link rel="stylesheet" href="styles.css">
+<script type="text/javascript" src="glDegmatrix.js"></script>
 <!-- Load my shader utilities -->
 <script type="text/javascript" src="gpu.js"></script>
 <script type="text/javascript" src="js_api.js"></script>
@@ -118,6 +118,35 @@ var cubeVerts = new Float32Array([
     -0.5, -0.5, -0.5,
 ]);
 
+var refCubeVertsY = new Float32Array([
+                                  -0.05,  0.05,  1.5,   // 0
+                                  -0.05, -0.05,  1.5,
+                                   0.05,  0.05,  1.5,
+                                   0.05, -0.05,  1.5,
+                                  -0.05,  0.05, -1.5,   // 4
+                                  -0.05, -0.05, -1.5,
+                                  -0.05,  0.05,  1.5,
+                                  -0.05, -0.05,  1.5,
+                                   0.05,  0.05, -1.5,   // 8
+                                  -0.05,  0.05, -1.5,
+                                   0.05,  0.05,  1.5,
+                                  -0.05,  0.05,  1.5,
+                                   0.05,  0.05,  1.5,   // 12
+                                   0.05, -0.05,  1.5,
+                                   0.05,  0.05, -1.5,
+                                   0.05, -0.05, -1.5,
+                                   0.05, -0.05,  1.5,   // 16
+                                  -0.05, -0.05,  1.5,
+                                   0.05, -0.05, -1.5,
+                                  -0.05, -0.05, -1.5,
+                                   0.05,  0.05, -1.5,   // 20
+                                   0.05, -0.05, -1.5,
+                                  -0.05,  0.05, -1.5,
+                                  -0.05, -0.05, -1.5,
+                              ]);
+
+
+
 var cubeNorms = new Float32Array([
      0,  0,  1,
      0,  0,  1,
@@ -154,7 +183,10 @@ var cubeIdx = new Uint16Array([
     20, 21, 22, 21, 23, 22,
 ]);
 
-// The scene. Really ought to be an object
+//Adding the 
+var axisyVBuf = -1;
+
+//The scene. Really ought to be an object
 var cubeVBuf = -1;
 var cubeNBuf = -1;
 var cubeIdxBuf = -1;
@@ -216,6 +248,11 @@ var createCube = function()
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 };
 
+var createCoordinateSystem = function()
+{
+	
+};
+
 var initGL = function(canvas)
 {
     // Do we have a context?
@@ -254,9 +291,16 @@ var setViewpoint = function()
 
 var drawWorld = function()
 {
+	//createCube();
+	//Next three lines rotates the camera.
     mat4.rotate(mvMatrix, cubeSpiny, [0, 1, 0], mvMatrix);
     mat4.rotate(mvMatrix, cubeSpinz, [0, 0, 1], mvMatrix);
     mat4.rotate(mvMatrix, cubeSpinx, [1, 0, 0], mvMatrix); 
+	
+    //These three lines controles the projection matrix which I believe represent the world
+/*     mat4.rotate(pMatrix, cubeSpiny, [0, 1, 0], pMatrix);
+    mat4.rotate(pMatrix, cubeSpinz, [0, 0, 1], pMatrix);
+    mat4.rotate(pMatrix, cubeSpinx, [1, 0, 0], pMatrix); */
     
     var nv3 = mat4.toInverseMat3(mvMatrix);
     mat3.transpose(nv3, nv3);
@@ -308,9 +352,17 @@ function cubeMain()
 }
 
 function handleOrientationChanges(alpha, gamma, beta , abs , orientation){
-	cubeSpinx  = -beta;
-	cubeSpiny  = gamma;
-	cubeSpinz  = alpha;
+	
+	cubeSpinx  = beta;
+	cubeSpiny  = -gamma;
+	cubeSpinz  = -alpha;
+	var cubeColor = (gamma /360) 
+	if(orientation==="landscape"){
+		cubeColor = [ 0, 1, cubeColor, 1 ];
+	}
+	else {
+		cubeColor = [ 0, 1, 0, 1 ];		
+	}
 	draw();
 }
 
@@ -326,12 +378,13 @@ function init(){
 
 </head>
 
-<body onload="init();">
-<h2 align="center">Spinning Cube in WebGL</h2>
+<body onload="init();" class ="body">
+<div id="logo"> <a href="http://www.cyberlightning.com/"> <img alt="Company Logo" src="img/logo.png"></a>
+</div>
 
-
+<div id="page">
 <canvas id="cube-webgl" style="border: none" width="640" height="480"></canvas>
+</div>
 
-<p>
 
 </body></html>

@@ -2,17 +2,17 @@
 <html>
   <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-    <style type="text/css">
-      html { height: 100% }
-      body { height: 100%; margin: 0; padding: 0 }
-      #map-canvas { height: 100% }
-    </style>
-    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDqNrH21T3prB-yKHLiw8us-YHdVUOr5lQ&sensor=false"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDqNrH21T3prB-yKHLiw8us-YHdVUOr5lQ&sensor=false"></script>
     <script type="text/javascript" src="js_api.js"></script>
     <script type="text/javascript" src="location.js"></script>
     <meta charset="UTF-8">
   </head>
-  <body>
+  <body class ="body">
+  <div id="logo"><a href="http://www.cyberlightning.com/"> <img alt="Company Logo" src="img/logo.png"></a>
+</div>
+
+<div id="page">
   <table border = "1" >
 		<caption>Table 1: System Info</caption>
 		<tr>
@@ -33,6 +33,7 @@
 		</tr>
 		
 	</table>
-    <div id="map-canvas"/></div>
+    <div id="mapcanvas"/></div>
+</div>
   </body>
 </html>

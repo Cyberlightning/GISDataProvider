@@ -21,19 +21,22 @@ function error(err) {
   alert(err);
 };
 
-function initGoogleMaps(pos) {	
-		var centerPosition = new google.maps.LatLng(pos.latitude, pos.longitude);
-		var mapTypeID =  google.maps.MapTypeId.TERRAIN;
+var initGoogleMaps = function(pos) {	
+		var centerPosition = new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+		alert(pos.coords.latitude+":"+ pos.coords.longitude+":"+pos.coords.accuracy);
+		alert(pos.coords.altitude +":"+ pos.coords.altitudeAccuracy);
+		alert(pos.coords.heading  +":"+pos.coords.speed);
+		var mapTypeID =  google.maps.MapTypeId.ROADMAP;
         var mapOptions = {
           center: centerPosition,
-          zoom: 10,
+          zoom: 8,
           mapTypeId: mapTypeID,
         };
-        var map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);        
+        var map = new google.maps.Map(document.getElementById("mapcanvas"), mapOptions);        
         
         var circle = new google.maps.Circle({
             center: centerPosition,
-            radius: pos.accuracy,
+            radius: pos.coords.accuracy,
             map: map,//your map,
             fillColor: '#FF0000',//color,
             fillOpacity: 0.5,//opacity from 0.0 to 1.0,
@@ -48,7 +51,7 @@ function initGoogleMaps(pos) {
      	   animation: google.maps.Animation.DROP,
      	});
         
-}
+};
       
  function readSystemInfo(){
 	 document.getElementById("browser").innerHTML = navigator.platform;
@@ -57,7 +60,7 @@ function initGoogleMaps(pos) {
 window.onload=function(){
 	readSystemInfo();
 	if(isGeolocationSupported()){
-		document.getElementById("location").innerHTML = "Supported";		
+		document.getElementById("location").innerHTML = "Supported";
 		getLocation(initGoogleMaps);
 	}	else
 		document.getElementById("location").innerHTML = "Not supported";
@@ -67,7 +70,7 @@ window.onload=function(){
 	else
 		document.getElementById("orientation").innerHTML = "Not supported";
 	if(isDeviceMotionSupported()) {
-		document.getElementById("accleration").innerHTML = "Supported. <a href=\'accelerometer.html\'>See Demo</a>";
+		document.getElementById("accleration").innerHTML = "Supported. <a href=\'devicemotion.html\'>See Demo</a>";
 	} else 
 		document.getElementById("accleration").innerHTML = "Not Supported";	
 };
