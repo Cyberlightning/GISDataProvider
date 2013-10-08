@@ -2,19 +2,24 @@
 <html>
 <head><style>
 		body {
-			margin:0px;
-			padding:0px;
+			
 		}
 	</style>
+	<link rel="stylesheet" href="styles.css">
 	<script type="text/javascript" src="js_api.js"></script>
-	<script type="text/javascript" src="acceleration.js"></script>
+	<script type="text/javascript" src="devicemotion.js"></script>
 	<meta charset="UTF-8"/>
 <title>See How fast you go.</title>
 </head>
-<body>
+<body class ="body">
+<div id="logo"> <img alt="Company Logo" src="img/logo.png">
+</div>
+
+<div id="page">
 	<div id="acc"></div>
 	<div id="accwithGravity"></div>
 	<div id="rotation"></div>
 	<div id="updateInterval"></div>
+</div>
 </body>
 </html>

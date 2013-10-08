@@ -6,20 +6,21 @@
 <script type="text/javascript" src="camerafeed.js"></script>
 <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-<!-- 
-	<textarea id="imagedata" rows="" cols=""></textarea>
-	<textarea id="bufferdata" rows="" cols=""></textarea> -->
-	
+<body class ="body">
+<div id="logo"> <a href="http://www.cyberlightning.com/"> <img alt="Company Logo" src="img/logo.png"></a>
+</div>
+
+<div id="page">
 	<button onclick="startVideoCliecked()" id='videobutton'>video Start</button>
 	<button onclick="uploadSnapshotClicket()" id='snapbutton'>Take and upload Snapshot</button>
-	<button onclick="stream()" id='streambutton'>Stream video</button>
+	<!-- <button onclick="stream()" id='streambutton'>Stream video</button> -->
 	<button onclick="clearlogs()" id='clearlog'>Clear Logs</button>
 	<textarea rows="50" cols="175" id="consolelog"></textarea>
 	<video src="" autoplay ></video>
 	<canvas id="snapshot"></canvas>
 	<div id='response'>
 	</div>
+</div>
 	
 </body>
 </html>
