@@ -68,10 +68,10 @@ public class CoapSocket extends Observable  implements Runnable,ICoapSocket {
 			e.printStackTrace();
 		} 
 		
-		MessageEvent messageEvent = new MessageEvent(payload, _packet.getAddress().getHostAddress(), false, "");
+		//MessageEvent messageEvent = new MessageEvent(payload, _packet.getAddress().getHostAddress(), false, "");
 		
 		setChanged();
-		notifyObservers(Message.obtain(null, RomMemory.INBOUND_MESSAGE, messageEvent));
+		notifyObservers(Message.obtain(null, RomMemory.INBOUND_MESSAGE, payload));
 		
 		
 		//TODO input logic to handle ACK,NON,RST, .. 

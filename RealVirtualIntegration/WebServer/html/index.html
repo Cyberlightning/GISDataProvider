@@ -64,6 +64,8 @@
  
   	}
   	
+  	
+  	
 	</style>
 </head>
 
@@ -174,12 +176,13 @@
 		if (!alreadyExists) {
 			
 			if(json.device_properties.type == "TYPE_GPS") {
-				lat = parseDouble(json.event_values[0]);
-				lon = parseDouble(json.event_values[1]);
+				lat = parseFloat(json.event_values[0]);
+				lon = parseFloat(json.event_values[1]);
 				type =  json.device_properties.type;
 	            sensorTypes.push(json.device_properties.type);
 				var active = $('#accordion').accordion('option', 'active');
-				$('#accordion').append('<h3><a href="#" onclick="loadMap(event)">' + type + '</a></h3><div  id="map-canvas"></div>') 
+				$('#accordion').accordion({heightStyle: 'content'});
+				$('#accordion').append('<h3><a href="#" onclick="loadMap(event)">' + type + '</a></h3><div id="map-canvas" style="height:300px"></div>') 
 				    .accordion('destroy').accordion({ active: active});	
 				
 				

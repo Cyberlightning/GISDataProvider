@@ -12,6 +12,7 @@ import java.util.Observer;
 
 
 
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -26,6 +27,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
 import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -76,22 +78,28 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		
 			case RomMemory.INBOUND_MESSAGE:
 			
-				MessageEvent messageEvent = (MessageEvent) msg.obj;
-				String content = messageEvent.getContent();
-		
+				//MessageEvent messageEvent = (MessageEvent) msg.obj;
+				String content = msg.obj.toString();
+				
 				if (content.contains("[GPS]")) {
+					PackageManager pm = this.getPackageManager();
+					boolean hasGps = pm.hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS);
+					this.showToast("Starting location manager - System has GPS: " + hasGps);
+					
 					ISensorListener listener = this.sensorListener;		
+					
 					if (content.contains("high")) {
-						listener.toggleGps(true);
+						listener.toggleGps(true, hasGps);
+						
 					}else {
-						listener.toggleGps(false);
+						listener.toggleGps(false, hasGps);
 					}
 				}
 				
 				if (receivedMessages.getHeight() < 500) {
-					receivedMessages.append(messageEvent.getSenderAddress() + " : " + content  + "\n");
+					receivedMessages.append("Message Received : " + content  + "\n");
 				} else {
-					receivedMessages.setText(messageEvent.getSenderAddress() + " : " + content  + "\n");
+					receivedMessages.setText("Message Received : " + content  + "\n");
 				}
 				
 			break;
@@ -187,8 +195,8 @@ public class CoapDeviceSimulator extends Activity implements Observer {
         		if (coapSocket == null) openSocket();
         		startSensorListener();
         		
-        		ISensorListener listener = sensorListener;		//TODO remove test only
-				listener.toggleGps(true);
+        			//TODO remove test only
+				
         		statusMessages.add("Service resolved \n");
         		
         	}

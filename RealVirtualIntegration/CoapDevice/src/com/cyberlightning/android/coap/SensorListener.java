@@ -21,6 +21,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -32,7 +33,7 @@ import android.provider.Settings.Secure;
 public class SensorListener extends Observable implements SensorEventListener,ISensorListener,Runnable  {
 
 	private Activity context;
-	private ConcurrentLinkedQueue<Object> highPriorityEvents = new ConcurrentLinkedQueue<Object>();
+	private ConcurrentLinkedQueue<JSONObject> highPriorityEvents = new ConcurrentLinkedQueue<JSONObject>();
 	private ConcurrentLinkedQueue<JSONObject> lowPriorityEvents = new ConcurrentLinkedQueue<JSONObject>();
 	private volatile HashMap<String,SensorEvent> sensorEventTable = new HashMap<String,SensorEvent>();
 	private HashMap<String,Boolean> priorityList = new HashMap<String,Boolean>();
@@ -59,14 +60,8 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		while(true) {
 			
 			while(!highPriorityEvents.isEmpty()) {
-				Object eventObject = highPriorityEvents.poll();
-				if (eventObject instanceof SensorEvent) {
-					JSONObject jsonObject = createFromSensorEvent((SensorEvent)eventObject);
-					sendMessage(jsonObject);
-				} else if (eventObject instanceof Location) {
-					JSONObject jsonObject = createFromLocation((Location)eventObject);
-					sendMessage(jsonObject);
-				}
+				JSONObject jsonObject  = highPriorityEvents.poll();
+				if (jsonObject != null)sendMessage(jsonObject);
 				
 			}
 			this.hasHighPriority = false;
@@ -110,7 +105,8 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	public void onSensorChanged(SensorEvent _event) { 
 		
 		if(this.priorityList.containsKey(_event.sensor.getName())) {
-			this.highPriorityEvents.add(_event);
+			JSONObject jsonObject = createFromSensorEvent(_event);
+			this.highPriorityEvents.offer(jsonObject);
 			this.hasHighPriority = true;
 			
 		} else {
@@ -296,10 +292,25 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		}
 
 		@Override
-		public void toggleGps(boolean _isHighPriority) {
+		public void toggleGps(boolean _isHighPriority, boolean _hasGps) {
+				LocationManager locM = (LocationManager)this.context.getSystemService(Context.LOCATION_SERVICE);
+			if (_hasGps) {
+				LocationListener locationListener = new GpsListener();  
+				locM.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, locationListener);	
+			} else {
+				LocationListener locationListener = new GpsListener();  
+				locM.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+				Criteria criteria = new Criteria();
+				criteria.setAccuracy(0);
+				String bestProvider = locM.getBestProvider(criteria, true);
+				Location location = locM.getLastKnownLocation(bestProvider); 
+				JSONObject j = createFromLocation(location); //TODO check type cast for Location objects
+				
+				highPriorityEvents.offer(j);
+				hasHighPriority = true;
+				
+			}
 			
-			LocationListener locationListener = new GpsListener();  
-			((LocationManager) this.context.getSystemService(Context.LOCATION_SERVICE)).requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, locationListener);
 			this.priorityList.put("TYPE_GPS", _isHighPriority);
 		}
 		
@@ -319,7 +330,9 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 			public void onLocationChanged(Location location) {
 				
 				if(priorityList.containsKey("TYPE_GPS")) {
-					highPriorityEvents.add(location);
+					JSONObject j = createFromLocation(location); //TODO check type cast for Location objects
+					
+					highPriorityEvents.offer(j);
 					hasHighPriority = true;
 					
 				} else {
