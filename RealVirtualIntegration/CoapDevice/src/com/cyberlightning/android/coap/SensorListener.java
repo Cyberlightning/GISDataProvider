@@ -296,7 +296,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 				LocationManager locM = (LocationManager)this.context.getSystemService(Context.LOCATION_SERVICE);
 			if (_hasGps) {
 				LocationListener locationListener = new GpsListener();  
-				locM.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, locationListener);	
+				locM.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, locationListener);	
 			} else {
 				LocationListener locationListener = new GpsListener();  
 				locM.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);

@@ -163,6 +163,8 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		statusMessages.add("packet send to " + _packet.getAddress().toString());
 	}
 	
+	
+	
 	private void showToast(String _message) {
 	    	
 	    	LayoutInflater inflater = getLayoutInflater();
@@ -285,6 +287,8 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		}
 		
 	}
+	
+	
 
 	
 
