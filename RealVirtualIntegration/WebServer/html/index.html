@@ -8,7 +8,7 @@
     <title>Cyberlightning FI-WARE</title>
 
     <link href="css/eggplant/jquery-ui-1.10.3.custom.css" rel="stylesheet">
-    
+
 	<script src="js/jquery-1.9.1.js"></script>
 	<script src="js/jquery-ui-1.10.3.custom.js"></script>
 	<script src="js/three.min.js"></script>
@@ -363,7 +363,20 @@
 		if ("WebSocket" in window) {
           
           //ws = new WebSocket("ws://127.0.0.1:44445");
-          ws = new WebSocket("ws://dev.cyberlightning.com:44445");
+          // Check if connection is already open before creating new so we do not spam server with duplicate connections.
+          if (ws != null && ws.readyState === ws.OPEN)
+          {
+          	alert("Websocket connection is already established!");
+          	return;
+          }
+          else
+          	{
+				// Use localhost IP for websocket
+				ws = new WebSocket("ws://127.0.0.1:44445");
+
+				// Use dev.cyberlightning.com IP for websocket	
+				//ws = new WebSocket("ws://dev.cyberlightning.com:44445");	
+          	}
           ws.onopen = function() {
              // Web Socket is connected, send data using send()
             //ws.send("Message to send");
@@ -377,6 +390,7 @@
           };
           ws.onclose = function() {
              // websocket is closed.
+             ws = null;
              alert("Connection is closed...");
           };
        }
@@ -384,9 +398,7 @@
           // The browser doesn't support WebSocket
           alert("WebSocket NOT supported by your Browser!");
        }
-     }
-	
-	
+     }	
 	 
 	</script>
 </body>
