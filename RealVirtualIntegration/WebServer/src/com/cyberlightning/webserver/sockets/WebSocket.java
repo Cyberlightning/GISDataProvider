@@ -116,7 +116,7 @@ public class WebSocket implements Runnable  {
 		for (int i = 0; i < this.spawnedThreads.size(); i++) {
 			if(this.spawnedThreads.get(i).getId() == this.connectedWebSockets.get(_socket.getInetAddress())) {
 				this.spawnedThreads.remove(i);
-				this.connectedWebSockets.remove(_socket);
+				this.connectedWebSockets.remove(_socket.getInetAddress());
 				break;
 			}
 		}
