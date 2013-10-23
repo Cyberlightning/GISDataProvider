@@ -29,6 +29,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -40,29 +41,71 @@ import android.widget.Toast;
 
 
 public class BaseStationUI extends Activity implements DialogInterface.OnClickListener,ServiceConnection {
-   
-   
+	
 	private Messenger serviceMessenger = null;
 	private ServiceConnection serviceConnection = this;
 	private static TextView connectedClientsDisplay;
 	private static TextView trafficDataDisplay;
 	
 	private boolean hasServiceStopped = false;
-	private boolean isBound;
+	private boolean isBound = false;
 	
 	private final int NOTIFICATION_DELAY = 12000;
 	private final Messenger messenger = new Messenger(new IncomingMessageHandler());
+	
+	// Tags to store saved instance state of this activity
+	static final String STATE_IS_BOUND = "StateIsBound";
+	static final String STATE_SERVICE_STOPPED = "StateHasServiceStopped";
+	static final String STATE_CONNECTED_CLIENTS_DISPLAY = "StateConnectedClientsDisplay";
+	static final String STATE_TRAFFIC_DATA_DISPLAY = "StateTrafficDataDisplay";
+	
+	// Tags for activity requests
+	static final int WIFI_AP_REQUEST = 1;
 
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
+        // Setup layout before checking for savedInstanceState
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        this.setContentView(R.layout.activity_coapclient);
-    
-        this.initNetworkConnection();
-        connectedClientsDisplay = (TextView) findViewById(R.id.connectedDisplay);
-        trafficDataDisplay = (TextView) findViewById(R.id.trafficDisplay);
+    	this.setContentView(R.layout.activity_coapclient);
+        
+        if (savedInstanceState != null) {        	
+        	// restore values from save state
+        	this.isBound = savedInstanceState.getBoolean(STATE_IS_BOUND);
+        	this.hasServiceStopped = savedInstanceState.getBoolean(STATE_SERVICE_STOPPED);
+        	
+        	connectedClientsDisplay = (TextView) findViewById(R.id.connectedDisplay);
+        	connectedClientsDisplay.setText(savedInstanceState.getString(STATE_CONNECTED_CLIENTS_DISPLAY));
+        	
+            trafficDataDisplay = (TextView) findViewById(R.id.trafficDisplay);
+            trafficDataDisplay.setText(savedInstanceState.getString(STATE_TRAFFIC_DATA_DISPLAY));
+            
+        }
+        else {	    
+	        this.initNetworkConnection();
+	        connectedClientsDisplay = (TextView) findViewById(R.id.connectedDisplay);
+	        trafficDataDisplay = (TextView) findViewById(R.id.trafficDisplay);
+        }
+	}
+	
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (requestCode == WIFI_AP_REQUEST) {
+			initNetworkConnection();
+		}
+	}
+	
+	@Override
+	public void onSaveInstanceState(Bundle saveState) {
+		// Save all the variables we need
+		saveState.putBoolean(STATE_IS_BOUND, this.isBound);
+		saveState.putBoolean(STATE_SERVICE_STOPPED, hasServiceStopped);
+		saveState.putString(STATE_CONNECTED_CLIENTS_DISPLAY, connectedClientsDisplay.getText().toString());
+		saveState.putString(STATE_TRAFFIC_DATA_DISPLAY, trafficDataDisplay.getText().toString());		
+		
+		// Call super so we can get the saved data bundle to onCreate method.
+		super.onSaveInstanceState(saveState);
+		
 	}
 	
 	@Override
@@ -124,9 +167,9 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
     	if (this.haveNetworkConnection()) hasInternet = true;
     	if (!hasHotSpot) {
     		this.showToast(getString(R.string.main_no_wifi_notification));
-    		Intent settingsIntent = new Intent( Settings.ACTION_WIFI_SETTINGS); 
-    		this.startActivityForResult(settingsIntent, 1); //TODO onActivityResult() callback needs interception
-    		this.finish();
+    		Intent settingsIntent = new Intent();
+    		settingsIntent.setClassName("com.android.settings", "com.android.settings.TetherSettings");
+    		this.startActivityForResult(settingsIntent, WIFI_AP_REQUEST);
     	} else {
     		
     		if (hasInternet) {
@@ -215,8 +258,17 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
     
     /** Bind this Activity to BaseStationService */
     private void doBindService() {
-            bindService(new Intent(this, BaseStationService.class), this.serviceConnection, Context.BIND_AUTO_CREATE);
-            this.isBound = true;
+    	String bound = "false";
+    	if (this.isBound)
+    		bound = "true";
+    	else
+    		bound = "false";
+    	Log.d("BaseStationUI", bound);
+    	if (!this.isBound) {
+    		this.isBound = true;
+    		Log.d("BaseStationUI", "doBindSercive!");
+    		bindService(new Intent(this, BaseStationService.class), this.serviceConnection, Context.BIND_AUTO_CREATE);
+    	}
     }
     
     /** Unbind this Activity from BaseStationService */
