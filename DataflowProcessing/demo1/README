@@ -1,1 +1,0 @@
-View webcam viewfinder, take a still image snapshop, and turn the image into grayscale
