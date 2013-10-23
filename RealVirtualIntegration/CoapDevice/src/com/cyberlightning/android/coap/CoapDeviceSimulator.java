@@ -28,6 +28,7 @@ import android.os.Message;
 import android.os.StrictMode;
 import android.app.Activity;
 import android.content.pm.PackageManager;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -39,7 +40,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class CoapDeviceSimulator extends Activity implements Observer {
-
 	
 	protected static final String TAG = null;
 	private ServiceListener serviceListener = new ServiceListener();
@@ -53,6 +53,10 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	public Button showButton;
 	private ArrayList<String> statusMessages = new ArrayList<String>();
 	
+	// Tags to store saved instance state of this activity
+	static final String STATE_RECEIVED_MESSAGES = "StateReceivedMessages";
+	static final String STATE_SEND_MESSAGES = "StateSendMessages"; 
+	
 	final Handler mHandler = new Handler() { 
 
 	     public void handleMessage(Message msg) { 
@@ -60,16 +64,36 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	     } 
 	 }; 
 	
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_coap_device_simulator);
-		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-		StrictMode.setThreadPolicy(policy);
-		this.serviceListener.startDiscovery();
 		this.receivedMessages = (TextView)findViewById(R.id.inboundMessagesDisplay);
 		this.sendMessages = (TextView)findViewById(R.id.outboundMessagesDisplay);
+		
+		if (savedInstanceState != null) {
+			// TODO restore states for relevant items
+			this.sendMessages.setText(savedInstanceState.getString(STATE_SEND_MESSAGES));
+			this.receivedMessages.setText(savedInstanceState.getString(STATE_RECEIVED_MESSAGES));
+			
+		}
+		else {
+			// TODO Or initialize UI here
+			StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+			StrictMode.setThreadPolicy(policy);
+			this.serviceListener.startDiscovery();
+		}
+		this.receivedMessages.setMovementMethod(new ScrollingMovementMethod());
+		this.sendMessages.setMovementMethod(new ScrollingMovementMethod());
+	}
+	
+	@Override
+	public void onSaveInstanceState(Bundle saveState) {
+		// TODO save states of relevant objects here
+		saveState.putString(STATE_RECEIVED_MESSAGES, this.receivedMessages.getText().toString());
+		saveState.putString(STATE_SEND_MESSAGES, this.sendMessages.getText().toString());
+		
+		super.onSaveInstanceState(saveState);
 	}
 	
 	private void showMessage(Message msg) { //shows messy, clean up needed
@@ -96,7 +120,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 					}
 				}
 				
-				if (receivedMessages.getHeight() < 500) {
+				if (receivedMessages.getLineCount() < 20) {
 					receivedMessages.append("Message Received : " + content  + "\n");
 				} else {
 					receivedMessages.setText("Message Received : " + content  + "\n");
@@ -119,7 +143,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 					e.printStackTrace();
 				}
 			
-				if (sendMessages.getHeight() > 500) this.sendMessages.setText("");
+				if (sendMessages.getLineCount() > 20) this.sendMessages.setText("");
 					Iterator<String> i = this.foundDevices.keySet().iterator();
 					while (i.hasNext()) {
 						NetworkDevice nd = this.foundDevices.get(i.next());
