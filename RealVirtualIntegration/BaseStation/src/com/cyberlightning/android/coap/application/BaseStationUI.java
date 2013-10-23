@@ -29,6 +29,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.provider.Settings;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -87,6 +88,8 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 	        connectedClientsDisplay = (TextView) findViewById(R.id.connectedDisplay);
 	        trafficDataDisplay = (TextView) findViewById(R.id.trafficDisplay);
         }
+        connectedClientsDisplay.setMovementMethod(new ScrollingMovementMethod());
+        trafficDataDisplay.setMovementMethod(new ScrollingMovementMethod());
 	}
 	
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
