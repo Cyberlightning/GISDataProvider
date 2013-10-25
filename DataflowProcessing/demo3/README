@@ -1,1 +1,0 @@
-Run webcam viewfinder feed realtime through a filter, i.e. a grayscale transform, and display the two videos side by side.
