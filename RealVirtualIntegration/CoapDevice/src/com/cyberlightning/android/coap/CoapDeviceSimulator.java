@@ -126,13 +126,13 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	    this.onScanViewReady(); //TODO check correct sequence 
 		
 		if (savedInstanceState != null) {
-			// TODO restore states for relevant items
 			this.sendMessages.setText(savedInstanceState.getString(STATE_SEND_MESSAGES));
 			this.receivedMessages.setText(savedInstanceState.getString(STATE_RECEIVED_MESSAGES));
 			
+			// TODO coapsocket and servicelistener pointers are NULL here. This happens after orientation change
+			// For now force orientation to portrait.
 		}
 		else {
-			// TODO Or initialize UI here
 			StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 			StrictMode.setThreadPolicy(policy);
 			this.serviceListener.startDiscovery();
@@ -149,7 +149,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		
 		super.onSaveInstanceState(saveState);
 	}
-	
+
 	private void showMessage(Message msg) { //shows messy, clean up needed
 		
 		switch (msg.what) {
@@ -165,6 +165,8 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 					this.showToast("Starting location manager - System has GPS: " + hasGps);
 					
 					ISensorListener listener = this.sensorListener;		
+					
+					// TODO Handle more commands or something
 					
 					if (content.contains("high")) {
 						listener.toggleGps(true, hasGps);
@@ -266,11 +268,6 @@ public class CoapDeviceSimulator extends Activity implements Observer {
         		foundDevices.put(_nsdServiceInfo.getServiceName(), new NetworkDevice(_nsdServiceInfo.getHost(),_nsdServiceInfo.getPort(),_nsdServiceInfo.getServiceName(),_nsdServiceInfo.getServiceType()));
         		if (coapSocket == null) openSocket();
         		startSensorListener();
-        		
-        			//TODO remove test only
-				
-        		
-        		
         	}
 		}
 	}
@@ -313,7 +310,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		@Override
 		public void onServiceFound(NsdServiceInfo serviceInfo) {
 			// A service was found!  Do something with it.
-            Log.d(TAG, "Service discovery success" + serviceInfo);
+            Log.d(TAG, "Service discovery success " + serviceInfo);
             
             if (!serviceInfo.getServiceType().equals(RomMemory.DEFAULT_SERVICE_TYPE)) {
                 // Service type is the string containing the protocol and
@@ -323,7 +320,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
                 // The name of the service tells the user what they'd be
                 // connecting to. It could be "Bob's Chat App".
                 Log.d(TAG, "Same machine: " + this.serviceName);
-//             
+//              
                 this._NsdManager.resolveService(serviceInfo, serviceResolver);
 
             } else if (serviceInfo.getServiceName().contains(this.serviceName)){
@@ -373,13 +370,13 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	    } else {
 	     // setError("BLE not supported on this device"); //TODO need ScanView?
 	    }
-
+	
 	 }
 	 private void startDeviceActivity() {
 		    /*mDeviceIntent = new Intent(this, DeviceActivity.class);
 		    mDeviceIntent.putExtra(DeviceActivity.EXTRA_DEVICE, mBluetoothDevice);
 		    startActivityForResult(mDeviceIntent, REQ_DEVICE_ACT);*/
-		    
+
 	}
 	
 	 void setError(String txt) {
@@ -389,7 +386,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	 private void stopDeviceActivity() {
 		    finishActivity(REQ_DEVICE_ACT);
 	 }
-	
+
 	private boolean scanLeDevice(boolean enable) {
 		    if (enable) {
 		      this.isScanning = this.btAdapter.startLeScan(leScanCallback);
@@ -399,7 +396,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		    }
 		    return this.isScanning;
 		  }
-	
+    
 	private boolean checkDeviceFilter(BluetoothDevice device) {
 		  	int  n = this.deviceFilter.length;
 		  	if (n > 0) {
@@ -412,12 +409,12 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		  		// Allow all devices if the device filter is empty
 		  		return true;
 	}
-	
+
 	private boolean deviceInfoExists(String address) {
 	    for (int i = 0; i < this.deviceInfoList.size(); i++) {
 	      if (this.deviceInfoList.get(i).getBluetoothDevice().getAddress().equals(address)) {
 	        return true;
-	      }
+}
 	    }
 	    return false;
 	}

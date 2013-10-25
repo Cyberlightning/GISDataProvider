@@ -261,12 +261,6 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
     
     /** Bind this Activity to BaseStationService */
     private void doBindService() {
-    	String bound = "false";
-    	if (this.isBound)
-    		bound = "true";
-    	else
-    		bound = "false";
-    	Log.d("BaseStationUI", bound);
     	if (!this.isBound) {
     		this.isBound = true;
     		Log.d("BaseStationUI", "doBindSercive!");

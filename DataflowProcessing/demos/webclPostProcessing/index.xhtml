@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <!-- Style -->
+    <link rel="stylesheet" type="text/css" media="all" href="page.css"/>
+    <!-- Scripts -->
+    <title>XML3D Examples</title>
+    <script type="text/javascript" src="../../deps/xml3d-internal.js"></script>
+    <script type="text/javascript" src="../../deps/xml3d-motion.js"></script>
+    <script type="text/javascript" src="../../deps/webcl.js"></script>
+
+
+    <script type="text/javascript">
+        window.addEventListener('load', function () {
+            var controller = new XMOT.ExamineController(document.getElementById("camera1"), {examineOrigin: new XML3DVec3(0, 0, 0), rotateSpeed: 5, dollySpeed: 10});
+            controller.attach();
+        }, false);
+    </script>
+
+</head>
+<body>
+<div id="overall">
+    <div id="content">
+        <h1>Render Pipeline Example</h1>
+        <xml3d id="canvas" xmlns="http://www.xml3d.org/2009/xml3d" class="xml3d"
+               activeView="#cameraShape1" style="background-color:deepskyblue;">
+            <defs>
+
+                <transform id="t_prop"
+                           rotation="0.0 0.0 1.0 0.2617994"
+                           scale="1.0 1.0 1.0" translation="0.0 0.0 5.40413"/>
+                <transform id="t_camera1"
+                           rotation="-0.5051031 0.83705676 0.21025412 0.92295426"
+                           scale="1.0 1.0 1.0" translation="16.4985 11.1548 18.486"/>
+
+                <lightshader id="directionLight" script="urn:xml3d:lightshader:directional">
+                    <float3 name="intensity">1.0 1.0 1.0</float3>
+                </lightshader>
+
+            </defs>
+            <group id="VisualSceneNode">
+                <group id="plane">
+                    <group shader="../../assets/plane.xml#shader_matte">
+                        <mesh src="../../assets/plane.xml#mesh1" type="triangles"/>
+                    </group>
+                    <group shader="../../assets/plane.xml#shader_shine">
+                        <mesh src="../../assets/plane.xml#mesh2" type="triangles"/>
+                    </group>
+                    <group id="prop" transform="#t_prop">
+                        <group shader="../../assets/plane.xml#shader_shine">
+                            <mesh src="../../assets/plane.xml#mesh_prop" type="triangles"/>
+                        </group>
+                    </group>
+                </group>
+
+                <group style="transform: rotate3d(1, 0, 0, -45deg)">
+                    <light shader="#directionLight"/>
+                </group>
+
+                <group id="camera1" transform="#t_camera1">
+                    <view fieldOfView="0.66059315" id="cameraShape1"/>
+                </group>
+            </group>
+        </xml3d>
+        <div id="output"></div>
+
+        <!-- This is just for debugging purposes and it will be removed from final version. -->
+        <canvas id="debug" class="xml3d" width="800" height="600" style="-webkit-transform:scaleY(-1); -moz-transform: scaleY(-1);"></canvas>
+    </div>
+
+
+</div>
+
+<script type="text/javascript" src="postProcessingPipeLine.js"></script>
+
+</body>
+
+</html>
