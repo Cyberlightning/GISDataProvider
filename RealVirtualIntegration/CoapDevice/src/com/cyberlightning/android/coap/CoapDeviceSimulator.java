@@ -72,13 +72,13 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		this.sendMessages = (TextView)findViewById(R.id.outboundMessagesDisplay);
 		
 		if (savedInstanceState != null) {
-			// TODO restore states for relevant items
 			this.sendMessages.setText(savedInstanceState.getString(STATE_SEND_MESSAGES));
 			this.receivedMessages.setText(savedInstanceState.getString(STATE_RECEIVED_MESSAGES));
 			
+			// TODO coapsocket and servicelistener pointers are NULL here. This happens after orientation change
+			// For now force orientation to portrait.
 		}
 		else {
-			// TODO Or initialize UI here
 			StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 			StrictMode.setThreadPolicy(policy);
 			this.serviceListener.startDiscovery();
@@ -95,7 +95,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		
 		super.onSaveInstanceState(saveState);
 	}
-	
+
 	private void showMessage(Message msg) { //shows messy, clean up needed
 		
 		switch (msg.what) {
@@ -111,6 +111,8 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 					this.showToast("Starting location manager - System has GPS: " + hasGps);
 					
 					ISensorListener listener = this.sensorListener;		
+					
+					// TODO Handle more commands or something
 					
 					if (content.contains("high")) {
 						listener.toggleGps(true, hasGps);
@@ -223,7 +225,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
         		
         			//TODO remove test only
 				
-        		statusMessages.add("Service resolved \n");
+        		statusMessages.add("Service resolved!\n");
         		
         	}
 		}
@@ -267,8 +269,8 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		@Override
 		public void onServiceFound(NsdServiceInfo serviceInfo) {
 			// A service was found!  Do something with it.
-            Log.d(TAG, "Service discovery success" + serviceInfo);
-            statusMessages.add("Service discovery success" + serviceInfo + "\n");
+            Log.d(TAG, "Service discovery success " + serviceInfo);
+            statusMessages.add("Service discovery success " + serviceInfo + "\n");
             if (!serviceInfo.getServiceType().equals(RomMemory.DEFAULT_SERVICE_TYPE)) {
                 // Service type is the string containing the protocol and
                 // transport layer for this service.
