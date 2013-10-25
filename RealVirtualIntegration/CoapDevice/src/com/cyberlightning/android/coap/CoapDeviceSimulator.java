@@ -260,12 +260,6 @@ public class CoapDeviceSimulator extends Activity implements Observer {
         		foundDevices.put(_nsdServiceInfo.getServiceName(), new NetworkDevice(_nsdServiceInfo.getHost(),_nsdServiceInfo.getPort(),_nsdServiceInfo.getServiceName(),_nsdServiceInfo.getServiceType()));
         		if (coapSocket == null) openSocket();
         		startSensorListener();
-        		
-        			//TODO remove test only
-				
-        		statusMessages.add("Service resolved!\n");
-        		
-        		
         	}
 		}
 	}
