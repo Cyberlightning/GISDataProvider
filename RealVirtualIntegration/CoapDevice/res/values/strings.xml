@@ -9,6 +9,7 @@
     
     <string name="bt_not_supported">Bluetooth is not supported</string>
     <string name="ble_not_supported">BLE is not supported</string>
+    <string name="app_closing">Application closing</string>
     <string-array name="device_filter"><item>SensorTag</item></string-array>
 
 </resources>
