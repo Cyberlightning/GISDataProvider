@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 
 
+
 import com.cyberlightning.android.coap.memory.RomMemory;
 
 import android.net.nsd.NsdManager;
@@ -27,6 +28,7 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -49,7 +51,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	
 	
 	
-	protected static final String TAG = null;
+	protected static final String TAG = "CoapDeviceSimulator";
 	// Requests to other activities
 	private static final int REQ_ENABLE_BT = 0;
 	private static final int REQ_DEVICE_ACT = 1;
@@ -101,21 +103,27 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		this.receivedMessages = (TextView)findViewById(R.id.inboundMessagesDisplay);
 		this.sendMessages = (TextView)findViewById(R.id.outboundMessagesDisplay);
 		
+		
+	    this.btAdapter = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
+		
 		// Use this check to determine whether BLE is supported on the device. Then
 	    // you can selectively disable BLE-related features.
 	    if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
 	      Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_LONG).show();
 	      this.isBleSupported = false;
 	    }
-	    
+	    mThis = this;
 	    // Initialize device list container and device filter
 	    this.deviceInfoList = new ArrayList<BleDeviceInfo>();
 	    this.deviceFilter = this.getResources().getStringArray(R.array.device_filter);
 	    
+	   
 	    // Register the BroadcastReceiver
 	    this.intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
 	    this.intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
 	    this.intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
+	    
+	    this.onScanViewReady(); //TODO check correct sequence 
 		
 		if (savedInstanceState != null) {
 			// TODO restore states for relevant items
@@ -177,7 +185,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 			case RomMemory.OUTBOUND_MESSAGE:
 			
 				ICoapSocket socket = this.coapSocket;
-				socket.broadCastMessage(msg,foundDevices); //throws networkonmainthread exception if not in st
+				socket.broadCastMessage(msg,foundDevices); //throws network on mainthread exception if not in st
 				
 				String deviceType = "";
 				
@@ -464,7 +472,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	    }
 	  };
 	  
-	  public void onScanViewReady(View view) {
+	  public void onScanViewReady() {
 		    // Initial state of widgets
 		   // updateGuiState(); TODO do GUIevents
 
@@ -498,7 +506,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		      CustomToast.middleBottom(this, "Bind to BluetoothLeService failed");
 		      finish();
 		    }
-		  }
+	  }
 	  
 
 	  // Code to manage Service life cycle.
