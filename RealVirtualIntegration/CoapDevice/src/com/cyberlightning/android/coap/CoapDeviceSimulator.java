@@ -10,8 +10,7 @@ import java.util.Observer;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import ti.android.ble.common.BluetoothLeService;
-import ti.android.util.CustomToast;
+
 
 import com.cyberlightning.android.coap.memory.RomMemory;
 
@@ -51,18 +50,29 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	
 	
 	protected static final String TAG = null;
+	// Requests to other activities
+	private static final int REQ_ENABLE_BT = 0;
+	private static final int REQ_DEVICE_ACT = 1;
+	private static final int NO_DEVICE = -1;
+	
+	
 	
 	private boolean isBleSupported = true;
 	private boolean isInitialized = false;
 	private boolean isScanning = false;
 	
 	private int numDevs = 0;
+	private int mConnIndex = NO_DEVICE;
 	
 	private BluetoothAdapter btAdapter = null;
+	private BluetoothDevice btDevice = null;
+	private BluetoothLeService btLeService = null;
 	private CoapSocket coapSocket;
+	
 	private HashMap<String,NetworkDevice> foundDevices = new HashMap<String,NetworkDevice>();
 	private IntentFilter intentFilter;
 	private List<BleDeviceInfo> deviceInfoList;
+	private static CoapDeviceSimulator mThis = null;
 	
 	private SensorListener sensorListener;
 	private ServiceListener serviceListener = new ServiceListener();
@@ -357,8 +367,22 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	    }
 
 	 }
+	 private void startDeviceActivity() {
+		    /*mDeviceIntent = new Intent(this, DeviceActivity.class);
+		    mDeviceIntent.putExtra(DeviceActivity.EXTRA_DEVICE, mBluetoothDevice);
+		    startActivityForResult(mDeviceIntent, REQ_DEVICE_ACT);*/
+		    
+	}
 	
-	 private boolean scanLeDevice(boolean enable) {
+	 void setError(String txt) {
+		    //mScanView.setError(txt); //TODO need ScanView?
+		 Toast.makeText(this, txt, Toast.LENGTH_LONG).show(); //temporary solution for debugging
+	}
+	 private void stopDeviceActivity() {
+		    finishActivity(REQ_DEVICE_ACT);
+	 }
+	
+	private boolean scanLeDevice(boolean enable) {
 		    if (enable) {
 		      this.isScanning = this.btAdapter.startLeScan(leScanCallback);
 		    } else {
@@ -439,9 +463,10 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	      });
 	    }
 	  };
+	  
 	  public void onScanViewReady(View view) {
 		    // Initial state of widgets
-		    updateGuiState();
+		   // updateGuiState(); TODO do GUIevents
 
 		    if (!this.isInitialized) {
 		      // Broadcast receiver
@@ -457,7 +482,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 		      }
 		      this.isInitialized = true;
 		    } else {
-		      mScanView.notifyDataSetChanged();
+		      //mScanView.notifyDataSetChanged(); //TODO ScanView needed?
 		    }
 	  }
 	  
@@ -466,7 +491,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 
 		    Intent bindIntent = new Intent(this, BluetoothLeService.class);
 		    startService(bindIntent);
-		    f = bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+		    f = bindService(bindIntent, btServiceConnector, Context.BIND_AUTO_CREATE);
 		    if (f)
 		      Log.d(TAG, "BluetoothLeService - success");
 		    else {
@@ -477,16 +502,16 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	  
 
 	  // Code to manage Service life cycle.
-	  private final ServiceConnection mServiceConnection = new ServiceConnection() {
+	  private final ServiceConnection btServiceConnector = new ServiceConnection() {
 
 	    public void onServiceConnected(ComponentName componentName, IBinder service) {
-	      mBluetoothLeService = ((BluetoothLeService.LocalBinder) service).getService();
-	      if (!mBluetoothLeService.initialize()) {
+	    	btLeService = ((BluetoothLeService.LocalBinder) service).getService();
+	      if (!btLeService.initialize()) {
 	        Log.e(TAG, "Unable to initialize BluetoothLeService");
 	        finish();
 	        return;
 	      }
-	      final int n = mBluetoothLeService.numConnectedDevices();
+	      final int n = btLeService.numConnectedDevices();
 	      if (n > 0) {
 	        runOnUiThread(new Runnable() {
 	          public void run() {
@@ -500,7 +525,7 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	    }
 
 	    public void onServiceDisconnected(ComponentName componentName) {
-	      mBluetoothLeService = null;
+	    	btLeService = null;
 	      Log.i(TAG, "BluetoothLeService disconnected");
 	    }
 	  };
@@ -509,13 +534,14 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	  // Broadcasted actions from Bluetooth adapter and BluetoothLeService
 	  //
 	  private BroadcastReceiver broadcastReceived = new BroadcastReceiver() {
-	  	@Override
+	  	
+		  @Override
 	  	public void onReceive(Context context, Intent intent) {
 	  		final String action = intent.getAction();
 	  		
 	  		if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
 	  			// Bluetooth adapter state change
-	  			switch (mBtAdapter.getState()) {
+	  			switch (btAdapter.getState()) {
 	  			case BluetoothAdapter.STATE_ON:
 	  				mConnIndex = NO_DEVICE;
 	  				startBluetoothLeService();
@@ -529,32 +555,32 @@ public class CoapDeviceSimulator extends Activity implements Observer {
 	  				break;
 	  			}
 
-	  			updateGuiState();
+	  			 // updateGuiState(); TODO do GUIevents
 	  		} else if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
 	  			// GATT connect
 	  			int status = intent.getIntExtra(BluetoothLeService.EXTRA_STATUS, BluetoothGatt.GATT_FAILURE);
 	  			if (status == BluetoothGatt.GATT_SUCCESS) {
-	  				setBusy(false);
+	  				//setBusy(false); //TODO need ScanView?
 	  				startDeviceActivity();
-	  			} else
+	  			} else //TODO need ScanView?
 	  				setError("Connect failed. Status: " + status);
 	  		} else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
 	  			// GATT disconnect
 	  			int status = intent.getIntExtra(BluetoothLeService.EXTRA_STATUS, BluetoothGatt.GATT_FAILURE);
 	  			stopDeviceActivity();
 	  			if (status == BluetoothGatt.GATT_SUCCESS) {
-	  				setBusy(false);
-	  				mScanView.setStatus(mBluetoothDevice.getName() + " disconnected", STATUS_DURATION);
-	  			} else {
+	  				//setBusy(false); //TODO need ScanView?
+	  				//mScanView.setStatus(btDevice.getName() + " disconnected", STATUS_DURATION); //TODO need ScanView?
+	  			} /*else {  //TODO need ScanView?
 	  				setError("Disconnect failed. Status: " + status);  				
-	  			}
+	  			}*/
 	  			mConnIndex = NO_DEVICE;
-	  			mBluetoothLeService.close();
+	  			btLeService.close();
 	  		} else {
 	  			Log.w(TAG,"Unknown action: " + action);
 	  		}
 
 	  	}
+	  
 	  };
-
 }
