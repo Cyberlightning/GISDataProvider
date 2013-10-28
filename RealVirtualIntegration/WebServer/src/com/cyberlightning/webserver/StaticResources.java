@@ -51,6 +51,7 @@ public abstract class StaticResources {
 	public static final String CLIENT_DISCONNECTED = " disconnected, socket shutdown gracefully";
 	public static final String CLIENT_CONNECTED = " connected, connection established";
 	
+	public static final String DATABASE_FILE_PATH = "deviceDB.ser";
 
 	
 }
