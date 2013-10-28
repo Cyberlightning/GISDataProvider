@@ -71,9 +71,6 @@ public class SimulateSensorResponse {
             }
         ]
     }*/
-		
-			    
-
 	}
 	
 	public static String loadById(String _uuid) {

@@ -1,5 +1,8 @@
 package com.cyberlightning.webserver;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public abstract class StaticResources {
 	
 	public static final String HTML_START =
@@ -52,6 +55,13 @@ public abstract class StaticResources {
 	public static final String CLIENT_CONNECTED = " connected, connection established";
 	
 	public static final String DATABASE_FILE_PATH = "deviceDB.ser";
+	
+	public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm";
+	
+	public static String getTimeStamp() {
+		return  new SimpleDateFormat(DATE_FORMAT).format(new Date(System.currentTimeMillis()));
+	}
+
 
 	
 }

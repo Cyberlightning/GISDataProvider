@@ -141,7 +141,7 @@ public class CoapSocket implements Runnable,IMessageEvent  {
 	}
 
 	@Override
-	public void coapMessageEvent(DatagramPacket _datagramPacket) {
+	public void deviceMessageEvent(DatagramPacket _datagramPacket) {
 //		InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(_datagramPacket.getData()), Charset.forName("UTF-8"));
 //		try {
 //			StringBuilder str = new StringBuilder();

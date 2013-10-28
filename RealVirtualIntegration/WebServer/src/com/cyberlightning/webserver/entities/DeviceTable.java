@@ -2,7 +2,7 @@ package com.cyberlightning.webserver.entities;
 
 import java.util.HashMap;
 
-public class DeviceDB implements java.io.Serializable {
+public class DeviceTable implements java.io.Serializable {
 	
 	/**
 	 * 
@@ -21,15 +21,12 @@ public class DeviceDB implements java.io.Serializable {
 	}
 	
 	public void addEntity(Entity _entity) {
-		this.dataBase.putIfAbsent(_entity.uuid, _entity);
+		this.dataBase.put(_entity.uuid, _entity);
 	}
 	
 	public void removeEntity(Entity _entity) {
 		this.dataBase.remove(_entity.uuid);
 	}
 	
-	public void updateEntity(Entity _entity) {
-		this.dataBase.replace(_entity.uuid, _entity);
-	}
 
 }

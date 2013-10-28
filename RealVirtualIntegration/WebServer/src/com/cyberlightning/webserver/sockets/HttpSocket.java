@@ -234,7 +234,7 @@ public void httpMessageEvent(String address, String msg) {
 }
 
 @Override
-public void coapMessageEvent(DatagramPacket _datagramPacket) {
+public void deviceMessageEvent(DatagramPacket _datagramPacket) {
 	// TODO Auto-generated method stub
 }
 

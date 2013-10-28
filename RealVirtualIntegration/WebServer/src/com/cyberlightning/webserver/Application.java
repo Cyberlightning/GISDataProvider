@@ -12,6 +12,8 @@ public class Application  {
 
 	public static void main(String[] args) throws Exception, IOException {
 		
+		SerializationService.getInstance().intializeDataBase();
+		
 		Runnable websocket = new WebSocket();
 		Thread webThread = new Thread(websocket);
 		webThread.start();
@@ -23,8 +25,6 @@ public class Application  {
 		Runnable coapSocket = new CoapSocket();
 		Thread coapThread = new Thread(coapSocket);
 		coapThread.start();
-		
-		SerializationService.getInstance();
 		
 		
 	}

@@ -6,19 +6,18 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import com.cyberlightning.webserver.StaticResources;
-import com.cyberlightning.webserver.entities.DeviceDB;
-import com.cyberlightning.webserver.entities.Entity;
 
+import com.cyberlightning.webserver.StaticResources;
+import com.cyberlightning.webserver.entities.DeviceTable;
+import com.cyberlightning.webserver.entities.Entity;
 
 
 public class SerializationService {
 	
 	private static final SerializationService _serilizationService = new SerializationService();
-	private DeviceDB db;
+	private DeviceTable db;
 	
 	private SerializationService() {
-		this.intializeDataBase();
 		
 	}
 	
@@ -26,13 +25,13 @@ public class SerializationService {
 		return _serilizationService;
 	}
 	
-	private void intializeDataBase() {
+	public void intializeDataBase() {
 		
 	      try {
 	         
 	    	 FileInputStream fileIn = new FileInputStream(StaticResources.DATABASE_FILE_PATH);
 	         ObjectInputStream in = new ObjectInputStream(fileIn);
-	         this.db = (DeviceDB) in.readObject();
+	         this.db = (DeviceTable) in.readObject();
 	         in.close();
 	         fileIn.close();
 	         
@@ -71,9 +70,6 @@ public class SerializationService {
 		this.saveDataBase();
 	}
 	
-	public void updateExistingDevice(Entity _entity) {
-		this.db.updateEntity(_entity);
-		this.saveDataBase();
-	}
-
+	
+	
 }

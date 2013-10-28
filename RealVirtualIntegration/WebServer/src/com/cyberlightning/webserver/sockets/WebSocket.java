@@ -18,9 +18,6 @@ import java.util.HashMap;
 import org.apache.commons.codec.binary.Base64;
 
 import com.cyberlightning.webserver.StaticResources;
-import com.cyberlightning.webserver.entities.Client;
-import com.cyberlightning.webserver.services.MessageService;
-import com.cyberlightning.webserver.services.ProfileService;
 
 public class WebSocket implements Runnable  {
 	
@@ -82,14 +79,12 @@ public class WebSocket implements Runnable  {
 					 parseRequestLine(line);                 
 				}  
 				
-				System.out.println("SERVER RESPONSE: " + this.serverResponse);
 				outboundBuffer.writeBytes(this.serverResponse);
 				outboundBuffer.flush();
 				
 				System.out.println("Handshake complete");
 				
 				if (!this.connectedWebSockets.containsKey(this.webSocket.getInetAddress())) {
-					
 					
 					this.spawnedThreads.add(new Thread((Runnable)(new WebClientWorker(this, this.webSocket))));
 					this.connectedWebSockets.put(this.webSocket.getInetAddress(), this.spawnedThreads.get(this.spawnedThreads.size() - 1).getId());
@@ -99,9 +94,6 @@ public class WebSocket implements Runnable  {
 						System.out.println("Thread started and taking over client");
 					}
 				}
-				
-				
-				
 
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -120,39 +112,16 @@ public class WebSocket implements Runnable  {
 				break;
 			}
 		}
-		
-		
 	}
 	
 	private void parseRequestLine(String _request)  {
 		System.out.println("CLIENT REQUEST: " +_request);
 		if (_request.contains("Sec-WebSocket-Key: ")) {
 			this.serverResponse = WEB_SOCKET_SERVER_RESPONSE + generateSecurityKeyAccept(_request.replace("Sec-WebSocket-Key: ", "")) + "\r\n\r\n";
-		} if (_request.contains("Host: ")) {
-			registerClient(_request.replace("Host: ", ""));
-		}
+		} 
 	}
 	
-	private void registerClient(String _client) {
-		String ip4v = "";
-		String port = "";
-		
-		for (int i = 0; i < _client.length();i++) {
-			if(Character.toString(_client.charAt(i)).compareTo(":") == 0) {
-				for (int j = i ; j < _client.length(); j++) {
-					if (Character.isDigit(_client.charAt(j)) && !Character.isSpaceChar(_client.charAt(j))) {
-						port += _client.charAt(j);
-					}
-				}
-				break;
-			} else {
-				if (!Character.isSpaceChar(_client.charAt(i))) ip4v += _client.charAt(i);
-			}
-		}
-		
-		//ProfileService.getInstance().registerClient(new Client(ip4v, Integer.parseInt(port), StaticResources.CLIENT_PROTOCOL_TCP));
-	}
-	
+
 	private String generateSecurityKeyAccept (String _secKey) {
 		
 		try {

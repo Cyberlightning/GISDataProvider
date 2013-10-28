@@ -1,14 +1,11 @@
 package com.cyberlightning.webserver.sockets;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.Socket;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 
 import com.cyberlightning.webserver.StaticResources;
@@ -190,7 +187,7 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 	}
 	
 	@Override
-	public void coapMessageEvent(DatagramPacket _datagramPacket) {
+	public void deviceMessageEvent(DatagramPacket _datagramPacket) {
 		
 		try {
 			String _content = new String(_datagramPacket.getData(), "utf8");
@@ -208,7 +205,6 @@ public class WebClientWorker implements Runnable, IMessageEvent {
 	@Override
 	public void webSocketMessageEvent(String _msg, String address) {
 		//System.out.println("message from client: " + _msg);
-		
 	}
 
 	@Override
