@@ -2,7 +2,7 @@ package com.cyberlightning.webserver.entities;
 
 import java.util.HashMap;
 
-public class DeviceTable implements java.io.Serializable {
+public class EntityTable implements java.io.Serializable {
 	
 	/**
 	 * 

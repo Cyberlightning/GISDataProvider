@@ -11,14 +11,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.entities.Client;
-import com.cyberlightning.webserver.entities.DeviceTable;
+import com.cyberlightning.webserver.entities.EntityTable;
 
 
 public class DataStorageService implements Runnable {
 	
 	private static final DataStorageService _serilizationService = new DataStorageService();
 	public  Map<String, DatagramPacket> eventBuffer= new ConcurrentHashMap<String, DatagramPacket>(); 
-	private DeviceTable db;
+	private EntityTable entityTable;
 	
 	private DataStorageService() {
 		
@@ -31,10 +31,9 @@ public class DataStorageService implements Runnable {
 	public void intializeData() {
 		
 		try {
-			
 	    	 FileInputStream fileIn = new FileInputStream(StaticResources.DATABASE_FILE_PATH);
 	         ObjectInputStream in = new ObjectInputStream(fileIn);
-	         this.db = (DeviceTable) in.readObject();
+	         this.entityTable = (EntityTable) in.readObject();
 	         in.close();
 	         fileIn.close();
 	         
@@ -62,7 +61,7 @@ public class DataStorageService implements Runnable {
 		try {
 	         FileOutputStream fileOut =  new FileOutputStream(StaticResources.DATABASE_FILE_PATH);
 	         ObjectOutputStream out = new ObjectOutputStream(fileOut);
-	         out.writeObject(this.db);
+	         out.writeObject(this.entityTable);
 	         out.close();
 	         fileOut.close();
 	         System.out.println("Serialized data is saved in " + StaticResources.DATABASE_FILE_PATH);
