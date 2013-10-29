@@ -1,0 +1,19 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <script type="text/javascript" src="deps/xml3d.js"></script>
+    <script type="text/javascript" src="scripts/camera.js"></script>
+    <script type="text/javascript" src="scripts/xml3d-motion.js"></script>
+    <script type="text/javascript" src="scripts/controls.js"></script>
+    <script src="deps/jquery.min.js"></script>
+    <title>XML3D map service</title>
+</head>
+<body>
+    <xml3d id="xml3dContent" xmlns="http://www.xml3d.org/2009/xml3d">
+        <transform id="t_node-camera_player" rotation="0.0 0.0 0.0 2.0" translation="0.0 0.0 0.0"/>
+        <group id="node-camera_player" transform="#t_node-camera_player">
+            <view fieldOfView="0.77699953" id="camera_player-camera"/>
+        </group>
+    </xml3d>
+</body>
+<script type="text/javascript" src="scripts/map.js"></script>
+</html>
