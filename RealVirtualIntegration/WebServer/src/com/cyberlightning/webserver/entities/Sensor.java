@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Component implements Serializable {
+public class Sensor implements Serializable {
 
 	/**
 	 * 
@@ -15,11 +15,12 @@ public class Component implements Serializable {
 	private static final int TYPE_ACTUATOR = 1;
 	
 	private int type;
-	private String macAddress;
+	public String uuid;
 	private String parentId;
 	
-	private HashMap<String,Object> parameters = new HashMap<String,Object>();
-	private ArrayList attributes = new ArrayList();
+	public HashMap<String,Object> parameters = new HashMap<String,Object>();
+	public HashMap<String,Object> attributes = new HashMap<String,Object>();
+	
 	
 
 }

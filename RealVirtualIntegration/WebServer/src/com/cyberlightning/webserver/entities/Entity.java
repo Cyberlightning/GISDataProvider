@@ -1,6 +1,7 @@
 package com.cyberlightning.webserver.entities;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Entity implements Serializable {
@@ -12,7 +13,7 @@ public class Entity implements Serializable {
 	public String uuid = null;
 	public HashMap<String,Object> history = new HashMap<String,Object>();
 	public HashMap<String,Object> attributes = new HashMap<String,Object>();
-	public HashMap<String,Component> components = new HashMap<String,Component>();
-	
+	public ArrayList<Sensor> sensors = new ArrayList<Sensor>();
+	public ArrayList<Actuator> actuators = new ArrayList<Actuator>();
 	
 }
