@@ -8,12 +8,13 @@ public class DeviceTable implements java.io.Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = -8536303237731902808L;
-	private HashMap<String,Entity> dataBase = new HashMap<String,Entity>();
+	private HashMap<String,Entity> entities = new HashMap<String,Entity>();
+	
 	
 	
 	public boolean hasEntity(String _uuid) {
 		
-		if (this.dataBase.containsKey(_uuid)) {
+		if (this.entities.containsKey(_uuid)) {
 			return true;	
 		} else {
 			return false;
@@ -21,11 +22,11 @@ public class DeviceTable implements java.io.Serializable {
 	}
 	
 	public void addEntity(Entity _entity) {
-		this.dataBase.put(_entity.uuid, _entity);
+		this.entities.put(_entity.uuid, _entity);
 	}
 	
 	public void removeEntity(Entity _entity) {
-		this.dataBase.remove(_entity.uuid);
+		this.entities.remove(_entity.uuid);
 	}
 	
 
