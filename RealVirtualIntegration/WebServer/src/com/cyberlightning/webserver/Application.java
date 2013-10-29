@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import com.cyberlightning.webserver.services.MessageService;
 import com.cyberlightning.webserver.services.DataStorageService;
+import com.cyberlightning.webserver.services.TranslateJson;
 import com.cyberlightning.webserver.sockets.CoapSocket;
 import com.cyberlightning.webserver.sockets.HttpSocket;
 import com.cyberlightning.webserver.sockets.WebSocket;
@@ -30,7 +31,8 @@ public class Application  {
 		Runnable dataBase = DataStorageService.getInstance();
 		Thread dbThread = new Thread(dataBase);
 		dbThread.start();
-	
+		
+		TranslateJson.getEntity("{\"550e8400-e29b-41d4-a716-446655440000\":{\"attributes\":{\"name\":\"Power wall outlet\"},\"address\":null,\"actuators\":[{\"attributes\":{\"type\":\"power_switch\"},\"uuid\":null,\"parameters\":{\"relay\":false}}],\"sensors\":[{\"options\":null,\"attributes\":{\"type\":\"Power sensor\"},\"uuid\":null}]}}");
 		
 		MessageService.getInstance().run(); //consumes Main thread
 		
