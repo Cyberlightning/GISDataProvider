@@ -4,14 +4,17 @@ import java.net.DatagramPacket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 
 
-public class MessageService {
+public class MessageService implements Runnable  {
 	
 	private static final MessageService _messageHandler = new MessageService();
 	private List<IMessageEvent> registeredReceivers= new ArrayList<IMessageEvent>();
+	public  Map<String, Object> messaBuffer= new ConcurrentHashMap<String, Object>(); 
 
 	private MessageService() {
 		
@@ -57,4 +60,14 @@ public class MessageService {
 			client.webSocketMessageEvent(msg, address);
 		}
 	}
+
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	
+
+	
 }

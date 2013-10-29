@@ -56,6 +56,8 @@ public abstract class StaticResources {
 	
 	public static final String DATABASE_FILE_PATH = "deviceDB.ser";
 	
+	public static final int DEFAULT_NUM_OF_ENTRIES = 10000;
+	
 	public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm";
 	
 	public static String getTimeStamp() {

@@ -5,30 +5,35 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
+import java.io.UnsupportedEncodingException;
+import java.net.DatagramPacket;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.cyberlightning.webserver.StaticResources;
+import com.cyberlightning.webserver.entities.Client;
 import com.cyberlightning.webserver.entities.DeviceTable;
-import com.cyberlightning.webserver.entities.Entity;
 
 
-public class SerializationService {
+public class DataStorageService implements Runnable {
 	
-	private static final SerializationService _serilizationService = new SerializationService();
+	private static final DataStorageService _serilizationService = new DataStorageService();
+	public  Map<String, DatagramPacket> eventBuffer= new ConcurrentHashMap<String, DatagramPacket>(); 
 	private DeviceTable db;
 	
-	private SerializationService() {
+	private DataStorageService() {
 		
 	}
 	
-	public static SerializationService getInstance () {
+	public static DataStorageService getInstance () {
 		return _serilizationService;
 	}
 	
-	public void intializeDataBase() {
+	public void intializeData() {
 		
-	      try {
-	         
+		try {
+			
 	    	 FileInputStream fileIn = new FileInputStream(StaticResources.DATABASE_FILE_PATH);
 	         ObjectInputStream in = new ObjectInputStream(fileIn);
 	         this.db = (DeviceTable) in.readObject();
@@ -45,8 +50,16 @@ public class SerializationService {
 	      } 
 	}
 	
+	public void addEntry (String _uuid, DatagramPacket _data) {
+		this.eventBuffer.putIfAbsent(_uuid, _data);
+	}
 	
-	public void saveDataBase () {
+	public Client getAddressByUuid(String _uuid) {
+		return null;
+		
+	}
+	
+	public void saveData () {
 		 
 		try {
 	         FileOutputStream fileOut =  new FileOutputStream(StaticResources.DATABASE_FILE_PATH);
@@ -60,14 +73,16 @@ public class SerializationService {
 	      }
 	}
 	
-	public void addNewDevice(Entity _entity) {
-		this.db.addEntity(_entity);
-		this.saveDataBase();
-	}
 	
-	public void removeExistingDevice(Entity _entity) {
-		this.db.removeEntity(_entity);
-		this.saveDataBase();
+	@Override
+	public void run() {
+		this.intializeData();
+		
+		while(true) {
+			if (eventBuffer.isEmpty()) continue;
+			
+			
+		}
 	}
 	
 	
