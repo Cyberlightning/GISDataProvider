@@ -5,9 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -51,7 +49,7 @@ public class DataStorageService implements Runnable {
 	}
 	
 	public void addEntry (String _uuid, DatagramPacket _data) {
-		this.eventBuffer.putIfAbsent(_uuid, _data);
+		//this.eventBuffer.putIfAbsent(_uuid, _data);
 	}
 	
 	public Client getAddressByUuid(String _uuid) {

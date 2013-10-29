@@ -1,23 +1,16 @@
 package com.cyberlightning.webserver.sockets;
 
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URLDecoder;
-import java.util.StringTokenizer;
 
-import org.json.simple.JSONObject;
 
 import com.cyberlightning.webserver.SimulateSensorResponse;
 import com.cyberlightning.webserver.StaticResources;
@@ -29,7 +22,6 @@ public class HttpSocket implements Runnable,IMessageEvent{
 private Socket clientSocket;
 private ServerSocket serverSocket;
 private DataOutputStream output;
-private BufferedReader input;
 private int port;
 
 public HttpSocket() {
