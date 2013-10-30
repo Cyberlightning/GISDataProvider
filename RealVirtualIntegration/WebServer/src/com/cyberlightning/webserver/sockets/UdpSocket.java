@@ -19,7 +19,7 @@ public class UdpSocket implements Runnable  {
 	private DatagramSocket serverSocket;
 	private int port;
 	
-	public final String uuid = UUID.randomUUID().toString();
+	protected final String uuid = UUID.randomUUID().toString();
 	public final int type = StaticResources.HTTP_CLIENT;
 	
 	public UdpSocket () {
@@ -29,7 +29,7 @@ public class UdpSocket implements Runnable  {
 	public UdpSocket (int _port) {
 		this.port = _port;
 		
-		Runnable sendWorker = new SendWorker();
+		Runnable sendWorker = new SendWorker(this.uuid);
 		Thread t = new Thread(sendWorker);
 		t.start();
 	}
@@ -74,12 +74,16 @@ public class UdpSocket implements Runnable  {
 	private class SendWorker implements Runnable,IMessageEvent {
 		
 		public  Map<String, DatagramPacket> sendBuffer = new ConcurrentHashMap<String, DatagramPacket>(100); 
+		public String uuid;
 		
-
+		public SendWorker (String _uuid) {
+			this.uuid = _uuid;
+		}
+		
 		@Override
 		public void run() {
 			
-			MessageService.getInstance().registerReceiver(this);
+			MessageService.getInstance().registerReceiver(this,this.uuid);
 			
 			while (true) {
 				 

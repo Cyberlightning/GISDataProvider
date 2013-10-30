@@ -86,7 +86,7 @@ public class WebSocket implements Runnable  {
 				
 				if (!this.connectedWebSockets.containsKey(this.webSocket.getInetAddress())) {
 					
-					this.spawnedThreads.add(new Thread((Runnable)(new WebClientWorker(this, this.webSocket))));
+					this.spawnedThreads.add(new Thread((Runnable)(new WebSocketWorker(this, this.webSocket))));
 					this.connectedWebSockets.put(this.webSocket.getInetAddress(), this.spawnedThreads.get(this.spawnedThreads.size() - 1).getId());
 						
 					for (Thread t : this.spawnedThreads) {

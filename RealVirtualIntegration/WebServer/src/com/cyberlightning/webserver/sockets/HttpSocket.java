@@ -43,7 +43,7 @@ public void initialize() {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}
-	MessageService.getInstance().registerReceiver(this);
+	MessageService.getInstance().registerReceiver(this,this.uuid);
 }
 
 @Override
