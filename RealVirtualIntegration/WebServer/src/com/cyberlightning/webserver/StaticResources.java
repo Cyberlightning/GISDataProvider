@@ -63,6 +63,12 @@ public abstract class StaticResources {
 	public static String getTimeStamp() {
 		return  new SimpleDateFormat(DATE_FORMAT).format(new Date(System.currentTimeMillis()));
 	}
+	
+	public static final int HTTP_CLIENT = 0;
+	public static final int TCP_CLIENT = 1;
+	public static final int UDP_RECEIVER = 2;
+	
+	
 
 
 	

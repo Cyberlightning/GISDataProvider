@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.cyberlightning.webserver.StaticResources;
-import com.cyberlightning.webserver.entities.Client;
 import com.cyberlightning.webserver.entities.EntityTable;
 
 
@@ -51,10 +50,7 @@ public class DataStorageService implements Runnable {
 		//this.eventBuffer.putIfAbsent(_uuid, _data);
 	}
 	
-	public Client getAddressByUuid(String _uuid) {
-		return null;
-		
-	}
+
 	
 	public void saveData () {
 		 

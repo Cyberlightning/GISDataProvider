@@ -6,6 +6,7 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.cyberlightning.webserver.StaticResources;
@@ -13,16 +14,19 @@ import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.services.MessageService;
 import com.cyberlightning.webserver.services.DataStorageService;
 
-public class CoapSocket implements Runnable  {
+public class UdpSocket implements Runnable  {
 	
 	private DatagramSocket serverSocket;
 	private int port;
 	
-	public CoapSocket () {
+	public final String uuid = UUID.randomUUID().toString();
+	public final int type = StaticResources.HTTP_CLIENT;
+	
+	public UdpSocket () {
 		this(StaticResources.SERVER_PORT_COAP);
 	}
 	
-	public CoapSocket (int _port) {
+	public UdpSocket (int _port) {
 		this.port = _port;
 		
 		Runnable sendWorker = new SendWorker();
@@ -103,24 +107,14 @@ public class CoapSocket implements Runnable  {
 			}
 			
 		}
+
+
+		@Override
+		public void onMessageReceived(int _type, Object _msg) {
+			// TODO Auto-generated method stub
+			
+		}
 		
-		@Override
-		public void httpMessageEvent(String address, String msg) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void deviceMessageEvent(DatagramPacket _datagramPacket) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void webSocketMessageEvent(String msg, String address) {
-			// TODO Auto-generated method stub
-			
-		}
 		
 	}
 	

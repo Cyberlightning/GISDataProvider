@@ -5,7 +5,7 @@ import java.io.IOException;
 import com.cyberlightning.webserver.services.JsonTranslator;
 import com.cyberlightning.webserver.services.MessageService;
 import com.cyberlightning.webserver.services.DataStorageService;
-import com.cyberlightning.webserver.sockets.CoapSocket;
+import com.cyberlightning.webserver.sockets.UdpSocket;
 import com.cyberlightning.webserver.sockets.HttpSocket;
 import com.cyberlightning.webserver.sockets.WebSocket;
 
@@ -24,7 +24,7 @@ public class Application  {
 		Thread httpThread = new Thread(httpSocket);
 		httpThread.start();
 
-		Runnable coapSocket = new CoapSocket();
+		Runnable coapSocket = new UdpSocket();
 		Thread coapThread = new Thread(coapSocket);
 		coapThread.start();
 		

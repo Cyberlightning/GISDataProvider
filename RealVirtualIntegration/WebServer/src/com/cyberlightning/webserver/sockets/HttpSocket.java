@@ -10,7 +10,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-
+import java.util.UUID;
 
 import com.cyberlightning.webserver.SimulateSensorResponse;
 import com.cyberlightning.webserver.StaticResources;
@@ -23,6 +23,10 @@ private Socket clientSocket;
 private ServerSocket serverSocket;
 private DataOutputStream output;
 private int port;
+
+public final String uuid = UUID.randomUUID().toString();
+public final int type = StaticResources.HTTP_CLIENT;
+
 
 public HttpSocket() {
 	this(StaticResources.SERVER_PORT);
@@ -219,21 +223,12 @@ private void handlePUTMethod(String _request) {
 private void handleDELETEMethod(String _request) {
 	//TODO handDELETEMethod
 }
-
 @Override
-public void httpMessageEvent(String address, String msg) {
+public void onMessageReceived(int _type, Object _msg) {
 	// TODO Auto-generated method stub
+	
 }
 
-@Override
-public void deviceMessageEvent(DatagramPacket _datagramPacket) {
-	// TODO Auto-generated method stub
-}
-
-@Override
-public void webSocketMessageEvent(String msg, String address) {
-	// TODO Auto-generated method stub
-}
 
 /*
 public void sendResponse (int statusCode, String responseString, boolean isFile) throws Exception {

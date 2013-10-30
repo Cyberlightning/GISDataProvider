@@ -41,26 +41,14 @@ public class MessageService implements Runnable  {
 		}
 	}
 	
-	public void broadcastHttpMessageEvent(String _target, String msg) {
+	public void onMessageReceived(int _type, Object _msg) {
 		
-		for (IMessageEvent client : this.registeredReceivers) {
-			client.httpMessageEvent(_target, msg);
+		for (IMessageEvent receiver : this.registeredReceivers) {
+			receiver.onMessageReceived(_type, _msg);
 		}
 	}
 	
-	public void broadcastCoapMessageEvent(DatagramPacket _datagramPacket) {
-		
-		for (IMessageEvent client : this.registeredReceivers) {
-			client.deviceMessageEvent(_datagramPacket);
-		}
-	}
 	
-	public void broadcastWebSocketMessageEvent(String msg, String address) {
-		
-		for (IMessageEvent client : this.registeredReceivers) {
-			client.webSocketMessageEvent(msg, address);
-		}
-	}
 
 	@Override
 	public void run() {
