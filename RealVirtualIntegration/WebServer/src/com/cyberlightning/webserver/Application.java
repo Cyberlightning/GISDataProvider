@@ -32,7 +32,7 @@ public class Application  {
 		Thread dbThread = new Thread(dataBase);
 		dbThread.start();
 		
-		JsonTranslator.decodeJson("{\"550e8400-e29b-41d4-a716-446655440000\":{\"attributes\":{\"name\":\"Power wall outlet\",\"address\":null},\"actuators\":[{\"uuid\":null,\"attributes\":{\"type\":\"power_switch\"},\"parameters\":{\"relay\":false}}],\"sensors\":[{\"uuid\":null,\"parameters\":{\"options\":null},\"attributes\":{\"type\":\"Power sensor\"}}]}}");
+		JsonTranslator.decodeSensorJson("{\"550e8400-e29b-41d4-a716-446655440000\":{\"attributes\":{\"name\":\"Power wall outlet\",\"address\":null},\"actuators\":[{\"uuid\":null,\"attributes\":{\"type\":\"power_switch\"},\"parameters\":{\"callback\":false},\"variables\": [{\"relay\":false, \"type\": \"boolean\" }]}],\"sensors\":[{\"uuid\":null,\"attributes\":{\"type\":\"Power sensor\"},\"parameters\":{\"options\":null},\"values\": [{\"value\": 13,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"}]}]}}");
 		
 		MessageService.getInstance().run(); //consumes Main thread
 		
