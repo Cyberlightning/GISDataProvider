@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <!-- Style -->
+    <!--  <link rel="stylesheet" type="text/css" media="all" href="../../style/page.css"/>-->
+    <!--<link rel="stylesheet" type="text/css" media="all" href="../../style/jquery-ui.css"/>-->
+    <!-- Scripts -->
+    <script type="text/javascript" src="../../deps/xml3d-internal.js"></script>
+    <script type="text/javascript" src="../../deps/xml3d-camera.js"></script>
+
+    <title>XML3D Examples</title>
+
+
+</head>
+<body>
+<div id="overall">
+    <div id="content">
+        <h1>
+            GLSL modified Xflow operators
+        </h1>
+
+        <xml3d id="myxml3d" class="xml3d"
+               xmlns="http://www.xml3d.org/2009/xml3d">
+            <defs id="mainDef">
+
+                <data id="images" compute="blurred = xflow.glslBlur(grayscale)">
+                    <data compute="grayscale = xflow.glslGrayscale(image)">
+                        <texture name="image">
+                            <!--img src="../../assets/water.jpg"/-->
+                            <video src="../../assets/dizzy.ogv" autoplay="true"/>>
+                        </texture>
+                    </data>
+                </data>
+
+                <data id="mySimpleMesh" type="triangles">
+                    <int name="index">0 1 2 1 2 3</int>
+                    <float3 name="position">-1.0 -1.0 0.0 1.0 -1.0 0.0 -1.0 1.0 0.0 1.0 1.0 0.0</float3>
+                    <float3 name="normal">0.0 0.0 1.0 0.0 0.0 1.0 0.0 0.0 1.0 0.0 0.0 1.0</float3>
+                    <float2 name="texcoord">0.0 0.0 1.0 0.0 0.0 1.0 1.0 1.0</float2>
+                </data>
+
+                <shader id="texture1" script="urn:xml3d:shader:phong">
+                    <float3 name="diffuseColor">1.5 1.5 1.5</float3>
+                    <float name="ambientIntensity">1.0</float>
+                    <data src="#images" filter="rename({diffuseTexture:image})"/>
+                </shader>
+
+                <shader id="texture2" script="urn:xml3d:shader:phong">
+                    <float3 name="diffuseColor">1.5 1.5 1.5</float3>
+                    <float name="ambientIntensity">1.0</float>
+                    <data src="#images" filter="rename({diffuseTexture:grayscale})"/>
+                </shader>
+
+                <shader id="texture3" script="urn:xml3d:shader:phong">
+                    <float3 name="diffuseColor">1.5 1.5 1.5</float3>
+                    <float name="ambientIntensity">1.0</float>
+                    <data src="#images" filter="rename({diffuseTexture:blurred})"/>
+                </shader>
+
+
+
+                <transform id="T1" translation="-2.2 0 0"/>
+                <transform id="T2" translation="0 0 0"/>
+                <transform id="T3" translation="2.2 0 0"/>
+
+            </defs>
+            <group shader="#texture1" transform="#T1">
+                <mesh src="#mySimpleMesh"/>
+            </group>
+            <group shader="#texture2" transform="#T2">
+                <mesh src="#mySimpleMesh"/>
+            </group>
+            <group shader="#texture3" transform="#T3">
+                <mesh src="#mySimpleMesh"/>
+            </group>
+
+
+            <view id="Camera"
+                  orientation="0.0 -1.0 0.0 0"
+                  position="0.0 0.0 6.0"/>
+
+        </xml3d>
+
+        <canvas id="debug" width='800' height='600'></canvas>
+
+    </div>
+</div>
+<script type="text/javascript" src="xflowglsl.js"></script>
+</body>
+</html>
