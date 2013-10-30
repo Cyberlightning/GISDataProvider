@@ -2,6 +2,7 @@ package com.cyberlightning.webserver.services;
 
 import java.net.DatagramPacket;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -14,7 +15,7 @@ public class MessageService implements Runnable  {
 	
 	private static final MessageService _messageHandler = new MessageService();
 	private List<IMessageEvent> registeredReceivers= new ArrayList<IMessageEvent>();
-	public  Map<String, Object> messaBuffer= new ConcurrentHashMap<String, Object>(); 
+	public  Map<String, Object> messageBuffer= new ConcurrentHashMap<String, Object>(); 
 
 	private MessageService() {
 		
@@ -63,7 +64,20 @@ public class MessageService implements Runnable  {
 
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
+		while(true) {
+			if (this.messageBuffer.isEmpty()) continue;
+			Iterator<String> keys = this.messageBuffer.keySet().iterator();
+			
+			while(keys.hasNext()) {
+				String key = keys.next();
+				Object o = this.messageBuffer.get(key);
+				if (o instanceof DatagramPacket) {
+					
+				} else if (o instanceof String) { 
+					
+				}
+			}
+		}
 		
 	}
 	

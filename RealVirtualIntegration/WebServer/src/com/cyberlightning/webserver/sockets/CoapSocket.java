@@ -59,7 +59,8 @@ public class CoapSocket implements Runnable  {
 				e.printStackTrace();
 			}
     		
-    		DataStorageService.getInstance().addEntry(StaticResources.getTimeStamp(), receivedPacket);
+    		MessageService.getInstance().messageBuffer.put(StaticResources.getTimeStamp(), receivedPacket);
+    		
     		//MessageService.getInstance().broadcastCoapMessageEvent(receivedPacket);  //TODO remove once put in SerializationService
            
           

@@ -298,5 +298,6 @@ public abstract class JsonTranslator {
 		
 		return content.toJSONString();
 	}
+	
 
 }
