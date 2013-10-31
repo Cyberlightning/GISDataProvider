@@ -13,8 +13,12 @@
         //$("#xml3dContent").empty();
         $("#xml3dContent").append(xml3dData);
 
-        //var camera_player = document.getElementById("t_node-camera_player");
-        //camera_player.setAttribute("translation", "409000.0 7499590.0 198.209");
+        // Move camera to correct debugging position
+        var camera_node = document.getElementById("t_node-camera_player");
+        camera_node.setAttribute("translation", "405485 7519060 130.99200439453125");
+        
+        var camera_player = document.getElementById("camera_player-camera");
+        camera_player.setAttribute("orientation", "-0.30856573581695557 -0.7244177460670471 -0.6164464354515076 3.28808722904229");
 
     }
 
@@ -22,12 +26,14 @@
         var baseUrl = "http://localhost:9090/geoserver/";
         var workspace = "it.geosolutions";
         var service = "/w3ds?version=0.4&service=w3ds";
-        var format = "&format=application/ole";
+        var format = "&format=model/xml3d+xml";
         var crs = "&crs=EPSG:3047"
         var request = "&request=GetScene";
 
         var Oulu = "439970.0,7199970.0,446030.0,7206030.0";
-        var Lappi = "394000.0,7488000.0,422000.0,7535950.0";
+        var Lappi = "373760.0,7487760.0,422240.0,7536190.0";
+        //var Lappi = "400485.0,7509960.0,410885.0,7521830.0"; 
+        //var Lappi = "400485.0,7509060.0,400495.0,7509130.0";
 
         var boundingbox = Lappi;
 
