@@ -15,7 +15,6 @@ public class Application  {
 	public static void main(String[] args) throws Exception, IOException {
 		
 		
-		
 		Runnable websocket = new WebSocket();
 		Thread webThread = new Thread(websocket);
 		webThread.start();

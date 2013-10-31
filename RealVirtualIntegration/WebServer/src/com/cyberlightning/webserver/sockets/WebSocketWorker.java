@@ -3,10 +3,8 @@ package com.cyberlightning.webserver.sockets;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
@@ -16,17 +14,19 @@ import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.services.MessageService;
 
-public class WebClientWorker implements Runnable {
+public class WebSocketWorker implements Runnable {
 
 	private Socket clientSocket;
 	private InputStream input;
 	private OutputStream output;
-	private ArrayList<String> sendBuffer = new ArrayList<String>();
+	private Thread sendWorker;
 	private WebSocket parent;
-	private boolean isConnected = true;
-
 	
-	public WebClientWorker (WebSocket _parent, Socket _client) {
+	private volatile boolean isConnected = true;
+
+	protected final String uuid = UUID.randomUUID().toString();
+
+	public WebSocketWorker (WebSocket _parent, Socket _client) {
 		this.clientSocket = _client;
 		this.parent = _parent;
 		this.initialize();
@@ -44,9 +44,12 @@ public class WebClientWorker implements Runnable {
 	
 	@Override
 	public void run() {
-		
-		
+	
 		System.out.println(this.clientSocket.getInetAddress().getAddress().toString() + StaticResources.CLIENT_CONNECTED);
+		
+		Runnable runnable = new SendWorker(this.uuid);
+		this.sendWorker = new Thread(runnable);
+		this.sendWorker.run();
 		
 		while(this.isConnected) {
 			
@@ -59,11 +62,10 @@ public class WebClientWorker implements Runnable {
 				    @SuppressWarnings("unused")
 					boolean whole = (opcode & 0b10000000) !=0;  
 				    opcode = opcode & 0xF;
-				    System.out.println("Client message type: " + opcode);
 				    
 				    if (opcode != 8) { 
 				    	 
-				    	MessageService.getInstance().broadcastWebSocketMessageEvent(read(), this.clientSocket.getInetAddress().getHostAddress()); 
+				    	MessageService.getInstance().messageBuffer.put(this.uuid, read()); 
 				    	 
 				    } else {
 				    	 
@@ -81,12 +83,13 @@ public class WebClientWorker implements Runnable {
 					     -+--------+-------------------------------------+-----------|
 					      | 10     | Pong Frame                          | RFC 6455  |*/
 				    	 
+				    	System.out.println("Client message type: " + opcode);
 				    	this.closeSocketGracefully();
 				    }
 				}
 				
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
+				
 				e.printStackTrace();
 				System.out.println("Connecttion interrupted: " + e.getLocalizedMessage());
 				this.closeSocketGracefully();
@@ -162,66 +165,54 @@ public class WebClientWorker implements Runnable {
           
         return new String(frame, "UTF8");  
     }  
-      
-    
-    
-	private String getMessage() {
-		String msg = this.sendBuffer.get(this.sendBuffer.size() - 1);
-		this.sendBuffer.remove(this.sendBuffer.size() - 1);
-		return msg;
-	}
-	
 
 	private class SendWorker implements Runnable,IMessageEvent {
 		
-		public  Map<Integer, Object> sendBuffer = new ConcurrentHashMap<Integer, Object>(100); 
-		
-		public final String uuid = UUID.randomUUID().toString();
+	
+		@SuppressWarnings("unused")
 		public final int type = StaticResources.TCP_CLIENT;
-
+		@SuppressWarnings("unused")
+		public String uuid;
+		
+		private  Map<Integer, Object> sendBuffer = new ConcurrentHashMap<Integer, Object>(); 
+		
+		public SendWorker(String _uuid) {
+			this.uuid = _uuid;
+		}
+		
 		@Override
 		public void run() {
 			
-			MessageService.getInstance().registerReceiver(this);
+			MessageService.getInstance().registerReceiver(this,this.uuid);
 			
 			while (true) {
-				 
 				if (sendBuffer.isEmpty()) continue;
-		        	   
-		        	   try {
-		        		   if (_msg instanceof DatagramPacket) {
-		       				try {
-		       					String _content = new String(((DatagramPacket) _msg).getData(), "utf8");
-		       					System.out.println(_content);
-		       					this.send(_content);
-		       				} catch (UnsupportedEncodingException e1) {
-		       					// TODO Auto-generated catch block
-		       					e1.printStackTrace();
-		       				} catch (Exception e) {
-		       					// TODO Auto-generated catch block
-		       					e.printStackTrace();
-		       				}
-		       			}
-		        		   Iterator<String> i = sendBuffer.keySet().iterator();
-		        		
-		        		   while(i.hasNext()) {
-		        			   String key = i.next();
-		        			   //byte[] b = this.formatJSON(sendBuffer.get(key));
-		        			   //DatagramPacket packet = new DatagramPacket(b, b.length, "ds", 23);
-		        			
-			        			serverSocket.send(sendBuffer.get(key));
-			        			sendBuffer.remove(key);
-		        		   }
-		   				
-		   				} catch (IOException e) {
-		   					// TODO Auto-generated catch block
-		   					e.printStackTrace();
-		   					break;
-		   				} 
-		           
+				
+				try {
+					
+					Iterator<Integer> i = this.sendBuffer.keySet().iterator();
+		     		while(i.hasNext()) {
+		     			
+		     			int key = i.next();
+		     			if (sendBuffer.get(key) instanceof DatagramPacket) {
+		     					String _content = new String(((DatagramPacket)sendBuffer.get(key)).getData(), "utf8");
+		     					this.send(_content);
+		     			} else if (sendBuffer.get(key) instanceof String) {
+		     					this.send((String)sendBuffer.get(key));
+		     			}
+		     			sendBuffer.remove(key);
+			        	
+		     		}
+		     		
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					break;
+				}      
 			}
-			MessageService.getInstance().unregisterReceiver(this);
+			MessageService.getInstance().unregisterReceiver(this.uuid);
 		}
+		
 
 		private void send(String message) throws Exception {  
 	          
@@ -250,8 +241,9 @@ public class WebClientWorker implements Runnable {
 		
 		@Override
 		public void onMessageReceived(int _type, Object _msg) {
-			this.sendBuffer.putIfAbsent(_type, _msg);
+			((ConcurrentHashMap<Integer, Object>) this.sendBuffer).putIfAbsent(_type, _msg);
 		}
+
 	}
 	
 
