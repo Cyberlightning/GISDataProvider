@@ -5,19 +5,24 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.cyberlightning.webserver.StaticResources;
+import com.cyberlightning.webserver.entities.Entity;
 import com.cyberlightning.webserver.entities.EntityTable;
+import com.cyberlightning.webserver.entities.SpatialQuery;
 
 
 public class DataStorageService implements Runnable {
 	
 	private static final DataStorageService _serilizationService = new DataStorageService();
 	public  Map<String, DatagramPacket> eventBuffer= new ConcurrentHashMap<String, DatagramPacket>(); 
-	private EntityTable entityTable;
+	private EntityTable entityTable = new EntityTable();
 	
 	private DataStorageService() {
 		
@@ -30,6 +35,7 @@ public class DataStorageService implements Runnable {
 	public void intializeData() {
 		
 		try {
+			
 	    	 FileInputStream fileIn = new FileInputStream(StaticResources.DATABASE_FILE_PATH);
 	         ObjectInputStream in = new ObjectInputStream(fileIn);
 	         this.entityTable = (EntityTable) in.readObject();
@@ -46,11 +52,31 @@ public class DataStorageService implements Runnable {
 	      } 
 	}
 	
-	public void addEntry (String _uuid, DatagramPacket _data) {
-		//this.eventBuffer.putIfAbsent(_uuid, _data);
+	public void addEntry (String _uuid, DatagramPacket _data) throws UnsupportedEncodingException {
+		ArrayList<Entity> entities = JsonTranslator.decodeSensorJson(new String(_data.getData(),"utf8"));
+		for (Entity entity : entities) {
+			this.entityTable.addEntity(entity);
+		}
 	}
 	
-
+	public String getEntryById(String _uuid) {
+		
+		String jsonString = null;
+		
+		if (entityTable.hasEntity(_uuid)) {
+			ArrayList<Entity> entities = new ArrayList<Entity>();
+			entities.add(entityTable.getEntity(_uuid));
+			jsonString = JsonTranslator.encodeJson(entities, 40);
+		}
+		
+		return jsonString;
+	}
+	
+	public String getEntriesByParameter(SpatialQuery _query) {
+		
+		return null;
+		
+	}
 	
 	public void saveData () {
 		 
@@ -73,7 +99,16 @@ public class DataStorageService implements Runnable {
 		
 		while(true) {
 			if (eventBuffer.isEmpty()) continue;
-			
+			Iterator<String> i = this.eventBuffer.keySet().iterator();
+			while (i.hasNext()) {
+				String key = i.next();
+				try {
+					this.addEntry(key, this.eventBuffer.get(key));
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 			
 		}
 	}

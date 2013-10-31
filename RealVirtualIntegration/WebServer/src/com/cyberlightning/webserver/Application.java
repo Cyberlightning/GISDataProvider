@@ -1,6 +1,7 @@
 package com.cyberlightning.webserver;
 
 import java.io.IOException;
+import java.net.DatagramPacket;
 
 import com.cyberlightning.webserver.services.JsonTranslator;
 import com.cyberlightning.webserver.services.MessageService;
@@ -30,7 +31,7 @@ public class Application  {
 		Runnable dataBase = DataStorageService.getInstance();
 		Thread dbThread = new Thread(dataBase);
 		dbThread.start();
-		
+	
 		JsonTranslator.decodeSensorJson("{\"550e8400-e29b-41d4-a716-446655440000\":{\"attributes\":{\"name\":\"Power wall outlet\",\"address\":null},\"actuators\":[{\"uuid\":null,\"attributes\":{\"type\":\"power_switch\"},\"parameters\":{\"callback\":false},\"variables\": [{\"relay\":false, \"type\": \"boolean\" }]}],\"sensors\":[{\"uuid\":null,\"attributes\":{\"type\":\"Power sensor\"},\"parameters\":{\"options\":null},\"values\": [{\"value\": 13,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"}]}]}}");
 		
 		MessageService.getInstance().run(); //consumes Main thread

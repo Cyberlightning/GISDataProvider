@@ -68,7 +68,14 @@ public abstract class StaticResources {
 	public static final int TCP_CLIENT = 1;
 	public static final int UDP_RECEIVER = 2;
 	
+	public static final int QUERY_SPATIAL_CIRCLE = 0;
+	public static final int QUERY_SPATIA_BOUNDING_BOX = 1;
+	public static final int QUERY_SPATIA_SHAPE = 2;
+	public static final int QUERY_TYPE = 3;
 	
+	public static final int HTTP_GET = 0;
+	public static final int HTTP_POST_FILE = 1;
+	public static final int HTTP_POST_NON_FILE = 2;
 
 
 	

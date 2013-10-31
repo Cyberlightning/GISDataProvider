@@ -10,9 +10,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.cyberlightning.webserver.StaticResources;
+import com.cyberlightning.webserver.entities.MessageHeader;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.services.MessageService;
-import com.cyberlightning.webserver.services.DataStorageService;
 
 public class UdpSocket implements Runnable  {
 	
@@ -20,7 +20,7 @@ public class UdpSocket implements Runnable  {
 	private int port;
 	
 	protected final String uuid = UUID.randomUUID().toString();
-	public final int type = StaticResources.HTTP_CLIENT;
+	public final int type = StaticResources.UDP_RECEIVER;
 	
 	public UdpSocket () {
 		this(StaticResources.SERVER_PORT_COAP);
@@ -28,10 +28,6 @@ public class UdpSocket implements Runnable  {
 	
 	public UdpSocket (int _port) {
 		this.port = _port;
-		
-		Runnable sendWorker = new SendWorker(this.uuid);
-		Thread t = new Thread(sendWorker);
-		t.start();
 	}
 	
 	@Override
@@ -42,6 +38,9 @@ public class UdpSocket implements Runnable  {
 		serverSocket = new DatagramSocket(this.port);
 		this.serverSocket.setReceiveBufferSize(StaticResources.UDP_PACKET_SIZE);
 		
+		Runnable sendWorker = new SendWorker(this.uuid);
+		Thread t = new Thread(sendWorker);
+		t.start();
 		
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
@@ -63,10 +62,7 @@ public class UdpSocket implements Runnable  {
 				e.printStackTrace();
 			}
     		
-    		MessageService.getInstance().messageBuffer.put(StaticResources.getTimeStamp(), receivedPacket);
-    		
-    		//MessageService.getInstance().broadcastCoapMessageEvent(receivedPacket);  //TODO remove once put in SerializationService
-           
+    		MessageService.getInstance().messageBuffer.put(new MessageHeader(this.uuid,this.type), receivedPacket);        
           
 		}
 	}

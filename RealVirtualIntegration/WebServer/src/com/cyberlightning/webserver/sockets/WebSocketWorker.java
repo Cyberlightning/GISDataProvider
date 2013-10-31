@@ -11,6 +11,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.cyberlightning.webserver.StaticResources;
+import com.cyberlightning.webserver.entities.MessageHeader;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.services.MessageService;
 
@@ -24,8 +25,10 @@ public class WebSocketWorker implements Runnable {
 	
 	private volatile boolean isConnected = true;
 
-	protected final String uuid = UUID.randomUUID().toString();
+	public final String uuid = UUID.randomUUID().toString();
+	public final int type =  StaticResources.TCP_CLIENT;
 
+		
 	public WebSocketWorker (WebSocket _parent, Socket _client) {
 		this.clientSocket = _client;
 		this.parent = _parent;
@@ -47,7 +50,7 @@ public class WebSocketWorker implements Runnable {
 	
 		System.out.println(this.clientSocket.getInetAddress().getAddress().toString() + StaticResources.CLIENT_CONNECTED);
 		
-		Runnable runnable = new SendWorker(this.uuid);
+		Runnable runnable = new SendWorker();
 		this.sendWorker = new Thread(runnable);
 		this.sendWorker.run();
 		
@@ -65,7 +68,7 @@ public class WebSocketWorker implements Runnable {
 				    
 				    if (opcode != 8) { 
 				    	 
-				    	MessageService.getInstance().messageBuffer.put(this.uuid, read()); 
+				    	MessageService.getInstance().messageBuffer.put(new MessageHeader(this.uuid,this.type), read()); 
 				    	 
 				    } else {
 				    	 
@@ -168,22 +171,14 @@ public class WebSocketWorker implements Runnable {
 
 	private class SendWorker implements Runnable,IMessageEvent {
 		
-	
-		@SuppressWarnings("unused")
-		public final int type = StaticResources.TCP_CLIENT;
-		@SuppressWarnings("unused")
-		public String uuid;
 		
 		private  Map<Integer, Object> sendBuffer = new ConcurrentHashMap<Integer, Object>(); 
 		
-		public SendWorker(String _uuid) {
-			this.uuid = _uuid;
-		}
 		
 		@Override
 		public void run() {
 			
-			MessageService.getInstance().registerReceiver(this,this.uuid);
+			MessageService.getInstance().registerReceiver(this,uuid);
 			
 			while (true) {
 				if (sendBuffer.isEmpty()) continue;
@@ -210,7 +205,7 @@ public class WebSocketWorker implements Runnable {
 					break;
 				}      
 			}
-			MessageService.getInstance().unregisterReceiver(this.uuid);
+			MessageService.getInstance().unregisterReceiver(uuid);
 		}
 		
 

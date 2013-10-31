@@ -6,15 +6,20 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.cyberlightning.webserver.SimulateSensorResponse;
 import com.cyberlightning.webserver.StaticResources;
+import com.cyberlightning.webserver.entities.MessageHeader;
+import com.cyberlightning.webserver.entities.SpatialQuery;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
+import com.cyberlightning.webserver.services.DataStorageService;
 import com.cyberlightning.webserver.services.MessageService;
 
 public class HttpSocket implements Runnable,IMessageEvent{
@@ -22,7 +27,11 @@ public class HttpSocket implements Runnable,IMessageEvent{
 private Socket clientSocket;
 private ServerSocket serverSocket;
 private DataOutputStream output;
+private MessageHeader header;
+private Map<Integer, String> receivedQueries = new ConcurrentHashMap<Integer, String>(); 
+
 private int port;
+
 
 public final String uuid = UUID.randomUUID().toString();
 public final int type = StaticResources.HTTP_CLIENT;
@@ -34,6 +43,7 @@ public HttpSocket() {
 public HttpSocket(int _port) {
 	this.port = _port;
 	this.initialize();
+	this.header = new MessageHeader(this.uuid,this.type);
 }
 
 public void initialize() {
@@ -48,7 +58,10 @@ public void initialize() {
 
 @Override
 public void run() {
-
+	
+	Thread t = new Thread(new QueryHandler());
+	t.start();
+	
 	while(true) {
 		
 		try {
@@ -70,17 +83,16 @@ public void run() {
 			
 			/* Passes the urlencoded query string to appropriate http method handlers*/
 			if (result[0].trim().toUpperCase().contains("GET")) {
-				this.handleGETMethod(result[0].substring(fromIndex + 1, toIndex));
+				this.receivedQueries.put(StaticResources.HTTP_GET, result[0].substring(fromIndex + 1, toIndex).trim());
 			}
 			else if (result[0].trim().toUpperCase().contains("POST")) {
 				
 				fromIndex =  result[0].indexOf("/");
 				String content = result[0].substring(fromIndex, toIndex);
 				if (content.trim().contentEquals("/")) {
-					this.handlePOSTMethod(result[result.length-1].toString(), false);
+					this.receivedQueries.put(StaticResources.HTTP_POST_NON_FILE, result[result.length-1].toString());
 				} else {
-					this.handlePOSTMethod(content, true);
-					
+					this.receivedQueries.put(StaticResources.HTTP_POST_FILE, content);
 				}
 				
 			}
@@ -125,95 +137,9 @@ private void sendResponse(String _content) {
 }
 
 
-private void handlePOSTMethod(String _content, boolean _isFile) {
-	
-	String[] queries = _content.split("&");
-	String id = "";
-	String actuator = "";
-	String parameter = "";
-	String value = "";
-	
-	for (int i = 0; i < queries.length; i++) {
-		
-		if(queries[i].contains("action")) {
-			String[] action = queries[i].split("=");
-			
-			if (action[1].contentEquals("update")) {
-			
-				for (int j = 0; j < queries.length; j++) {
-					
-					if (queries[j].contains("device_id")) {
-						String[] s = queries.clone()[j].trim().split("=");
-						id = s[1];
-					} else if (queries[j].contains("actuator")){
-						String[] s = queries.clone()[j].trim().split("=");
-						actuator = s[1];
-					} else if (queries[j].contains("parameter")) {
-						String[] s = queries.clone()[j].trim().split("=");
-						parameter = s[1];
-					} else if (queries[j].contains("value")) {
-						String[] s = queries.clone()[j].trim().split("=");
-						value = s[1];
-					}
-				}
-				
-				
-				
-			}else if (action[1].contentEquals("upload")) {
-				
-				File file = new File("marker.bmp");
-				this.sendResponse(SimulateSensorResponse.uploadFile(file));
-			} 
-		}
-		
-	}
-	this.sendResponse(SimulateSensorResponse.updateActuator(id,actuator,parameter,value));
-	//MessageService.getInstance().broadcastHttpMessageEvent("InsertDeviceId here", _content);	
 
-}
 
-private void handleGETMethod(String _content) {
-	
-	String[] queries = _content.split("&");
-	
-	for (int i = 0; i < queries.length; i++) {
-		if(queries[i].contains("action")) {
-			String[] action = queries[i].split("=");
-			if (action[1].contentEquals("loadById")) {
-				for (int j = 0; j < queries.length;j++) {
-					if (queries[j].contains("device_id")) {
-						String[] device = queries[j].split("=");
-						this.sendResponse(SimulateSensorResponse.loadById(device[1]));
-					}
-				}
-				
-			} else if (action[1].contentEquals("loadBySpatial")) {
-				String lat = "";
-				String lon = "";
-				int radius = 0;
-				
-				for (int j = 0; j < queries.length;j++) {
-					
-					if (queries[j].contains("lat")) {
-						String[] la = queries[j].split("=");
-						lat = la[1].trim();
-					}
-					if (queries[j].contains("lon")) {
-						String[] lo = queries[j].split("=");
-						lon = lo[1].trim();
-					}
-					if (queries[j].contains("radius")) {
-						String[] rad = queries[j].split("=");
-						radius = Integer.parseInt(rad[1].trim());
-					}
-				}
-				this.sendResponse(SimulateSensorResponse.loadBySpatial(lat,lon,radius));
-			} 
-		}
-	}
-	//MessageService.getInstance().broadcastHttpMessageEvent("InsertDeviceId here", _content);	
 
-}
 
 
 private void handlePUTMethod(String _request) {
@@ -229,6 +155,123 @@ public void onMessageReceived(int _type, Object _msg) {
 	
 }
 
+private class QueryHandler implements Runnable {
+
+	@Override
+	public void run() {
+		while (true) {
+			if (receivedQueries.isEmpty()) continue;
+			Iterator<Integer> i = receivedQueries.keySet().iterator();
+			
+			while (i.hasNext()) {
+				int key = i.next();
+				if (key == StaticResources.HTTP_GET) {
+					handleGETMethod(receivedQueries.get(key));
+				} else if (key == StaticResources.HTTP_POST_FILE) {
+					handlePOSTMethod(receivedQueries.get(key),true);
+				} else if ( key == StaticResources.HTTP_POST_NON_FILE) {
+					handlePOSTMethod(receivedQueries.get(key),false);
+				}
+			}
+		}
+	}
+	
+	private void handleGETMethod(String _content) {
+		
+		String[] queries = _content.split("&");
+		
+		for (int i = 0; i < queries.length; i++) {
+			if(queries[i].contains("action")) {
+				String[] action = queries[i].split("=");
+				if (action[1].contentEquals("loadById")) {
+					for (int j = 0; j < queries.length;j++) {
+						if (queries[j].contains("device_id")) {
+							String[] device = queries[j].split("=");
+							sendResponse(DataStorageService.getInstance().getEntryById(device[1]));
+						}
+					}
+					
+				} else if (action[1].contentEquals("loadBySpatial")) {
+					String lat = "";
+					String lon = "";
+					int radius = 0;
+					
+					for (int j = 0; j < queries.length;j++) {
+						
+						if (queries[j].contains("lat")) {
+							String[] la = queries[j].split("=");
+							lat = la[1].trim();
+						}
+						if (queries[j].contains("lon")) {
+							String[] lo = queries[j].split("=");
+							lon = lo[1].trim();
+						}
+						if (queries[j].contains("radius")) {
+							String[] rad = queries[j].split("=");
+							radius = Integer.parseInt(rad[1].trim());
+						}
+					}
+				
+					sendResponse(DataStorageService.getInstance().getEntriesByParameter(new SpatialQuery(Float.parseFloat(lat),Float.parseFloat(lon),radius,10)));
+				} 
+			}
+		}
+		//header.setSenderAddress(clientSocket.getInetAddress().getHostAddress());
+		//MessageService.getInstance().messageBuffer.put(header, _content); //TODO resolve content
+
+	}
+	
+	private void handlePOSTMethod(String _content, boolean _isFile) {
+		
+		String[] queries = _content.split("&");
+		String id = "";
+		String actuator = "";
+		String parameter = "";
+		String value = "";
+		
+		for (int i = 0; i < queries.length; i++) {
+			
+			if(queries[i].contains("action")) {
+				String[] action = queries[i].split("=");
+				
+				if (action[1].contentEquals("update")) {
+				
+					for (int j = 0; j < queries.length; j++) {
+						
+						if (queries[j].contains("device_id")) {
+							String[] s = queries.clone()[j].trim().split("=");
+							id = s[1];
+						} else if (queries[j].contains("actuator")){
+							String[] s = queries.clone()[j].trim().split("=");
+							actuator = s[1];
+						} else if (queries[j].contains("parameter")) {
+							String[] s = queries.clone()[j].trim().split("=");
+							parameter = s[1];
+						} else if (queries[j].contains("value")) {
+							String[] s = queries.clone()[j].trim().split("=");
+							value = s[1];
+						}
+					}
+					
+					
+					
+				}else if (action[1].contentEquals("upload")) {
+					
+					File file = new File("marker.bmp");
+					sendResponse(SimulateSensorResponse.uploadFile(file));
+				} 
+			}
+			
+		}
+		//this.sendResponse(SimulateSensorResponse.updateActuator(id,actuator,parameter,value));
+		header.setSenderAddress(clientSocket.getInetAddress().getHostAddress());
+		MessageService.getInstance().messageBuffer.put(header, value);
+		
+
+	}
+	
+	
+}
 
 /*
 public void sendResponse (int statusCode, String responseString, boolean isFile) throws Exception {

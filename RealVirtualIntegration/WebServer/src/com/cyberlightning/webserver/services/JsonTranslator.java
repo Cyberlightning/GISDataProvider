@@ -83,6 +83,7 @@ public abstract class JsonTranslator {
 			while (keys.hasNext()) {
 				String key = (String) keys.next();
 				Entity e = new Entity();
+				e.uuid = key;
 				JSONObject content = (JSONObject) entity.get(key);
 				
 				if (content.containsKey("attributes")) {
