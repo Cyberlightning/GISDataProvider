@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class EntityTable implements java.io.Serializable {
 	
-
+	
 	private static final long serialVersionUID = -8536303237731902808L;
 	private Map<RowEntry, Entity> entities = new ConcurrentHashMap<RowEntry, Entity>(); 
 	

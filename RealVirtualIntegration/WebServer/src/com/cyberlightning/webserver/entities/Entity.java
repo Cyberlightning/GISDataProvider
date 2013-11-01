@@ -3,7 +3,11 @@ package com.cyberlightning.webserver.entities;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
-
+/**
+ * 
+ * @author Tomi
+ *
+ */
 public class Entity implements Serializable {
 	
 	/**

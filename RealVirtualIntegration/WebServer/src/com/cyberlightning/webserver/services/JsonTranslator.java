@@ -13,7 +13,11 @@ import com.cyberlightning.webserver.entities.Actuator;
 import com.cyberlightning.webserver.entities.Entity;
 import com.cyberlightning.webserver.entities.Sensor;
 
-
+/**
+ * 
+ * @author Tomi
+ *
+ */
 public abstract class JsonTranslator {
 	
 	/*Sample JSON string from sensors

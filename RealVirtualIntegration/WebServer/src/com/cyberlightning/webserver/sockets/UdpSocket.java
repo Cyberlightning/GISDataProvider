@@ -22,10 +22,17 @@ public class UdpSocket implements Runnable  {
 	protected final String uuid = UUID.randomUUID().toString();
 	public final int type = StaticResources.UDP_RECEIVER;
 	
+	/**
+	 * 
+	 */
 	public UdpSocket () {
 		this(StaticResources.SERVER_PORT_COAP);
 	}
 	
+	/**
+	 * 
+	 * @param _port
+	 */
 	public UdpSocket (int _port) {
 		this.port = _port;
 	}
@@ -62,7 +69,7 @@ public class UdpSocket implements Runnable  {
 				e.printStackTrace();
 			}
     		
-    		MessageService.getInstance().messageBuffer.put(this.uuid, receivedPacket);        
+    		MessageService.getInstance().messageBuffer.put(receivedPacket.getAddress().getHostAddress(), receivedPacket);        
           
 		}
 	}
@@ -72,6 +79,10 @@ public class UdpSocket implements Runnable  {
 		public  Map<String, DatagramPacket> sendBuffer = new ConcurrentHashMap<String, DatagramPacket>(100); 
 		public String uuid;
 		
+		/**
+		 * 
+		 * @param _uuid
+		 */
 		public SendWorker (String _uuid) {
 			this.uuid = _uuid;
 		}

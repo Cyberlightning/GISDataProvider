@@ -83,16 +83,9 @@ public class MessageService implements Runnable  {
 				ArrayList<String> receivers = this.resolveReceivers(key);
 				for (String receiver: receivers) {
 					this.registeredReceivers.get(receiver).onMessageReceived(0, this.messageBuffer.get(key));
-				}
-				 
+				} 
 			}
-			
-			
-		}
-		
+		}	
 	}
-	
-	
 
-	
 }
