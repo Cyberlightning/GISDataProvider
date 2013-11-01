@@ -38,11 +38,17 @@ public class WebSocket implements Runnable  {
 			"Connection: Upgrade\r\n" +
 			"Sec-WebSocket-Accept: ";
 
-			
+	/**
+	 * 		
+	 */
 	public WebSocket () {
 		this(StaticResources.WEB_SOCKET_PORT);
 	}
 	
+	/**
+	 * 
+	 * @param _port
+	 */
 	public WebSocket(int _port) {
 		this.port = _port;
 		this.intialize();
@@ -101,8 +107,12 @@ public class WebSocket implements Runnable  {
 			}
 		
        }
-   }
+	}
 	
+	/**
+	 * 
+	 * @param _socket
+	 */
 	public void removeSocket(Socket _socket) {
 		
 		for (int i = 0; i < this.spawnedThreads.size(); i++) {
@@ -114,6 +124,10 @@ public class WebSocket implements Runnable  {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param _request
+	 */
 	private void parseRequestLine(String _request)  {
 		System.out.println("CLIENT REQUEST: " +_request);
 		if (_request.contains("Sec-WebSocket-Key: ")) {
@@ -121,7 +135,11 @@ public class WebSocket implements Runnable  {
 		} 
 	}
 	
-
+	/**
+	 * 
+	 * @param _secKey
+	 * @return
+	 */
 	private String generateSecurityKeyAccept (String _secKey) {
 		
 		try {

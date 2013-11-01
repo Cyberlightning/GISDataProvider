@@ -18,7 +18,11 @@ import com.cyberlightning.webserver.entities.EntityTable;
 import com.cyberlightning.webserver.entities.RowEntry;
 import com.cyberlightning.webserver.entities.SpatialQuery;
 
-
+/**
+ * 
+ * @author Tomi
+ *
+ */
 public class DataStorageService implements Runnable {
 	
 	private static final DataStorageService _serilizationService = new DataStorageService();
@@ -33,6 +37,9 @@ public class DataStorageService implements Runnable {
 		return _serilizationService;
 	}
 	
+	/**
+	 * 
+	 */
 	public void intializeData() {
 		
 		try {
@@ -52,6 +59,11 @@ public class DataStorageService implements Runnable {
 	      } 
 	}
 	
+	/**
+	 * 
+	 * @param _data
+	 * @throws UnsupportedEncodingException
+	 */
 	public void addEntry (DatagramPacket _data) throws UnsupportedEncodingException {
 		ArrayList<Entity> entities = JsonTranslator.decodeSensorJson(new String(_data.getData(),"utf8"));
 		for (Entity entity : entities) {
@@ -62,7 +74,11 @@ public class DataStorageService implements Runnable {
 			this.entityTable.addEntity(entry,entity);
 		}
 	}
-	
+	/**
+	 * 
+	 * @param _uuid
+	 * @return
+	 */
 	public String getEntryById(String _uuid) {
 		
 		String jsonString = null;
@@ -76,6 +92,11 @@ public class DataStorageService implements Runnable {
 		return jsonString;
 	}
 	
+	/**
+	 * 
+	 * @param _query
+	 * @return
+	 */
 	public String getEntriesByParameter(SpatialQuery _query) {
 		
 		
@@ -97,14 +118,18 @@ public class DataStorageService implements Runnable {
 	      }
 	}
 	
-	
-	@Override
-	public void run() {
-		this.intializeData();
+	private void testMethod() {
 		String s = "{\"550e8400-e29b-41d4-a716-446655440111\":{\"550e8400-e29b-41d4-a716-446655440000\":{\"attributes\":{\"name\":\"Power wall outlet\",\"address\":null},\"actuators\":[{\"uuid\":null,\"attributes\":{\"type\":\"power_switch\"},\"parameters\":{\"callback\":false},\"variables\": [{\"relay\":false, \"type\": \"boolean\" }]}],\"sensors\":[{\"uuid\":null,\"attributes\":{\"type\":\"Power sensor\"},\"parameters\":{\"options\":null},\"values\": [{\"value\": 13,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"}]}]}}}";
 		byte[] b = s.getBytes();
 		DatagramPacket d = new DatagramPacket(b, b.length);
 		this.eventBuffer.put("test", d);
+	}
+	
+	@Override
+	public void run() {
+		this.intializeData();
+		
+		testMethod();
 		
 		while(true) {
 			if (eventBuffer.isEmpty()) continue;

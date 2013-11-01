@@ -1,42 +1,46 @@
 package com.cyberlightning.webserver.entities;
 
+import java.net.InetAddress;
+import java.util.ArrayList;
+/**
+ * 
+ * @author Tomi
+ *
+ */
 public class MessageHeader {
 	
-	public String senderUuid;
-	public int origin;
-	public int target;
-	private String senderAddress;
-	private int senderPort;
+	private ArrayList<String> targetUUIDs = new ArrayList<String>();
+	private InetAddress origin;
 
-	
-	public MessageHeader (String _senderUuid, int _origin ) {
-		this.senderUuid = _senderUuid;
+
+	/**
+	 * 
+	 * @param _senderUuid
+	 * @param _origin
+	 */
+	public MessageHeader (String _senderUuid, InetAddress _origin ) {
+		this.targetUUIDs.add(_senderUuid);
 		this.origin = _origin;
 		
 	}
-	
-	public MessageHeader (String _senderUuid, int _origin, int _target) {
-		this.target = _target;
-		this.senderUuid = _senderUuid;
+	/**
+	 * 
+	 * @param _senderUuid
+	 * @param _origin
+	 */
+	public MessageHeader (String[] _senderUuid, InetAddress _origin) {
+		for (String uuid : _senderUuid) {
+			this.targetUUIDs.add(uuid);
+		}
 		this.origin = _origin;
 	}
-
-	public String getSenderAddress() {
-		return senderAddress;
-	}
-
-	public void setSenderAddress(String senderAddress) {
-		this.senderAddress = senderAddress;
-	}
-
-	public int getSenderPort() {
-		return senderPort;
-	}
-
-	public void setSenderPort(int senderPort) {
-		this.senderPort = senderPort;
+	
+	public ArrayList<String> getTargetUUids () {
+		return this.targetUUIDs;
 	}
 	
-	
+	public InetAddress getOriginAddress () {
+		return this.origin;
+	}
 	
 }

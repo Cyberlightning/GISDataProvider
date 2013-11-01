@@ -62,7 +62,7 @@ public class UdpSocket implements Runnable  {
 				e.printStackTrace();
 			}
     		
-    		MessageService.getInstance().messageBuffer.put(new MessageHeader(this.uuid,this.type), receivedPacket);        
+    		MessageService.getInstance().messageBuffer.put(this.uuid, receivedPacket);        
           
 		}
 	}

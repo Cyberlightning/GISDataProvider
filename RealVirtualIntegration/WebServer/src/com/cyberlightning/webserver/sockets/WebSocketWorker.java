@@ -1,5 +1,6 @@
 package com.cyberlightning.webserver.sockets;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -11,7 +12,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.cyberlightning.webserver.StaticResources;
-import com.cyberlightning.webserver.entities.MessageHeader;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.services.MessageService;
 
@@ -28,13 +28,20 @@ public class WebSocketWorker implements Runnable {
 	public final String uuid = UUID.randomUUID().toString();
 	public final int type =  StaticResources.TCP_CLIENT;
 
-		
+	/**
+	 * 	
+	 * @param _parent
+	 * @param _client
+	 */
 	public WebSocketWorker (WebSocket _parent, Socket _client) {
 		this.clientSocket = _client;
 		this.parent = _parent;
 		this.initialize();
 	}
 	
+	/**
+	 * 
+	 */
 	private void initialize() {
 		try {
 			this.input = this.clientSocket.getInputStream();
@@ -68,7 +75,7 @@ public class WebSocketWorker implements Runnable {
 				    
 				    if (opcode != 8) { 
 				    	 
-				    	MessageService.getInstance().messageBuffer.put(new MessageHeader(this.uuid,this.type), read()); 
+				    	handleClientMessage(read());
 				    	 
 				    } else {
 				    	 
@@ -107,6 +114,57 @@ public class WebSocketWorker implements Runnable {
 		
 	}
 	
+	/**
+	 * 
+	 * @param _msg
+	 */
+	private void handleClientMessage(String _msg) { //TODO design post method options
+		
+		String[] queries = _msg.split("&");
+		String id = "";
+		String actuator = "";
+		String parameter = "";
+		String value = "";
+			
+		for (int i = 0; i < queries.length; i++) {
+				
+			if(queries[i].contains("action")) {
+				String[] action = queries[i].split("=");
+					
+				if (action[1].contentEquals("update")) {
+					
+					for (int j = 0; j < queries.length; j++) {
+							
+						if (queries[j].contains("device_id")) {
+							String[] s = queries.clone()[j].trim().split("=");
+							id = s[1];
+						} else if (queries[j].contains("actuator")){
+							String[] s = queries.clone()[j].trim().split("=");
+							actuator = s[1];
+						} else if (queries[j].contains("parameter")) {
+							String[] s = queries.clone()[j].trim().split("=");
+							parameter = s[1];
+						} else if (queries[j].contains("value")) {
+							String[] s = queries.clone()[j].trim().split("=");
+							value = s[1];
+						}
+					}
+	
+					}else if (action[1].contentEquals("upload")) {
+						
+						File file = new File("marker.bmp");
+						//sendResponse(SimulateSensorResponse.uploadFile(file));
+					} 
+				}
+				
+			}
+				
+			MessageService.getInstance().messageBuffer.put(id, value);
+	}
+	
+	/**
+	 * 
+	 */
 	private void closeSocketGracefully() {
 		try {
 			
@@ -122,6 +180,11 @@ public class WebSocketWorker implements Runnable {
 		
 	}
 	
+	/**
+	 * 
+	 * @param b
+	 * @throws IOException
+	 */
 	private void readFully(byte[] b) throws IOException {  
         
         int readen = 0;  
@@ -132,8 +195,13 @@ public class WebSocketWorker implements Runnable {
                 break;  
             readen+=r;  
         }  
-    }  
-      
+    } 
+	
+    /**
+     *  
+     * @return
+     * @throws Exception
+     */
     private String read() throws Exception {  
           
         int len = this.input.read();  
@@ -167,8 +235,13 @@ public class WebSocketWorker implements Runnable {
         }  
           
         return new String(frame, "UTF8");  
-    }  
-
+    }
+    
+    /**
+     * 
+     * @author Tomi
+     *
+     */
 	private class SendWorker implements Runnable,IMessageEvent {
 		
 		
@@ -208,7 +281,11 @@ public class WebSocketWorker implements Runnable {
 			MessageService.getInstance().unregisterReceiver(uuid);
 		}
 		
-
+		/**
+		 * 
+		 * @param message
+		 * @throws Exception
+		 */
 		private void send(String message) throws Exception {  
 	          
 	        byte[] utf = message.getBytes("UTF8");  
@@ -233,7 +310,9 @@ public class WebSocketWorker implements Runnable {
 	        output.write(utf);
 
 	    }  
-		
+		/**
+		 * 		
+		 */
 		@Override
 		public void onMessageReceived(int _type, Object _msg) {
 			((ConcurrentHashMap<Integer, Object>) this.sendBuffer).putIfAbsent(_type, _msg);

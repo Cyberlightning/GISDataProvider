@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.util.UUID;
 
-import com.cyberlightning.webserver.SimulateSensorResponse;
 import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.entities.MessageHeader;
 import com.cyberlightning.webserver.entities.SpatialQuery;
@@ -19,14 +18,16 @@ import com.cyberlightning.webserver.services.MessageService;
 public class HttpSocketWorker implements Runnable,IMessageEvent {
 
 	private DataOutputStream output;
-	private MessageHeader header;
 	private Socket clientSocket;
 	
 	private volatile boolean isConnected = true;
 	public final String uuid = UUID.randomUUID().toString();
 	public final int type = StaticResources.HTTP_CLIENT;
 	
-	
+	/**
+	 * 
+	 * @param _socket
+	 */
 	public HttpSocketWorker(Socket _socket) {
 		this.clientSocket = _socket;
 		MessageService.getInstance().registerReceiver(this,this.uuid);
@@ -84,7 +85,10 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 		}
 		return; //Exit thread
 	}
-
+	/**
+	 * 
+	 * @param _content
+	 */
 	private void sendResponse(String _content) {
 		
 		String statusLine = "HTTP/1.1 200 OK" + "\r\n";
@@ -110,19 +114,33 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 		}
 		
 	}
-
+	
+	/**
+	 * 
+	 * @param _request
+	 */
 	private void handlePUTMethod(String _request) {
 		//TODO handPUTMethod
 	}
-
+	
+	/**
+	 * 
+	 * @param _request
+	 */
 	private void handleDELETEMethod(String _request) {
 		//TODO handDELETEMethod
 	}
+	
 	@Override
 	public void onMessageReceived(int _type, Object _msg) {
 		// TODO Auto-generated method stub
 		
 	}
+	
+	/**
+	 * 
+	 * @param _content
+	 */
 	private void handleGETMethod(String _content) {
 		
 		String[] queries = _content.split("&");
@@ -163,11 +181,13 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 				} 
 			}
 		}
-		//header.setSenderAddress(clientSocket.getInetAddress().getHostAddress());
-		//MessageService.getInstance().messageBuffer.put(header, _content); //TODO resolve content
-
 	}
-
+	
+	/**
+	 * 
+	 * @param _content
+	 * @param _isFile
+	 */
 	private void handlePOSTMethod(String _content, boolean _isFile) {
 		
 		String[] queries = _content.split("&");
@@ -205,14 +225,14 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 				}else if (action[1].contentEquals("upload")) {
 					
 					File file = new File("marker.bmp");
-					sendResponse(SimulateSensorResponse.uploadFile(file));
+					//sendResponse(SimulateSensorResponse.uploadFile(file));
 				} 
 			}
 			
 		}
-		//this.sendResponse(SimulateSensorResponse.updateActuator(id,actuator,parameter,value));
-		header.setSenderAddress(clientSocket.getInetAddress().getHostAddress());
-		MessageService.getInstance().messageBuffer.put(header, value);
+		
+		
+		//MessageService.getInstance().messageBuffer.put(new MessageHeader());
 		
 
 	}
