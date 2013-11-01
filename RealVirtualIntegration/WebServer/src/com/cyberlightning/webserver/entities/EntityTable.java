@@ -1,19 +1,15 @@
 package com.cyberlightning.webserver.entities;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+
 public class EntityTable implements java.io.Serializable {
 	
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -8536303237731902808L;
-	//private HashMap<String,Entity> entities = new HashMap<Integer,Entity>();
-	private Map<String, Entity> entities = new ConcurrentHashMap<String, Entity>(); 
-	
+	private Map<RowEntry, Entity> entities = new ConcurrentHashMap<RowEntry, Entity>(); 
 	
 	public boolean hasEntity(String _uuid) {
 		
@@ -22,12 +18,33 @@ public class EntityTable implements java.io.Serializable {
 		} else {
 			return false;
 		}
+	}
+	
+	public void addEntity(RowEntry _entry, Entity _entity) {
+		Iterator<RowEntry> rows = this.entities.keySet().iterator();
+		while (rows.hasNext()) {
+			RowEntry row = rows.next();
+			if (_entry.entityUUID.contentEquals(row.entityUUID)) {
+				_entity = updateValues(this.entities.get(row), _entity);
+				this.entities.remove(row);
+				this.entities.put(_entry, _entity);
+			} else {
+				this.entities.put(_entry, _entity);
+			}
+		}
 		
 	}
 	
-	public void addEntity(Entity _entity) {
-		//if (this.entities == null) this.entities = new ConcurrentHashMap<String, Entity>();
-		this.entities.put(_entity.uuid, _entity);
+	private Entity updateValues(Entity _old, Entity _new) {
+		for (Sensor sensor: _new.sensors) {
+			for (int i = 0; i < sensor.values.size(); i++) {
+				_old.sensors.get(_old.sensors.indexOf(sensor)).values.add(sensor.values.get(i));
+				String key = sensor.values.get(i).keySet().iterator().next();
+				_old.history.put(key,sensor.values.get(i).get(key));
+			}
+			
+		}
+		return _old;
 	}
 	
 	public void removeEntity(Entity _entity) {

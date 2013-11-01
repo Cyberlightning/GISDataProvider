@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.entities.Entity;
 import com.cyberlightning.webserver.entities.EntityTable;
+import com.cyberlightning.webserver.entities.RowEntry;
 import com.cyberlightning.webserver.entities.SpatialQuery;
 
 
@@ -52,10 +53,14 @@ public class DataStorageService implements Runnable {
 	      } 
 	}
 	
-	public void addEntry (String _uuid, DatagramPacket _data) throws UnsupportedEncodingException {
+	public void addEntry (DatagramPacket _data) throws UnsupportedEncodingException {
 		ArrayList<Entity> entities = JsonTranslator.decodeSensorJson(new String(_data.getData(),"utf8"));
 		for (Entity entity : entities) {
-			this.entityTable.addEntity(entity);
+			RowEntry entry = new RowEntry(StaticResources.getTimeStamp());
+			if (entity.uuid != null) entry.entityUUID = entity.uuid;
+			if (entity.attributes.containsKey("address")) entry.address = (String) entity.attributes.get("address");
+			entry.contextUUID = entity.contextUUID;
+			this.entityTable.addEntity(entry,entity);
 		}
 	}
 	
@@ -73,6 +78,7 @@ public class DataStorageService implements Runnable {
 	}
 	
 	public String getEntriesByParameter(SpatialQuery _query) {
+		
 		
 		return null;
 		
@@ -103,7 +109,7 @@ public class DataStorageService implements Runnable {
 			while (i.hasNext()) {
 				String key = i.next();
 				try {
-					this.addEntry(key, this.eventBuffer.get(key));
+					this.addEntry(this.eventBuffer.get(key));
 				} catch (UnsupportedEncodingException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

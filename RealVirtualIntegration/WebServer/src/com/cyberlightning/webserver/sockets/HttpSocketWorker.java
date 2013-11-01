@@ -6,9 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.cyberlightning.webserver.SimulateSensorResponse;
 import com.cyberlightning.webserver.StaticResources;
@@ -22,7 +20,6 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 
 	private DataOutputStream output;
 	private MessageHeader header;
-	private Map<Integer, String> receivedQueries = new ConcurrentHashMap<Integer, String>(); 
 	private Socket clientSocket;
 	
 	private volatile boolean isConnected = true;
@@ -105,6 +102,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 			this.output.writeBytes(contentLine);
 
 			this.output.close(); //client connection will be kept alive untill response is send
+			MessageService.getInstance().unregisterReceiver(this.uuid);
 			this.isConnected = false;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -219,67 +217,6 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 
 	}
 
-	/*
-	public void sendResponse (int statusCode, String responseString, boolean isFile) throws Exception {
 
-		String statusLine = null;
-		String serverdetails = StaticResources.SERVER_DETAILS;
-		String contentLengthLine = null;
-		String fileName = null;
-		String contentTypeLine = "Content-Type: text/html" + "\r\n";
-		FileInputStream fin = null;
-
-		if (statusCode == 200)
-			statusLine = "HTTP/1.1 200 OK" + "\r\n";
-		else
-			statusLine = "HTTP/1.1 404 Not Found" + "\r\n";
-
-		if (isFile) {
-			fileName = responseString;
-			fin = new FileInputStream(fileName);
-			contentLengthLine = "Content-Length: " + Integer.toString(fin.available()) + "\r\n";
-			if (!fileName.endsWith(".htm") && !fileName.endsWith(".html"))
-				contentTypeLine = "Content-Type: \r\n";
-		} else {
-			contentLengthLine = "Content-Length: " + responseString.length() + "\r\n";
-		}
-
-		this.output.writeBytes(statusLine);
-		this.output.writeBytes(serverdetails);
-		this.output.writeBytes(contentTypeLine);
-		this.output.writeBytes(contentLengthLine);
-		this.output.writeBytes("Connection: close\r\n");
-		this.output.writeBytes("\r\n");
-
-		if (isFile) {
-			sendFile(fin, this.output);
-		}
-		else {
-			this.output.writeBytes(responseString);
-		}
-		
-		this.output.close();
-	}
-
-	public void sendFile (FileInputStream fin, DataOutputStream out) throws Exception {
-		
-		byte[] buffer = new byte[1024] ;
-		int bytesRead;
-
-		while ((bytesRead = fin.read(buffer)) != -1 ) {
-			out.write(buffer, 0, bytesRead);
-		}
-
-		fin.close();
-	}
-	*/
-
-
-
-
-
-	
-	
-	
 }
 

@@ -18,7 +18,8 @@ public abstract class JsonTranslator {
 	
 	/*Sample JSON string from sensors
 	 * 
-	 * {
+	 * {"550e8400-e29b-41d4-a716-446655440000" :
+	 *  {
 	    "550e8400-e29b-41d4-a716-446655440000": {
 	        "attributes": {
 	            "name": "Power wall outlet",
@@ -65,6 +66,7 @@ public abstract class JsonTranslator {
 	            }
 	        ]
 	    }
+	 }
 	}*/
 	
 	
@@ -78,11 +80,14 @@ public abstract class JsonTranslator {
 		JSONObject entity;
 		
 		try {
-			entity = (JSONObject) parser.parse(_jsonString);
+			JSONObject context = (JSONObject) parser.parse(_jsonString);
+			String contextUUID = (String) context.keySet().iterator().next();
+			entity = (JSONObject) context.get(contextUUID);
 			Iterator<?> keys = entity.keySet().iterator();
 			while (keys.hasNext()) {
 				String key = (String) keys.next();
 				Entity e = new Entity();
+				e.contextUUID = contextUUID; 
 				e.uuid = key;
 				JSONObject content = (JSONObject) entity.get(key);
 				
