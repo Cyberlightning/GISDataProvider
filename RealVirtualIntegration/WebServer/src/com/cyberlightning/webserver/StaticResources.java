@@ -45,7 +45,7 @@ public abstract class StaticResources {
 	public static final int ACTIVITY_DURATION = 300; // in seconds
 	public static final int WEB_SOCKET_PORT = 44445; 
 	
-	public static final int MAX_CONNECTED_CLIENTS = 10;
+	public static final int MAX_CONNECTED_CLIENTS = 50;
 	
 	public static final int MAX_NUM_OF_THREADS = 7;
 	
