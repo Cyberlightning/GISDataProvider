@@ -1,5 +1,7 @@
 package com.cyberlightning.webserver.entities;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,28 +23,47 @@ public class EntityTable implements java.io.Serializable {
 	}
 	
 	public void addEntity(RowEntry _entry, Entity _entity) {
-		Iterator<RowEntry> rows = this.entities.keySet().iterator();
-		while (rows.hasNext()) {
-			RowEntry row = rows.next();
-			if (_entry.entityUUID.contentEquals(row.entityUUID)) {
-				_entity = updateValues(this.entities.get(row), _entity);
-				this.entities.remove(row);
-				this.entities.put(_entry, _entity);
-			} else {
-				this.entities.put(_entry, _entity);
-			}
-		}
 		
+		if (!this.entities.isEmpty()) {
+			Iterator<RowEntry> rows = this.entities.keySet().iterator();
+			while (rows.hasNext()) {
+				RowEntry row = rows.next();
+				if (_entry.entityUUID.contentEquals(row.entityUUID)) {
+					_entity = updateValues(this.entities.get(row), _entity);
+					this.entities.remove(row);
+					this.entities.put(_entry, _entity);
+				} else {
+					this.entities.put(_entry, _entity);
+				}
+			}
+		} else {
+			this.entities.put(_entry, _entity);
+		}
 	}
 	
 	private Entity updateValues(Entity _old, Entity _new) {
 		for (Sensor sensor: _new.sensors) {
-			for (int i = 0; i < sensor.values.size(); i++) {
-				_old.sensors.get(_old.sensors.indexOf(sensor)).values.add(sensor.values.get(i));
-				String key = sensor.values.get(i).keySet().iterator().next();
-				_old.history.put(key,sensor.values.get(i).get(key));
+			if(sensor.values != null) {
+				ArrayList<HashMap<String,Object>> values = sensor.values;
+				for(Sensor oldSensor : _old.sensors) {
+					if (oldSensor.uuid != null || sensor.uuid != null) {
+						if (oldSensor.uuid.contentEquals(sensor.uuid)) {
+							for (HashMap<String,Object> value: values) {
+								oldSensor.values.add(value);
+							}
+						}
+					} else {
+						if (((String)oldSensor.attributes.get("type")).contentEquals((String)sensor.attributes.get("type"))) {
+							for (HashMap<String,Object> value: values) {
+								oldSensor.values.add(value);
+							}
+						} else {
+							// store in general entity history?
+						}
+					}
+					
+				}	
 			}
-			
 		}
 		return _old;
 	}

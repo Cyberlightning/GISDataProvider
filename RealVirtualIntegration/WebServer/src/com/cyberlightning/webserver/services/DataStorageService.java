@@ -36,7 +36,6 @@ public class DataStorageService implements Runnable {
 	public void intializeData() {
 		
 		try {
-			
 	    	 FileInputStream fileIn = new FileInputStream(StaticResources.DATABASE_FILE_PATH);
 	         ObjectInputStream in = new ObjectInputStream(fileIn);
 	         this.entityTable = (EntityTable) in.readObject();
@@ -102,6 +101,10 @@ public class DataStorageService implements Runnable {
 	@Override
 	public void run() {
 		this.intializeData();
+		String s = "{\"550e8400-e29b-41d4-a716-446655440111\":{\"550e8400-e29b-41d4-a716-446655440000\":{\"attributes\":{\"name\":\"Power wall outlet\",\"address\":null},\"actuators\":[{\"uuid\":null,\"attributes\":{\"type\":\"power_switch\"},\"parameters\":{\"callback\":false},\"variables\": [{\"relay\":false, \"type\": \"boolean\" }]}],\"sensors\":[{\"uuid\":null,\"attributes\":{\"type\":\"Power sensor\"},\"parameters\":{\"options\":null},\"values\": [{\"value\": 13,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"}]}]}}}";
+		byte[] b = s.getBytes();
+		DatagramPacket d = new DatagramPacket(b, b.length);
+		this.eventBuffer.put("test", d);
 		
 		while(true) {
 			if (eventBuffer.isEmpty()) continue;
@@ -110,6 +113,8 @@ public class DataStorageService implements Runnable {
 				String key = i.next();
 				try {
 					this.addEntry(this.eventBuffer.get(key));
+					this.eventBuffer.remove(key);
+					this.saveData();
 				} catch (UnsupportedEncodingException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

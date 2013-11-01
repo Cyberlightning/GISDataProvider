@@ -16,5 +16,6 @@ public class Entity implements Serializable {
 	public HashMap<String,Object> attributes = new HashMap<String,Object>();
 	public ArrayList<Sensor> sensors = new ArrayList<Sensor>();
 	public ArrayList<Actuator> actuators = new ArrayList<Actuator>();
+	public float[] gps;
 	
 }
