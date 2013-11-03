@@ -23,6 +23,7 @@ import org.apache.commons.codec.binary.Base64;
 
 import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
+import com.cyberlightning.webserver.services.DataStorageService;
 import com.cyberlightning.webserver.services.MessageService;
 
 public class WebSocketWorker implements Runnable {
@@ -209,8 +210,9 @@ public class WebSocketWorker implements Runnable {
 				}
 				
 			}
-				
-			MessageService.getInstance().messageBuffer.add(new MessageObject(this.uuid,StaticResources.TCP_CLIENT,this.clientSocket.getInetAddress().getHostAddress(),_msg));
+			String[] targetUUIDs = new String[1];
+			targetUUIDs[0] = id;
+			MessageService.getInstance().messageBuffer.add(new MessageObject(this.uuid,StaticResources.TCP_CLIENT,DataStorageService.getInstance().resolveBaseStationAddresses(targetUUIDs),_msg));
 	}
 	
 	/**

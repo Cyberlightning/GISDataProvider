@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -28,7 +29,8 @@ import com.cyberlightning.webserver.entities.SpatialQuery;
 public class DataStorageService implements Runnable {
 	
 	private static final DataStorageService _serilizationService = new DataStorageService();
-	public  Map<String, DatagramPacket> eventBuffer= new ConcurrentHashMap<String, DatagramPacket>(); 
+	public Map<String, DatagramPacket> eventBuffer= new ConcurrentHashMap<String, DatagramPacket>(); 
+	public Map<String, InetSocketAddress> baseStationReferences= new ConcurrentHashMap<String, InetSocketAddress>(); 
 	private EntityTable entityTable = new EntityTable();
 	
 	private DataStorageService() {
@@ -42,14 +44,21 @@ public class DataStorageService implements Runnable {
 	/**
 	 * 
 	 */
+	@SuppressWarnings("unchecked")
 	public void intializeData() {
 		
 		try {
-	    	 FileInputStream fileIn = new FileInputStream(StaticResources.DATABASE_FILE_PATH);
-	         ObjectInputStream in = new ObjectInputStream(fileIn);
-	         this.entityTable = (EntityTable) in.readObject();
-	         in.close();
-	         fileIn.close();
+	    	 FileInputStream data = new FileInputStream(StaticResources.DATABASE_FILE_NAME);
+	         ObjectInputStream dataIn = new ObjectInputStream(data);
+	         this.entityTable = (EntityTable)dataIn.readObject();
+	         dataIn.close();
+	         data.close();
+	        
+	         FileInputStream ref = new FileInputStream(StaticResources.REFERENCE_TABLE_FILE_NAME);
+	         ObjectInputStream refIn = new ObjectInputStream(ref);
+	         this.baseStationReferences = (Map<String, InetSocketAddress>) refIn.readObject();
+	         refIn.close();
+	         ref.close();
 	         
 	      } catch (IOException i) {
 	         i.printStackTrace();
@@ -68,13 +77,19 @@ public class DataStorageService implements Runnable {
 	 */
 	public void addEntry (DatagramPacket _data) throws UnsupportedEncodingException {
 		ArrayList<Entity> entities = JsonTranslator.decodeSensorJson(new String(_data.getData(),"utf8"));
+		String contextUUID = null;
 		for (Entity entity : entities) {
 			RowEntry entry = new RowEntry(StaticResources.getTimeStamp());
 			if (entity.uuid != null) entry.entityUUID = entity.uuid;
 			if (entity.attributes.containsKey("address")) entry.address = (String) entity.attributes.get("address");
 			entry.contextUUID = entity.contextUUID;
 			this.entityTable.addEntity(entry,entity);
+			
+			if (contextUUID !=null) continue;
+			contextUUID = entity.contextUUID;
+			this.baseStationReferences.put(contextUUID, (InetSocketAddress)_data.getSocketAddress());
 		}
+		
 	}
 	/**
 	 * 
@@ -105,47 +120,35 @@ public class DataStorageService implements Runnable {
 		return null;
 		
 	}
-	
-	private byte[] resolveByteAddress (String _hostName) {
-		
-		String[] bytes = _hostName.split(".");
-		byte[] address = new byte[bytes.length];
-		for (int i = 0; i < bytes.length; i++) {
-			address[i] = Byte.parseByte(bytes[i]);
-		}
-		
-		return address;
-	}
-	
-	public ArrayList<InetAddress> resolveAddressesByIds(String[] _uuids) {
-		ArrayList<InetAddress> addresses = new ArrayList<InetAddress>();
+	/**
+	 * 
+	 * @param _uuids
+	 * @return
+	 */
+	public ArrayList<InetSocketAddress> resolveBaseStationAddresses(String[] _uuids) {
+		ArrayList<InetSocketAddress> addresses = new ArrayList<InetSocketAddress>();
 		
 		for(String uuid : _uuids) {
 			if (entityTable.hasEntity(uuid)) {
 				Entity e = entityTable.getEntity(uuid);
-				if (e.attributes.containsKey("address") ) {
-					try {
-						addresses.add(InetAddress.getByAddress(this.resolveByteAddress((String)e.attributes.get("address"))));
-					} catch (UnknownHostException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-				}
+				if (this.baseStationReferences.containsKey(e.contextUUID) && !addresses.contains(this.baseStationReferences.get(e.contextUUID))) {
+					addresses.add(this.baseStationReferences.get(e.contextUUID));
+				} 
 			}
 		}
-		return null;
-		
+		return addresses;
 	}
 	
-	public void saveData () {
+
+	private void saveData (Object _object, String _fileName) {
 		 
 		try {
-	         FileOutputStream fileOut =  new FileOutputStream(StaticResources.DATABASE_FILE_PATH);
+	         FileOutputStream fileOut =  new FileOutputStream(_fileName);
 	         ObjectOutputStream out = new ObjectOutputStream(fileOut);
-	         out.writeObject(this.entityTable);
+	         out.writeObject(_object);
 	         out.close();
 	         fileOut.close();
-	         System.out.println("Serialized data is saved in " + StaticResources.DATABASE_FILE_PATH);
+	         System.out.println("Serialized data is saved in " + _fileName);
 	      } catch(IOException i) {
 	          i.printStackTrace();
 	      }
@@ -158,11 +161,12 @@ public class DataStorageService implements Runnable {
 		this.eventBuffer.put("test", d);
 	}
 	
+
+	
 	@Override
 	public void run() {
 		this.intializeData();
-		
-		//testMethod();
+	
 		
 		while(true) {
 			if (eventBuffer.isEmpty()) continue;
@@ -172,7 +176,8 @@ public class DataStorageService implements Runnable {
 				try {
 					this.addEntry(this.eventBuffer.get(key));
 					this.eventBuffer.remove(key);
-					this.saveData();
+					this.saveData(this.entityTable,StaticResources.DATABASE_FILE_NAME);
+					this.saveData(this.baseStationReferences, StaticResources.REFERENCE_TABLE_FILE_NAME);
 				} catch (UnsupportedEncodingException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

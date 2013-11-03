@@ -232,8 +232,8 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 		
 		String[] targetUUIDs = new String[1];
 		targetUUIDs[0] = id;
-		;
-		MessageService.getInstance().messageBuffer.add(new MessageObject(this.uuid,StaticResources.HTTP_CLIENT,DataStorageService.getInstance().resolveAddressesByIds(targetUUIDs),_content));
+		
+		MessageService.getInstance().messageBuffer.add(new MessageObject(this.uuid,StaticResources.HTTP_CLIENT,DataStorageService.getInstance().resolveBaseStationAddresses(targetUUIDs),_content));
 		
 
 	}

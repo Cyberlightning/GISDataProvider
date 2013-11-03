@@ -38,7 +38,7 @@ public abstract class StaticResources {
 	public static final int UDP_PACKET_SIZE = 1024;
 	
 	public static final int SERVER_PORT_COAP = 61616; //default compressed UDP port space defined in [RFC4944]
-
+	public static final int DEFAULT_COAP_PORT = 5683;
 	public static final int SERVER_PORT = 44446;
 	public static final String LOCAL_HOST = "127.0.0.1";
 	public static final String SERVER_DETAILS = "Cyberlightning Web Server";
@@ -55,7 +55,9 @@ public abstract class StaticResources {
 	public static final String CLIENT_DISCONNECTED = " disconnected, socket shutdown gracefully";
 	public static final String CLIENT_CONNECTED = " connected, connection established";
 	
-	public static final String DATABASE_FILE_PATH = "deviceDB.ser";
+	public static final String DATABASE_FILE_NAME = "deviceDB.ser";
+	public static final String REFERENCE_TABLE_FILE_NAME = "BaseStationRefernceDB.ser";
+	
 	
 	public static final int DEFAULT_NUM_OF_ENTRIES = 10000;
 	
