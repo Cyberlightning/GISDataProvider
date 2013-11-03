@@ -44,6 +44,7 @@ public abstract class StaticResources {
 	public static final String SERVER_DETAILS = "Cyberlightning Web Server";
 	public static final int ACTIVITY_DURATION = 300; // in seconds
 	public static final int WEB_SOCKET_PORT = 44445; 
+	public static final int DEFAULT_BASESTATION_PORT = 45454;
 	
 	public static final int MAX_CONNECTED_CLIENTS = 50;
 	

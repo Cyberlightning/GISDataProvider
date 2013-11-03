@@ -7,6 +7,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
@@ -104,6 +106,37 @@ public class DataStorageService implements Runnable {
 		
 	}
 	
+	private byte[] resolveByteAddress (String _hostName) {
+		
+		String[] bytes = _hostName.split(".");
+		byte[] address = new byte[bytes.length];
+		for (int i = 0; i < bytes.length; i++) {
+			address[i] = Byte.parseByte(bytes[i]);
+		}
+		
+		return address;
+	}
+	
+	public ArrayList<InetAddress> resolveAddressesByIds(String[] _uuids) {
+		ArrayList<InetAddress> addresses = new ArrayList<InetAddress>();
+		
+		for(String uuid : _uuids) {
+			if (entityTable.hasEntity(uuid)) {
+				Entity e = entityTable.getEntity(uuid);
+				if (e.attributes.containsKey("address") ) {
+					try {
+						addresses.add(InetAddress.getByAddress(this.resolveByteAddress((String)e.attributes.get("address"))));
+					} catch (UnknownHostException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+			}
+		}
+		return null;
+		
+	}
+	
 	public void saveData () {
 		 
 		try {
@@ -129,7 +162,7 @@ public class DataStorageService implements Runnable {
 	public void run() {
 		this.intializeData();
 		
-		testMethod();
+		//testMethod();
 		
 		while(true) {
 			if (eventBuffer.isEmpty()) continue;

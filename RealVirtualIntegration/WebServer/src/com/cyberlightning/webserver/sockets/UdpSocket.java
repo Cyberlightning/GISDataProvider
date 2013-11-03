@@ -3,20 +3,25 @@ package com.cyberlightning.webserver.sockets;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.cyberlightning.webserver.StaticResources;
-import com.cyberlightning.webserver.entities.MessageHeader;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.services.MessageService;
 
 public class UdpSocket implements Runnable  {
 	
 	private DatagramSocket serverSocket;
+	private Map<String,DatagramPacket> deviceLookUpTable = new ConcurrentHashMap<String,DatagramPacket>();
 	private int port;
 	
 	protected final String uuid = UUID.randomUUID().toString();
@@ -58,7 +63,7 @@ public class UdpSocket implements Runnable  {
         	
         	byte[] receivedData = new byte[StaticResources.UDP_PACKET_SIZE];
     		DatagramPacket receivedPacket = new DatagramPacket(receivedData, receivedData.length);
-        	
+        	testMethod();
     		try {
         		
 				serverSocket.receive(receivedPacket);
@@ -68,15 +73,30 @@ public class UdpSocket implements Runnable  {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-    		
-    		MessageService.getInstance().messageBuffer.put(receivedPacket.getAddress().getHostAddress(), receivedPacket);        
+    		this.deviceLookUpTable.put(receivedPacket.getAddress().getHostAddress(), receivedPacket);
+    		MessageService.getInstance().messageBuffer.add(new MessageObject(this.uuid,StaticResources.UDP_RECEIVER, receivedPacket));        
           
 		}
+	}
+	private void testMethod() {
+		
+			String s = "{\"550e8400-e29b-41d4-a716-446655440111\":{\"550e8400-e29b-41d4-a716-446655440000\":{\"attributes\":{\"name\":\"Power wall outlet\",\"address\":null},\"actuators\":[{\"uuid\":null,\"attributes\":{\"type\":\"power_switch\"},\"parameters\":{\"callback\":false},\"variables\": [{\"relay\":false, \"type\": \"boolean\" }]}],\"sensors\":[{\"uuid\":null,\"attributes\":{\"type\":\"Power sensor\"},\"parameters\":{\"options\":null},\"values\": [{\"value\": 13,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"}]}]}}}";
+			byte[] b = s.getBytes();
+			DatagramPacket d = null;
+			try {
+				d = new DatagramPacket(b, b.length,InetAddress.getByName("dev.cyberlightning.com"), 23233);
+			} catch (UnknownHostException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			//MessageService.getInstance().messageBuffer.put(new MessageHeader(uuid,  d.getAddress()), d);        
+	          
+		
 	}
 	
 	private class SendWorker implements Runnable,IMessageEvent {
 		
-		public  Map<String, DatagramPacket> sendBuffer = new ConcurrentHashMap<String, DatagramPacket>(100); 
+		public List<MessageObject> sendBuffer = Collections.synchronizedList(new ArrayList<MessageObject>());
 		public String uuid;
 		
 		/**
@@ -98,17 +118,30 @@ public class UdpSocket implements Runnable  {
 		        	   
 		        	   try {
 		        		
-		        		   Iterator<String> i = sendBuffer.keySet().iterator();
-		        		
-		        		   while(i.hasNext()) {
-		        			   String key = i.next();
-		        			   //byte[] b = this.formatJSON(sendBuffer.get(key));
-		        			   //DatagramPacket packet = new DatagramPacket(b, b.length, "ds", 23);
-		        			
-			        			serverSocket.send(sendBuffer.get(key));
-			        			sendBuffer.remove(key);
-		        		   }
-		   				
+		        		   Iterator<MessageObject> i = this.sendBuffer.iterator();
+				     		while(i.hasNext()) {
+				     			
+				     			MessageObject msg = i.next();
+				     			
+				     			if (msg.payload instanceof DatagramPacket) {
+				     				serverSocket.send((DatagramPacket)msg.payload);
+				     			} else if (msg.payload instanceof String) {
+				     				
+				     				byte[] b = ((String) msg.payload).getBytes();
+				     				for (String target : msg.targetAddress) {
+				     					DatagramPacket packet;
+				     					if (deviceLookUpTable.containsKey(target)) {
+				     						packet = new DatagramPacket(b,b.length,deviceLookUpTable.get(target).getAddress(),deviceLookUpTable.get(target).getPort());
+				     					} else {
+				     						InetAddress inetAddress = InetAddress.getByName(target);
+				     						packet = new DatagramPacket(b,b.length,inetAddress,StaticResources.DEFAULT_BASESTATION_PORT);
+				     					}
+				     					serverSocket.send(packet);
+				     				}
+				     			}
+				     			sendBuffer.remove(msg);
+				     		}
+
 		   				} catch (IOException e) {
 		   					// TODO Auto-generated catch block
 		   					e.printStackTrace();
@@ -121,8 +154,8 @@ public class UdpSocket implements Runnable  {
 
 
 		@Override
-		public void onMessageReceived(int _type, Object _msg) {
-			// TODO Auto-generated method stub
+		public void onMessageReceived(MessageObject _msg) {
+			this.sendBuffer.add(_msg);
 			
 		}
 		

@@ -11,9 +11,11 @@ import java.net.DatagramPacket;
 import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-import java.util.Observer;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -208,7 +210,7 @@ public class WebSocketWorker implements Runnable {
 				
 			}
 				
-			MessageService.getInstance().messageBuffer.put(id, value);
+			MessageService.getInstance().messageBuffer.add(new MessageObject(this.uuid,StaticResources.TCP_CLIENT,this.clientSocket.getInetAddress().getHostAddress(),_msg));
 	}
 	
 	/**
@@ -287,7 +289,7 @@ public class WebSocketWorker implements Runnable {
 	private class SendWorker implements Runnable,IMessageEvent {
 		
 		
-		private  Map<Integer, Object> sendBuffer = new ConcurrentHashMap<Integer, Object>(); 
+		public List<MessageObject> sendBuffer = Collections.synchronizedList(new ArrayList<MessageObject>());
 		
 		
 		@Override
@@ -300,17 +302,18 @@ public class WebSocketWorker implements Runnable {
 				
 				try {
 					
-					Iterator<Integer> i = this.sendBuffer.keySet().iterator();
+					Iterator<MessageObject> i = this.sendBuffer.iterator();
 		     		while(i.hasNext()) {
 		     			
-		     			int key = i.next();
-		     			if (sendBuffer.get(key) instanceof DatagramPacket) {
-		     					String _content = new String(((DatagramPacket)sendBuffer.get(key)).getData(), "utf8");
+		     			MessageObject msg = i.next();
+		     			
+		     			if (msg.payload instanceof DatagramPacket) {
+		     					String _content = new String(((DatagramPacket)msg.payload).getData(), "utf8");
 		     					this.send(_content);
-		     			} else if (sendBuffer.get(key) instanceof String) {
-		     					this.send((String)sendBuffer.get(key));
+		     			} else if (msg.payload instanceof String) {
+		     					this.send((String)msg.payload);
 		     			}
-		     			sendBuffer.remove(key);
+		     			sendBuffer.remove(msg);
 			        	
 		     		}
 		     		
@@ -358,8 +361,8 @@ public class WebSocketWorker implements Runnable {
 		 * 		
 		 */
 		@Override
-		public void onMessageReceived(int _type, Object _msg) {
-			((ConcurrentHashMap<Integer, Object>) this.sendBuffer).putIfAbsent(_type, _msg);
+		public void onMessageReceived(MessageObject _msg) {
+			this.sendBuffer.add(_msg);
 		}
 
 	}

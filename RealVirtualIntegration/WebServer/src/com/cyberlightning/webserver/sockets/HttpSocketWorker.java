@@ -9,7 +9,6 @@ import java.net.Socket;
 import java.util.UUID;
 
 import com.cyberlightning.webserver.StaticResources;
-import com.cyberlightning.webserver.entities.MessageHeader;
 import com.cyberlightning.webserver.entities.SpatialQuery;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.services.DataStorageService;
@@ -132,8 +131,8 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 	}
 	
 	@Override
-	public void onMessageReceived(int _type, Object _msg) {
-		// TODO Auto-generated method stub
+	public void onMessageReceived(MessageObject msg) {
+		this.sendResponse(msg.payload.toString()); 
 		
 	}
 	
@@ -231,8 +230,10 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 			
 		}
 		
-		
-		//MessageService.getInstance().messageBuffer.put(new MessageHeader());
+		String[] targetUUIDs = new String[1];
+		targetUUIDs[0] = id;
+		;
+		MessageService.getInstance().messageBuffer.add(new MessageObject(this.uuid,StaticResources.HTTP_CLIENT,DataStorageService.getInstance().resolveAddressesByIds(targetUUIDs),_content));
 		
 
 	}
