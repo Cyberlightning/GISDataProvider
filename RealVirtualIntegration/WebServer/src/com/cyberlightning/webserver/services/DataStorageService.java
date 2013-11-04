@@ -47,8 +47,6 @@ public class DataStorageService implements Runnable {
 		
 		try {
 			
-			this.saveData(this.entityTable,StaticResources.DATABASE_FILE_NAME);
-			this.saveData(this.baseStationReferences, StaticResources.REFERENCE_TABLE_FILE_NAME);
 	    	 FileInputStream data = new FileInputStream(StaticResources.DATABASE_FILE_NAME);
 	         ObjectInputStream dataIn = new ObjectInputStream(data);
 	         this.entityTable = (EntityTable)dataIn.readObject();

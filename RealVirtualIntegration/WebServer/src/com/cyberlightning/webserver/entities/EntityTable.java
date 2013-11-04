@@ -60,7 +60,7 @@ public class EntityTable implements java.io.Serializable {
 			if(sensor.values != null) {
 				ArrayList<HashMap<String,Object>> values = sensor.values;
 				for(Sensor oldSensor : _old.sensors) {
-					if (oldSensor.uuid != null || sensor.uuid != null) {
+					if (oldSensor.uuid != null && sensor.uuid != null) {
 						if (oldSensor.uuid.contentEquals(sensor.uuid)) {
 							for (HashMap<String,Object> value: values) {
 								oldSensor.values.add(value);
