@@ -13,19 +13,7 @@ public class EntityTable implements java.io.Serializable {
 	private static final long serialVersionUID = -8536303237731902808L;
 	private Map<RowEntry, Entity> entities = new ConcurrentHashMap<RowEntry, Entity>(); 
 	
-	/**
-	 * 
-	 * @param _uuid
-	 * @return
-	 */
-	public boolean hasEntity(String _uuid) {
-		
-		if (this.entities.containsKey(_uuid)) {
-			return true;	
-		} else {
-			return false;
-		}
-	}
+	
 	/**
 	 * 
 	 * @param _entry
@@ -96,7 +84,15 @@ public class EntityTable implements java.io.Serializable {
 	 * @return
 	 */
 	public Entity getEntity(String _uuid) {
-		return this.entities.get(_uuid);
+		Iterator<RowEntry> i = this.entities.keySet().iterator();
+		Entity entity = null;
+		while (i.hasNext()) {
+			RowEntry row = i.next();
+			if (row.entityUUID.contentEquals(_uuid)) {
+				entity = this.entities.get(row);
+			}
+		}
+		return entity;
 	}
 	/**
 	 * 

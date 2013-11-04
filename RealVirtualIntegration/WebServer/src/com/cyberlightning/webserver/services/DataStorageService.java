@@ -99,13 +99,15 @@ public class DataStorageService implements Runnable {
 	public String getEntryById(String _uuid) {
 		
 		String jsonString = null;
-		
-		if (entityTable.hasEntity(_uuid)) {
-			ArrayList<Entity> entities = new ArrayList<Entity>();
-			entities.add(entityTable.getEntity(_uuid));
+		ArrayList<Entity> entities = new ArrayList<Entity>();
+		Entity e = entityTable.getEntity(_uuid);
+		if (e != null) {
+			entities.add(e);
 			jsonString = JsonTranslator.encodeJson(entities, 40);
+		} else {
+			jsonString = StaticResources.ERROR_404_MESSAGE;
 		}
-		
+
 		return jsonString;
 	}
 	
@@ -143,8 +145,9 @@ public class DataStorageService implements Runnable {
 		ArrayList<InetSocketAddress> addresses = new ArrayList<InetSocketAddress>();
 		
 		for(String uuid : _uuids) {
-			if (entityTable.hasEntity(uuid)) {
-				Entity e = entityTable.getEntity(uuid);
+			
+			Entity e = entityTable.getEntity(uuid);
+			if (e != null) {
 				if (this.baseStationReferences.containsKey(e.contextUUID) && !addresses.contains(this.baseStationReferences.get(e.contextUUID))) {
 					addresses.add(this.baseStationReferences.get(e.contextUUID));
 				} 
@@ -157,14 +160,14 @@ public class DataStorageService implements Runnable {
 		ArrayList<String> baseUuids = new ArrayList<String>();
 		
 		for(String uuid : _uuids) {
-			if (entityTable.hasEntity(uuid)) {
-				Entity e = entityTable.getEntity(uuid);
+			
+			Entity e = entityTable.getEntity(uuid);
+			if (e != null) {
 				if (e.contextUUID != null && !baseUuids.contains(e.contextUUID)){
 					baseUuids.add(e.contextUUID);
 				}
 			}
-		}
-		
+		}		
 		return baseUuids;
 	}
 
