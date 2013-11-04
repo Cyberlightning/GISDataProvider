@@ -27,7 +27,8 @@ public abstract class JsonTranslator {
 	    "550e8400-e29b-41d4-a716-446655440000": {
 	        "attributes": {
 	            "name": "Power wall outlet",
-	            "address": null
+	            "address": null,
+	            "location" : [lat,lon]
 	        },
 	        "actuators": [
 	            {
