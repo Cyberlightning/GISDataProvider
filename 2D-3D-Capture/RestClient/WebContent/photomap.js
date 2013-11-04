@@ -1,121 +1,42 @@
-<html><head>
-<title>Spinning Cube in WebGL</title>
-
-<!-- Hugh Fisher, Computer Science ANU, 2012
-     This code is public domain: do what you like with it. -->
-
-
-<link rel="stylesheet" href="styles.css">
-<script type="text/javascript" src="glDegmatrix.js"></script>
-<!-- Load my shader utilities -->
-<script type="text/javascript" src="gpu.js"></script>
-<script type="text/javascript" src="js_api.js"></script>
-
-<!-- Shaders -->
-
-<script id="shade_vert" type="x-shader/GLSL">
-
-    #version 100
-    precision mediump float;
-    
-    uniform mat4 gProjectionMatrix;
-    uniform mat4 gModelViewMatrix;
-    uniform mat4 gNormalMatrix;
-    
-    uniform vec4 gLightPos;
-    uniform vec4 gColor;
-    
-    attribute vec3 vPosition;
-    attribute vec3 vNormal;
-    
-    varying vec4 fColor;
-    
-    void main(void)
-    {
-        vec4 eyeNorm, eyePos, lightDir, pos;
-        float NdotL, diffuse;
-        
-        eyeNorm = normalize(gNormalMatrix * vec4(vNormal, 0));
-        eyePos  = gModelViewMatrix * vec4(vPosition, 1);        
-        
-        lightDir = normalize(gLightPos - eyePos);
-        NdotL = max(dot(eyeNorm.xyz, lightDir.xyz), 0.0);
-        
-        //fColor = gColor;
-        fColor = vec4(gColor.rgb * NdotL, 1);
-        
-        pos = vec4(vPosition, 1);
-        gl_Position = gProjectionMatrix * gModelViewMatrix * pos;
-    }
-</script>
-
-<script id="shade_frag" type="x-shader/GLSL">
-
-    #version 100
-    // Must specify precision in WebGL frag shaders
-    precision mediump float;
-    
-    varying vec4 fColor;
-    varying vec4 bColor;
-    
-    void main(void)
-    {
-        // Want to see polygons in wrong order
-        if (gl_FrontFacing)
-            gl_FragColor = fColor;
-        else
-            gl_FragColor = vec4(1,0,0,1);
-    }
-</script>
-
-
-<!-- Main program -->
-
-<script type="text/javascript">
-
 "use strict";
 /*global Float32Array, Uint16Array */
 /*jslint vars: true, white: true, browser: true */
+var mapCenter = new Object();
+var map;
+var streetviewMap;
+var imageList ;
+var marker;
+var panorama;
 
-// Until requestAnimationFrame works everywhere, use this code from Google
-var requestAnimFrame = (function() {
-    return window.requestAnimationFrame ||
-        window.webkitRequestAnimationFrame ||
-        window.mozRequestAnimationFrame ||
-        window.oRequestAnimationFrame ||
-        window.msRequestAnimationFrame ||
-        function(callback, element) { window.setTimeout(callback, 1000 / 60); };
-})();
-
-// Our context. Used everywhere, including GPU code
+//Our context. Used everywhere, including GPU code
 var gl = null;
 
 // Cube geometry
 var cubeVerts = new Float32Array([
-       -0.75,  0.1,  1.5,   // 0 a
-      -0.75, -0.1,  1.5,	//B
-      0.75,  0.1,  1.5,	//C
-	 0.75, -0.1,  1.5,	//D
-     -0.75,  0.1, -1.5,   // 4
-      -0.75, -0.1, -1.5,
-      -0.75,  0.1,  1.5,
-      -0.75, -0.1,  1.5,
-      0.75,  0.1, -1.5,   // 8
-      -0.75,  0.1, -1.5,
-      0.75,  0.1,  1.5,
-      -0.75,  0.1,  1.5,
-      0.75,  0.1,  1.5,   // 12
-      0.75, -0.1,  1.5,
-      0.75,  0.1, -1.5,
-      0.75, -0.1, -1.5,
-      0.75, -0.1,  1.5,   // 16
-     -0.75, -0.1,  1.5,
-      0.75, -0.1, -1.5,
-      -0.75, -0.1, -1.5,
-      0.75,  0.1, -1.5,   // 20
-      0.75, -0.1, -1.5,
-     -0.75,  0.1, -1.5,
-     -0.75, -0.1, -1.5,
+    -0.75,  0.1,  1.5,   // 0 a
+    -0.75, -0.1,  1.5,	//B
+     0.75,  0.1,  1.5,	//C
+     0.75, -0.1,  1.5,	//D
+    -0.75,  0.1, -1.5,   // 4
+    -0.75, -0.1, -1.5,
+    -0.75,  0.1,  1.5,
+    -0.75, -0.1,  1.5,
+     0.75,  0.1, -1.5,   // 8
+    -0.75,  0.1, -1.5,
+     0.75,  0.1,  1.5,
+    -0.75,  0.1,  1.5,
+     0.75,  0.1,  1.5,   // 12
+     0.75, -0.1,  1.5,
+     0.75,  0.1, -1.5,
+     0.75, -0.1, -1.5,
+     0.75, -0.1,  1.5,   // 16
+    -0.75, -0.1,  1.5,
+     0.75, -0.1, -1.5,
+    -0.75, -0.1, -1.5,
+     0.75,  0.1, -1.5,   // 20
+     0.75, -0.1, -1.5,
+    -0.75,  0.1, -1.5,
+    -0.75, -0.1, -1.5,
 ]);
 
 var cubeNorms = new Float32Array([
@@ -179,6 +100,131 @@ var hLightPos = -1;
 var hColor = -1;
 var vaPosition = -1;
 var vaNormal = -1;
+
+var initGoogleMaps = function() {
+		$("#loading-map").remove();
+		var mapOptions = {
+	          center: new google.maps.LatLng( mapCenter.lat, mapCenter.lon),
+	          zoom: 8,
+	          mapTypeId: google.maps.MapTypeId.ROADMAP
+	        };
+	    map= new google.maps.Map(document.getElementById("photoMap"), mapOptions);
+};
+
+function loadScript() {	
+	  var script = document.createElement("script");
+	  script.type = "text/javascript";
+	  script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyATCoBJgcVHAWjewWM6pbH-BQZWQstETbQ&sensor=false&callback=initGoogleMaps";
+	  document.body.appendChild(script);
+	}
+
+var getImageList = function(data){
+	console.log(data);
+	imageList = data['imageList'];
+	var i;
+	var avLon=0;
+	var avLat=0;
+	$("#loading-list").remove();
+	for(i =0; i< imageList.length; i++ ){
+		var image = JSON.parse(imageList[i]);
+		avLat= avLat+image.latitude;
+		avLon= avLon+image.longitude;
+		var node=document.createElement("li");
+		var link = document.createElement('button');
+		link.setAttribute('id', i);
+		var textnode=document.createTextNode(image.imagename);
+		link.appendChild(textnode);
+		node.appendChild(link);
+		document.getElementById("imglist").appendChild(node);
+		console.log(image.imagename);
+	}
+	mapCenter.lat= avLat/i;
+	mapCenter.lon= avLon/i;
+//	alert(mapCenter.lat);
+//	alert(mapCenter.lon);
+	loadScript();
+};
+
+var makeRequest = function() {
+	$('#photoList').append("<div id=\"loading-list\" class=\"tempicon\"><img src=\"img/loader.GIF\" alt=\"Loading...\" style= \" width: 25%; margin-left: 100px;margin-top: 300px;\"/></div>");
+	$('#photoMap').append("<div id=\"loading-map\" class=\"tempicon\"><img src=\"img/loader.GIF\" style=\"	width: 12%;margin-top: 310px;margin-left: 240px;\"alt=\"Loading...\" /></div>");
+	$.getJSON( "http://localhost:8080/ServletRestClient/RestClientGET", getImageList);
+	cubeMain();
+};
+
+function reply_click(e) {
+    e = e || window.event;
+    e = e.target || e.srcElement;
+    if (e.nodeName === 'BUTTON') {
+        console.log(e.id);
+        var image = JSON.parse(imageList[e.id]);
+		var lat= image.latitude;
+		var lon= image.longitude;
+		var location= new google.maps.LatLng(lat,lon);
+		marker = new google.maps.Marker({
+	     	   position: location,
+	     	   map: map, //your map,
+	     	   draggable:false,
+	     	   animation: google.maps.Animation.DROP,
+	     	});
+		updateCube(image.alpha,image.gamma,image.beta ,image.deviceorientation);
+		setStreetView(location);
+    }
+}
+
+var setStreetView = function(location) {
+	var sv = new google.maps.StreetViewService();
+	//panorama = new google.maps.StreetViewPanorama(document.getElementById('streetview'));
+	sv.getPanoramaByLocation(location, 10, processSVData);
+};
+
+var processSVData = function(data, status) {
+	if (status == google.maps.StreetViewStatus.OK) {
+		//alert(data.location.latLng.lat());
+		var streetviewurl ="https://maps.googleapis.com/maps/api/streetview?size=600x400&location="+data.location.latLng.lat()+","+data.location.latLng.lng()+"&fov=90&heading=220&pitch=10&sensor=false";
+		$('#streetview').empty();
+		$('#streetview').append("<img src=\""+streetviewurl+"\" alt=\"Loading...\" />");
+//	    panorama.setPano(data.location.pano);
+//	    panorama.setPov({
+//	      heading: 270,
+//	      pitch: 0
+//	    });
+//	    panorama.setVisible(true);
+	  } else {
+		  $('#streetview').empty();
+	    alert('Street View data not found for this location.');
+	  }
+};
+
+window.onload = makeRequest;
+
+/**BELOW THIS IS THE WEB GL CODE**/
+
+//function initialize() {
+//	var mapOptions = {
+//		center: new google.maps.LatLng(-34.397, 150.644),
+//		zoom: 8,
+//		mapTypeId: google.maps.MapTypeId.ROADMAP
+//	};
+//	var map = new google.maps.Map(document.getElementById("photoMap"),
+//			mapOptions);
+//}
+//
+//window.onload = initialize;
+
+
+
+// Until requestAnimationFrame works everywhere, use this code from Google
+var requestAnimFrame = (function() {
+    return window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.oRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        function(callback, element) { window.setTimeout(callback, 1000 / 60); };
+})();
+
+
 
 // Setting up WebGL
 
@@ -253,12 +299,12 @@ var initGL = function(canvas)
 var setProjection = function()
 {
     mat4.perspective(60, gl.viewportWidth / gl.viewportHeight, 0.1, 10.0, pMatrix);
-}
+};
 
 var setViewpoint = function()
 {
     mat4.lookAt([0, 2, 4], [0, 0, 0], [0, 1, 0], mvMatrix);
-}
+};
 
 var drawWorld = function()
 {
@@ -294,7 +340,7 @@ var drawWorld = function()
 
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeIdxBuf);
     gl.drawElements(gl.TRIANGLES, cubeIdx.length, gl.UNSIGNED_SHORT, 0);
-}
+};
 
 var draw = function()
 {
@@ -322,12 +368,12 @@ function cubeMain()
     }
 }
 
-function handleOrientationChanges(alpha, gamma, beta , abs , orientation){
+function updateCube(alpha, gamma, beta ,orientation ){
 	
 	cubeSpinx  = beta;
 	cubeSpiny  = -gamma;
 	cubeSpinz  = -alpha;
-	var cubeColor = (gamma /360) 
+	var cubeColor = (gamma /360); 
 	if(orientation==="landscape"){
 		cubeColor = [ 0, 1, cubeColor, 1 ];
 	}
@@ -336,26 +382,3 @@ function handleOrientationChanges(alpha, gamma, beta , abs , orientation){
 	}
 	draw();
 }
-
-function init(){
-	reigsterDeviceOrentationEvent(handleOrientationChanges);
-	cubeMain();
-}
-
-
-
-
-</script>
-
-</head>
-
-<body onload="init();" class ="body">
-<div id="logo"> <a href="http://www.cyberlightning.com/"> <img alt="Company Logo" src="img/logo.png"></a>
-</div>
-
-<div id="page">
-<canvas id="cube-webgl" style="border: none" width="640" height="480"></canvas>
-</div>
-
-
-</body></html>

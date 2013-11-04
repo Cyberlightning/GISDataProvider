@@ -1,0 +1,13 @@
+2013-10-23 16:15:36,156 - werkzeug - INFO -  * Running on http://dev.cyberlightning.com:17000/
+2013-10-23 16:16:28,394 - werkzeug - INFO -  * Running on http://localhost:17000/
+2013-10-23 16:16:28,395 - werkzeug - INFO -  * Restarting with reloader
+2013-10-23 16:16:37,513 - werkzeug - INFO -  * Running on http://localhost:17000/
+2013-10-23 16:16:37,513 - werkzeug - INFO -  * Restarting with reloader
+2013-10-25 09:32:22,208 - werkzeug - INFO -  * Detected change in 'RestServer.py', reloading
+2013-10-25 09:32:22,216 - werkzeug - INFO -  * Restarting with reloader
+2013-10-25 09:32:34,350 - werkzeug - INFO -  * Detected change in 'RestServer.py', reloading
+2013-10-25 09:32:34,363 - werkzeug - INFO -  * Restarting with reloader
+2013-10-25 09:32:46,494 - werkzeug - INFO -  * Detected change in 'RestServer.py', reloading
+2013-10-25 09:32:46,507 - werkzeug - INFO -  * Restarting with reloader
+2013-10-25 13:40:44,834 - werkzeug - INFO -  * Running on http://dev.cyberlightning.com:17000/
+2013-10-25 13:41:33,423 - werkzeug - INFO -  * Running on http://dev.cyberlightning.com:17000/

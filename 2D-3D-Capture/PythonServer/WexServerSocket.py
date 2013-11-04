@@ -28,7 +28,7 @@ response_header =('HTTP/1.1 101 Switching Protocols',
 magic_string = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
 ANY = ''
-PORT = 17000
+PORT = 17324
 LOCALHOST = "127.0.0.1"
 
 
@@ -48,18 +48,29 @@ def dbsave(jsondata):
     cursor = dbconn.cursor ()
     filename = jsondata["type"]+"_"+jsondata["time"]+"."+jsondata["ext"]
     heading = str(jsondata["device"]["ax"]);
+    width = jsondata["vwidth"] 
+    height =jsondata["vheight"]
+    if width > height :
+	screenorientation= 1.00#landscape
+    else :
+	screenorientation= 0.00#potrait
+
     logging.debug( heading +str(jsondata["motion"]["heading"])+","+str(jsondata["motion"]["speed"]))
 #     print
-    sqlstring1 = "insert into Imagedata values (\'"+filename+"\',"+str(jsondata["position"]["lat"])+","+str(jsondata["position"]["lon"])+","+str(jsondata["position"]["acc"])+","+str(jsondata["position"]["alt"])
-    sqlstring2 =","+str(jsondata["motion"]["heading"])+","+str(jsondata["motion"]["speed"])+","+str(jsondata["device"]["ax"])+","+str(jsondata["device"]["ay"])+","+str(jsondata["device"]["az"])+",0.00,0.00,0.00,"
-    sqlstring3 = str(jsondata["device"]["ra"])+","+str(jsondata["device"]["rb"])+","+str(jsondata["device"]["rg"])+",0.00,\'"+jsondata["device"]["orientation"]+"\',now())"
+    sqlstring1 = "INSERT INTO Imagedata values (\'"+filename+"\',GeomFromText ('POINT("+ str(jsondata["position"]["lat"])+" "+str(jsondata["position"]["lon"])+")'),"+str(jsondata["position"]["alt"])+","+str(jsondata["position"]["acc"])
+#    sqlstring2 =","+str(jsondata["motion"]["heading"])+","+str(jsondata["motion"]["speed"])+","+str(jsondata["device"]["ax"])+","+str(jsondata["device"]["ay"])+","+str(jsondata["device"]["az"])+",0.00,0.00,0.00,"
+#    sqlstring3 = str(jsondata["device"]["ra"])+","+str(jsondata["device"]["rb"])+","+str(jsondata["device"]["rg"])+",0.00,\'"+jsondata["device"]["orientation"]+"\',now())"
+    sqlstring2 =","+str(jsondata["motion"]["heading"])+","+str(jsondata["motion"]["speed"])+","+str(jsondata["device"]["ax"])+","+str(jsondata["device"]["ay"])+","+str(jsondata["device"]["az"])+","+str(jsondata["device"]["gx"])+","+str(jsondata["device"]["gy"])+","+str(jsondata["device"]["gz"])
+#    sqlstring3 = ","+str(jsondata["device"]["ra"])+","+str(jsondata["device"]["rb"])+","+str(jsondata["device"]["rg"])+",0.00,\'"+jsondata["device"]["orientation"]+","+str(jsondata["device"]["dTime"])+")"
+    sqlstring3 = ","+str(jsondata["device"]["ra"])+","+str(jsondata["device"]["rb"])+","+str(jsondata["device"]["rg"])+","+str(screenorientation)+",\'"+jsondata["device"]["orientation"]+"',now())"
     sqlstring = sqlstring1 + sqlstring2+ sqlstring3	
     logging.info( "sql String %s" , sqlstring)
     try:
         cursor.execute (sqlstring)
         dbconn.commit()
-    except :
-        dbconn.rollback() 
+    except MySQLdb.Error,e :
+        dbconn.rollback()
+        logging.critical("Error %d: %s" % (e.args[0],e.args[1]))      
     cursor.close ()
     dbconn.close ()
     print "Database transaction completed"
@@ -89,7 +100,7 @@ def connectionHandler( conn, addr):
                     response = '\r\n'.join(response_header).format(key=response_key)
                     logging.debug('##################################### \n %s \n %s \n #####################################',response,len(response))
                     conn.send(response)
-                    message = "Hello Client\n..Server is listening..!"                                              
+                    message = "SERVER_READY"
                     conn.send(encodeMessage(message))
                     key = ""
                     BUFFER = ""                
@@ -109,7 +120,7 @@ def connectionHandler( conn, addr):
                 logging.debug("Length %s", length)                
                 logging.debug("FIN %s", fin)
                 
-                        # check that enough bytes remain
+                # check that enough bytes remain
                 if len(buf) < payload_start + 4:
                     return
                 elif length == 126:
@@ -118,8 +129,7 @@ def connectionHandler( conn, addr):
                 elif length == 127:
                     length, = struct.unpack_from('>xxQ', buf)
                     payload_start += 8
-                #print "LENGTH OF THE PAYLOAD"
-                #print length
+                logging.debug ("LENGTH OF THE PAYLOAD :%s",length)
                         #print "Un-masking"                                
                 if mask:
                     mask_bytes = [ord(b) for b in buf[payload_start:payload_start + 4]]
@@ -127,18 +137,13 @@ def connectionHandler( conn, addr):
                             #print mask_bytes
                     payload_start += 4
                 full_len = payload_start + length
-                #print "FULL LENGTH"
-                #print full_len
+                logging.debug("FULL LENGTH :%s", full_len)
                 #print len(buf)
                 
                 if len(buf) < full_len:
                     sys.stdout.write('-')
                 else:
-                    sys.stdout.write('-|\n') 
-                    #print "check the buffer"
-                    #print len(buf)
-                    #print self.BUFFER
-                    #print "<!---------------------------------------!>"
+                    sys.stdout.write('-|\n')
                     # remove leading bytes, decode if necessary, dispatch                                
                     payload = buf[payload_start:full_len]
                             # use xor and mask bytes to unmask data
@@ -155,20 +160,19 @@ def connectionHandler( conn, addr):
                         if opcode == 1:
                             if done=="":                                
                                 s = payload.decode("UTF8")
-                                print s
-                                jsondata = json.loads(s)
-                                filename= jsondata["type"]+"_"+jsondata["time"]+"."+jsondata["ext"]
+                                logging.info("Decodded payleoad :%s", s)
+                                jsonmetadata = json.loads(s)
+                                filename= jsonmetadata["type"]+"_"+jsonmetadata["time"]+"."+jsonmetadata["ext"]
                                 logging.debug("File name %s", filename)
-                                logging.debug("Position ->logitude %s ", str(jsondata["position"]["lon"]))
-                                #print(jsondata["position"]["lat"])
-                                dbsave(jsondata);
+                                logging.debug("Position ->logitude %s ", str(jsonmetadata["position"]["lon"]))
+                                #print(jsondata["position"]["lat"])                                
                                 #time.sleep(1)
                                 message= "FILENAME"                            
                                 sent = conn.send(encodeMessage(message))                           
                                 logging.debug("Message %s sent.Length %s", message, sent)
                                 print sent
                                 BUFFER=""
-                                buf= ""
+                                buf= ""                                
                                 done="true"
                             else :
 #                                 payload= payload[5:]
@@ -182,7 +186,8 @@ def connectionHandler( conn, addr):
                                     payload = b64decode(payload)
                                     file_like = StringIO(payload)
                                     i = Image.open(file_like)
-                                    i.save(filename)
+                                    i.save("../public_html/images/%s"%(filename))
+                                    dbsave(jsonmetadata);
                                 except RuntimeError as e:
                                     conn.close();
                                     logging.critical( "Runtime error in decoding bnary system exit %s", e.strerror)                                    
@@ -191,18 +196,22 @@ def connectionHandler( conn, addr):
                                 BUFFER=""
                                 buf= ""
                                 filename= ""
+                                jsonmetadata =""
                                 done= ""
                                 break 
                         elif opcode == 2:                        
                             logging.debug('Handling binary data')                           
-                            size = 640 ,427
+                            size = jsonmetadata["vwidth"] ,jsonmetadata["vheight"]
                             img = Image.frombuffer('RGBA', size, payload,'raw','RGBA',0,1)
-                            img.save(filename)                                  
+                            img.save("../public_html/images/%s"%(filename))
+                            dbsave(jsonmetadata);                                
                             logging.debug('Closing the connection')
                             conn.close()
                             BUFFER=""
                             buf= ""
                             filename = ""
+                            jsonmetadata =""
+                            done= ""
                             return
         except KeyboardInterrupt:
             conn.close();
@@ -214,8 +223,8 @@ def frameHanlder()  :
    
 def closeConnection(self):
     sock.close()
-def main():
 
+def main():
     parser = argparse.ArgumentParser(description='Log level')
     parser.add_argument('--log', help='Setting this would set the log level. Values DEBUG/INFO/WARNING/ERROR/CRITICAL')
     
@@ -248,7 +257,7 @@ def main():
             
             gevent.spawn(connectionHandler, conn, addr)
     except socket.error as message:
-        logging.error('Bind failed. Error Code : %s Message %s' , str(message[0]), + message[1])
+        logging.error('Bind failed. Error Code : %s Message %s'%( str(message[0]),  message[1]))
         
         
 if __name__ == "__main__":
