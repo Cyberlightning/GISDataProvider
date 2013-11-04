@@ -1,0 +1,32 @@
+2013-10-08 10:06:55,858 - root - INFO - Connected with 127.0.0.1 : 42814
+2013-10-08 10:06:55,878 - root - INFO - sql String insert into Imagedata values ('image_2013.10.8_10.6.55.jpg',62.278424,30.402053,122000,None,None,None,400,400,400,0.00,0.00,0.00,400,-181,-181,0.00,'potrait',now())
+2013-10-08 10:59:06,165 - root - INFO - Connected with 127.0.0.1 : 43552
+2013-10-08 10:59:06,187 - root - INFO - sql String insert into Imagedata values ('image_2013.10.8_10.59.6.jpg',62.278424,30.402053,122000,None,None,None,400,400,400,0.00,0.00,0.00,400,-181,-181,0.00,'potrait',now())
+2013-10-08 10:59:43,814 - root - INFO - Connected with 127.0.0.1 : 43553
+2013-10-08 10:59:43,822 - root - INFO - sql String insert into Imagedata values ('image_2013.10.8_10.59.43.jpg',62.278424,30.402053,122000,None,None,None,400,400,400,0.00,0.00,0.00,400,-181,-181,0.00,'potrait',now())
+2013-10-15 11:51:17,668 - root - INFO - Connected with 127.0.0.1 : 40734
+2013-10-15 11:51:17,772 - root - INFO - sql String INSERT INTO Imagedata values (('image_2013.10.15_11.51.17.jpg',GeomFromText ('POINT(62.278424,30.402053',122000,None,None,None,400,400,400,0.00,0.00,0.00,400,-181,-181,0.00,'potrait',now())
+2013-10-15 11:55:16,831 - root - INFO - Connected with 127.0.0.1 : 40741
+2013-10-15 11:55:16,837 - root - INFO - sql String INSERT INTO Imagedata values (('image_2013.10.15_11.55.16.jpg',GeomFromText ('POINT(62.278424,30.402053',122000,None,None,None,400,400,400,0.00,0.00,0.00,400,-181,-181,0.00,'potrait',now())
+2013-10-15 11:59:24,469 - root - INFO - Connected with 127.0.0.1 : 40749
+2013-10-15 11:59:24,478 - root - INFO - sql String INSERT INTO Imagedata values (('image_2013.10.15_11.59.24.png',GeomFromText ('POINT(62.278424,30.402053',122000,None,None,None,400,400,400,0.00,0.00,0.00,400,-181,-181,0.00,'potrait',now())
+2013-10-15 12:05:25,849 - root - INFO - Connected with 127.0.0.1 : 40765
+2013-10-15 12:05:25,885 - root - INFO - sql String INSERT INTO Imagedata values (('image_2013.10.15_12.5.25.png',GeomFromText ('POINT(62.278424)'),30.402053',122000,None,None,None,400,400,400,0.00,0.00,0.00,400,-181,-181,0.00,'potrait',now())
+2013-10-15 12:05:25,885 - root - CRITICAL - Error Occured. Transaction not commited
+2013-10-15 12:12:25,635 - root - INFO - Connected with 127.0.0.1 : 40786
+2013-10-15 12:12:25,652 - root - INFO - sql String INSERT INTO Imagedata values (('image_2013.10.15_12.12.25.png',GeomFromText ('POINT(62.278424,30.402053)'),122000,None,None,None,400,400,400,0.00,0.00,0.00,400,-181,-181,0.00,'potrait',now())
+2013-10-15 12:12:25,652 - root - CRITICAL - Error Occured. Transaction not commited
+2013-10-15 12:16:43,820 - root - INFO - Connected with 127.0.0.1 : 40815
+2013-10-15 12:16:43,840 - root - INFO - sql String INSERT INTO Imagedata values (('image_2013.10.15_12.16.43.png',GeomFromText ('POINT(62.278424,30.402053)'),122000,None,None,None,400,400,400,0.00,0.00,0.00,400,-181,-181,0.00,'potrait',now())
+2013-10-15 12:17:57,974 - root - INFO - Connected with 127.0.0.1 : 40822
+2013-10-15 12:17:57,989 - root - INFO - sql String INSERT INTO Imagedata values (('image_2013.10.15_12.17.57.png',GeomFromText ('POINT(62.278424,30.402053)'),122000,None,None,None,400,400,400,0.00,0.00,0.00,400,-181,-181,0.00,'potrait',now())
+2013-10-15 12:18:00,694 - root - INFO - Connected with 127.0.0.1 : 40825
+2013-10-15 12:18:00,705 - root - INFO - sql String INSERT INTO Imagedata values (('image_2013.10.15_12.18.0.png',GeomFromText ('POINT(62.278424,30.402053)'),122000,None,None,None,400,400,400,0.00,0.00,0.00,400,-181,-181,0.00,'potrait',now())
+2013-10-15 12:19:27,552 - root - INFO - Connected with 127.0.0.1 : 40830
+2013-10-15 12:19:27,562 - root - INFO - sql String INSERT INTO Imagedata values (('image_2013.10.15_12.19.27.png',GeomFromText ('POINT(62.278424,30.402053)'),122000,None,None,None,400,400,400,0.00,0.00,0.00,400,-181,-181,0.00,'potrait',now())
+2013-10-15 12:22:57,956 - root - INFO - Connected with 127.0.0.1 : 40836
+2013-10-15 12:22:57,975 - root - INFO - sql String INSERT INTO Imagedata values (('image_2013.10.15_12.22.57.png',GeomFromText ('POINT(62.278424,30.402053)'),122000,None,None,None,400,400,400,0.00,0.00,0.00,400,-181,-181,0.00,'potrait',now())
+2013-10-15 12:22:57,976 - root - CRITICAL - Error 1064: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1
+2013-10-15 12:24:32,319 - root - INFO - Connected with 127.0.0.1 : 40841
+2013-10-15 12:24:32,340 - root - INFO - sql String INSERT INTO Imagedata values ('image_2013.10.15_12.24.32.png',GeomFromText ('POINT(62.278424,30.402053)'),122000,None,None,None,400,400,400,0.00,0.00,0.00,400,-181,-181,0.00,'potrait',now())
+2013-10-15 12:24:32,341 - root - CRITICAL - Error 1054: Unknown column 'None' in 'field list'

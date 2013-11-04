@@ -1,36 +1,68 @@
 @CHARSET "UTF-8";
-#videobutton {
-	position : fixed;
+#logo{
+	top:0px;
+	left:0px;
+	witdh: 400px;
+}
+	
+#page{
+	top:80px;
+	left:310px;
+}
+
+#videopad{
+	position : absolute;
     left:10px;
-    top:10px;
+    top:80px;
+}
+
+#videobutton {
+	position : absolute;
+    left:10px;
+    top:120px;
     width:250px;
     z-index:1000;
 }
 
 #snapbutton {
-	position : fixed;
+	position : absolute;
     left:10px;
-    top:40px;
-    width:250px;
-    z-index:1000;	
-}
-
-#streambutton {
-	position : fixed;
-    left:10px;
-    top:70px;
-    width:250px;
-    z-index:1000;	
-}
-
-#snapshot{
-	
-}
-
-#consolelog {
-	position : fixed;
-    left:10px;
-    top:450px;
+    top:170px;
     width:250px;
     z-index:1000;
+    diabled:true;	
 }
+
+#clearlog{
+	position : absolute;
+    left:10px;
+    top:220px;
+    width:250px;
+    z-index:1000;	
+}
+
+
+#consolelog {
+	position : absolute;
+    left:500px;
+    top:80px;
+    width:400px;
+    z-index:1000;
+}
+
+#mapcanvas{
+	width:500px;
+	height:380px;
+}
+
+.body {
+	background-color: #161023;
+	color: #ffffff;
+	font-family:"Lucida Sans Unicode", "Lucida Grande", sans-serif
+}
+
+html { height: 100% }
+
+body { height: 100%; margin: 0; padding: 0 
+
+#map-canvas { height: 100% }
