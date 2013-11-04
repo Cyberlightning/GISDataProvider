@@ -3,12 +3,11 @@ package com.cyberlightning.webserver.services;
 
 import java.net.DatagramPacket;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
@@ -25,7 +24,8 @@ public class MessageService implements Runnable  {
 	private static final MessageService _messageHandler = new MessageService();
 	private HashMap<String,IMessageEvent> registeredReceivers= new HashMap<String,IMessageEvent>();
 	private Map<String,ArrayList<String>> messageLinks = new ConcurrentHashMap<String,ArrayList<String>>();
-	public List<MessageObject> messageBuffer = Collections.synchronizedList(new ArrayList<MessageObject>());
+	public CopyOnWriteArrayList<MessageObject> messageBuffer = new CopyOnWriteArrayList<MessageObject>();
+	
 	
 	/**
 	 * 
@@ -107,13 +107,16 @@ public class MessageService implements Runnable  {
 						ArrayList<String> receivers = this.resolveReceivers(msg.originUUID);
 						for (String receiver: receivers) {
 							this.registeredReceivers.get(receiver).onMessageReceived(msg);
-						} 
+						}
+						this.messageBuffer.remove(msg);
 						break;
 					case StaticResources.TCP_CLIENT:
 						this.registeredReceivers.get(UdpSocket.uuid).onMessageReceived(msg); //TODO implement a better way for this, what if there are multiple sockets? 
+						this.messageBuffer.remove(msg);
 						break;
 					case StaticResources.HTTP_CLIENT:
 						this.registeredReceivers.get(UdpSocket.uuid).onMessageReceived(msg); //TODO implement a better way for this, what if there are multiple sockets? 
+						this.messageBuffer.remove(msg);
 						break;
 						
 					}

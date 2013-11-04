@@ -46,6 +46,8 @@ public class DataStorageService implements Runnable {
 	public void intializeData() {
 		
 		try {
+			
+			
 	    	 FileInputStream data = new FileInputStream(StaticResources.DATABASE_FILE_NAME);
 	         ObjectInputStream dataIn = new ObjectInputStream(data);
 	         this.entityTable = (EntityTable)dataIn.readObject();
