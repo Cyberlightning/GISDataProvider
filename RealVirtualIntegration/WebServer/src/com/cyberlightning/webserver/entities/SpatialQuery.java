@@ -4,14 +4,14 @@ import com.cyberlightning.webserver.StaticResources;
 
 public class SpatialQuery {
 	
-	public int query;
+	public int queryType;
 	public float[] points;
 	public int maxResults;
 	public int radius;
 	public String type;
 	
 	public SpatialQuery(float _minLat, float _minLon, float _maxLat, float _maxLon, int _maxResults) {
-		this.query = StaticResources.QUERY_SPATIA_BOUNDING_BOX;
+		this.queryType = StaticResources.QUERY_SPATIA_BOUNDING_BOX;
 		this.maxResults = _maxResults;
 		this.points = new float[4];
 		this.points[0] = _minLat;
@@ -21,7 +21,7 @@ public class SpatialQuery {
 	}
 	
 	public SpatialQuery(float _lat, float _lon,int _radius, int _maxResults) {
-		this.query = StaticResources.QUERY_SPATIAL_CIRCLE;
+		this.queryType = StaticResources.QUERY_SPATIAL_CIRCLE;
 		this.maxResults = _maxResults;
 		this.radius = _radius;
 		this.points = new float[2];
@@ -30,7 +30,7 @@ public class SpatialQuery {
 	}
 	
 	public SpatialQuery(float[] _points, int _maxResults) {
-		this.query = StaticResources.QUERY_SPATIA_SHAPE;
+		this.queryType = StaticResources.QUERY_SPATIA_SHAPE;
 		this.maxResults = _maxResults;
 		this.points = _points;
 	}
@@ -39,7 +39,7 @@ public class SpatialQuery {
 	public SpatialQuery(int _query, String _type, int _maxResults) {
 		this.type = _type;
 		this.maxResults = _maxResults;
-		this.query = StaticResources.QUERY_TYPE;
+		this.queryType = StaticResources.QUERY_TYPE;
 	}
 
 }

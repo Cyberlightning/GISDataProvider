@@ -80,6 +80,7 @@ public class DataStorageService implements Runnable {
 			RowEntry entry = new RowEntry(StaticResources.getTimeStamp());
 			if (entity.uuid != null) entry.entityUUID = entity.uuid;
 			if (entity.attributes.containsKey("address")) entry.address = (String) entity.attributes.get("address");
+			if (entity.location != null) entry.location = entity.location; 
 			entry.contextUUID = entity.contextUUID;
 			this.entityTable.addEntity(entry,entity);
 			
@@ -115,7 +116,21 @@ public class DataStorageService implements Runnable {
 	public String getEntriesByParameter(SpatialQuery _query) {
 		
 		
-		return null;
+		ArrayList<Entity> entities = null;
+		
+		switch (_query.queryType) {
+		case StaticResources.QUERY_SPATIA_BOUNDING_BOX:
+			break;
+		case StaticResources.QUERY_SPATIA_SHAPE:
+			break;
+		case StaticResources.QUERY_SPATIAL_CIRCLE:
+			entities = this.entityTable.getEntitiesBySpatialCircle(_query.points[0], _query.points[1],_query.radius); 
+			break;
+		case StaticResources.QUERY_TYPE:
+			break;
+		}
+		
+		return JsonTranslator.encodeJson(entities, 40);
 		
 	}
 	/**

@@ -98,6 +98,29 @@ public class EntityTable implements java.io.Serializable {
 	public Entity getEntity(String _uuid) {
 		return this.entities.get(_uuid);
 	}
+	/**
+	 * 
+	 * @param _lat
+	 * @param _lon
+	 * @param _radius
+	 * @return Return a list of entities within a circle of _radius from point (_lat,_lon) 
+	 */
+	public ArrayList<Entity> getEntitiesBySpatialCircle(Float _lat, Float _lon, int _radius) {
+		
+		ArrayList<Entity> includedEntities = new ArrayList<Entity>();
+		Iterator<RowEntry> rows = this.entities.keySet().iterator();
+		while (rows.hasNext()) {
+			RowEntry row = rows.next();
+			if (row.location != null) {
+				double x = (double)(row.location[0] - _lat);
+				double y = (double)(row.location[1] - _lon);
+				if (Math.sqrt(Math.pow(x, 2)+Math.pow(y, 2)) < _radius) {
+					includedEntities.add(this.entities.get(row));
+				}
+			}
+		}
+		return includedEntities;
+	}
 	
 
 }

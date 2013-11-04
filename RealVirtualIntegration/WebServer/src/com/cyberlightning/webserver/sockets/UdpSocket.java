@@ -48,7 +48,7 @@ public class UdpSocket implements Runnable  {
 		serverSocket = new DatagramSocket(this.port);
 		this.serverSocket.setReceiveBufferSize(StaticResources.UDP_PACKET_SIZE);
 		
-		Runnable sendWorker = new SendWorker(this.uuid);
+		Runnable sendWorker = new SendWorker(uuid);
 		Thread t = new Thread(sendWorker);
 		t.start();
 		
@@ -72,7 +72,7 @@ public class UdpSocket implements Runnable  {
 				e.printStackTrace();
 			}
     		
-    		MessageService.getInstance().messageBuffer.add(new MessageObject(this.uuid,StaticResources.UDP_RECEIVER, receivedPacket));        
+    		MessageService.getInstance().messageBuffer.add(new MessageObject(uuid,StaticResources.UDP_RECEIVER, receivedPacket));        
           
 		}
 	}
@@ -88,8 +88,6 @@ public class UdpSocket implements Runnable  {
 				e.printStackTrace();
 			}
 			//MessageService.getInstance().messageBuffer.put(new MessageHeader(uuid,  d.getAddress()), d);        
-	          
-		
 	}
 	
 	private class SendWorker implements Runnable,IMessageEvent {

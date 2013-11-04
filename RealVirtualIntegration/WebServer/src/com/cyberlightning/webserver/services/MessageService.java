@@ -17,17 +17,16 @@ import com.cyberlightning.webserver.sockets.UdpSocket;
 
 /**
  * 
- * @author Tomi
+ * @author CyberLightning <tomi.sarni@cyberlightning.com>
  *
  */
 public class MessageService implements Runnable  {
 	
 	private static final MessageService _messageHandler = new MessageService();
 	private HashMap<String,IMessageEvent> registeredReceivers= new HashMap<String,IMessageEvent>();
-	public List<MessageObject> messageBuffer = Collections.synchronizedList(new ArrayList<MessageObject>());
-
 	private Map<String,ArrayList<String>> messageLinks = new ConcurrentHashMap<String,ArrayList<String>>();
-
+	public List<MessageObject> messageBuffer = Collections.synchronizedList(new ArrayList<MessageObject>());
+	
 	/**
 	 * 
 	 */
@@ -60,12 +59,10 @@ public class MessageService implements Runnable  {
 	}
 	
 	public void registerReceiver(IMessageEvent receiver, String _uuid) {
-	
 		this.registeredReceivers.put(_uuid, receiver);
 	}
 	
 	public void unregisterReceiver(String _uuid) {
-		
 		this.registeredReceivers.remove(_uuid);
 	}
 	
@@ -92,7 +89,6 @@ public class MessageService implements Runnable  {
 			}
 		}
 	}
-	
 
 	@Override
 	public void run() {
