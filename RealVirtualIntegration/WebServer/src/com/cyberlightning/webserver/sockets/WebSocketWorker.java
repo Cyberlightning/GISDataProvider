@@ -2,7 +2,6 @@ package com.cyberlightning.webserver.sockets;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -15,13 +14,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.codec.binary.Base64;
 
 import com.cyberlightning.webserver.StaticResources;
+import com.cyberlightning.webserver.entities.SpatialQuery;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.services.DataStorageService;
 import com.cyberlightning.webserver.services.MessageService;
@@ -57,7 +55,7 @@ public class WebSocketWorker implements Runnable {
 	/**
 	 * Handles handshaking between connecting client and server
 	 */
-	private void initialize() {
+	private void doHandShake() {
 		try {
 			this.input = this.clientSocket.getInputStream();
 			this.output = this.clientSocket.getOutputStream();
@@ -116,7 +114,7 @@ public class WebSocketWorker implements Runnable {
 	public void run() {
 	
 		System.out.println(this.clientSocket.getInetAddress().getAddress().toString() + StaticResources.CLIENT_CONNECTED);
-		this.initialize();
+		this.doHandShake();
 		Runnable runnable = new SendWorker();
 		this.sendWorker = new Thread(runnable);
 		this.sendWorker.start();
@@ -166,17 +164,43 @@ public class WebSocketWorker implements Runnable {
 		return;	//Exits thread
 	}
 	
+	private void handleClientMessage(String _request) {
+		String[] result = _request.split("\n");
+		int fromIndex =  result[0].indexOf("?");
+		int toIndex = result[0].indexOf("HTTP");
+		
+		/* Passes the urlencoded query string to appropriate http method handlers*/
+		if (result[0].trim().toUpperCase().contains("GET")) {
+			this.handleGETMethod(result[0].substring(fromIndex + 1, toIndex).trim());
+		
+		}
+		else if (result[0].trim().toUpperCase().contains("POST")) {
+			
+			fromIndex =  result[0].indexOf("/");
+			String content = result[0].substring(fromIndex, toIndex);
+			if (content.trim().contentEquals("/")) {
+				this.handlePOSTMessage(result[result.length-1].toString());
+			} else {
+				send(StaticResources.ERROR_CODE_METHOD_NOT_ALLOWED);
+			}
+			
+		}
+		else if (result[0].trim().toUpperCase().contains("PUT")) {
+			send(StaticResources.ERROR_CODE_METHOD_NOT_ALLOWED);
+		}
+		else if (result[0].trim().toUpperCase().contains("DELETE")) {
+			send(StaticResources.ERROR_CODE_METHOD_NOT_ALLOWED);
+		}
+	}
+	
 	/**
 	 * 
 	 * @param _msg
 	 */
-	private void handleClientMessage(String _msg) { //TODO design post method options
+	private void handlePOSTMessage(String _msg) { //TODO design post method options
 		
 		String[] queries = _msg.split("&");
-		String id = "";
-		String actuator = "";
-		String parameter = "";
-		String value = "";
+		String[] targetUUIDs = null;
 			
 		for (int i = 0; i < queries.length; i++) {
 				
@@ -186,33 +210,55 @@ public class WebSocketWorker implements Runnable {
 				if (action[1].contentEquals("update")) {
 					
 					for (int j = 0; j < queries.length; j++) {
-							
+					
 						if (queries[j].contains("device_id")) {
 							String[] s = queries.clone()[j].trim().split("=");
-							id = s[1];
-						} else if (queries[j].contains("actuator")){
-							String[] s = queries.clone()[j].trim().split("=");
-							actuator = s[1];
-						} else if (queries[j].contains("parameter")) {
-							String[] s = queries.clone()[j].trim().split("=");
-							parameter = s[1];
-						} else if (queries[j].contains("value")) {
-							String[] s = queries.clone()[j].trim().split("=");
-							value = s[1];
+							targetUUIDs = s[1].split(","); //check correct regex
+						} 
+					}
+				}
+			}
+				
+		} if (targetUUIDs == null) {
+			try {
+				send(StaticResources.ERROR_CODE_BAD_REQUEST);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			MessageService.getInstance().messageBuffer.add(new MessageObject(this.uuid,StaticResources.TCP_CLIENT,DataStorageService.getInstance().resolveBaseStationAddresses(targetUUIDs),_msg));
+		}
+	}
+	
+	/**
+	 * 
+	 * @param _content
+	 */
+	private void handleGETMethod(String _content) {
+		
+		String[] queries = _content.split("&");
+		
+		for (int i = 0; i < queries.length; i++) {
+			if(queries[i].contains("action")) {
+				String[] action = queries[i].split("=");
+				if (action[1].contentEquals("subscribeById")) {
+					for (int j = 0; j < queries.length;j++) {
+						if (queries[j].contains("device_id")) {
+							String[] device = queries[j].split("=");
+							String[] targetUUIDs = device[1].split(",");
+							MessageService.getInstance().subscribeByIds(DataStorageService.getInstance().resolveBaseStationUuids(targetUUIDs),uuid);
 						}
 					}
-	
-					}else if (action[1].contentEquals("upload")) {
-						
-						File file = new File("marker.bmp");
-						//sendResponse(SimulateSensorResponse.uploadFile(file));
-					} 
+					
+				} else if (action[1].contentEquals("unsubscribeById")) {
+					
+					//TODO not implemented yet
+				} else if (action[1].contentEquals("unsubscribeAll")) {
+					MessageService.getInstance().unregisterReceiver(uuid);
 				}
-				
 			}
-			String[] targetUUIDs = new String[1];
-			targetUUIDs[0] = id;
-			MessageService.getInstance().messageBuffer.add(new MessageObject(this.uuid,StaticResources.TCP_CLIENT,DataStorageService.getInstance().resolveBaseStationAddresses(targetUUIDs),_msg));
+		}
 	}
 	
 	/**
@@ -286,7 +332,42 @@ public class WebSocketWorker implements Runnable {
           
         return new String(frame, "UTF8");  
     }
-    
+    /**
+	 * 
+	 * @param message
+	 * @throws Exception
+	 */
+	private void send(String message)  {  
+          
+        try {
+        	byte[] utf = message.getBytes("UTF8");  
+            
+            output.write(129);  
+              
+            if(utf.length > 65535) {  
+            output.write(127);  
+            output.write(utf.length >> 16);  
+            output.write(utf.length >> 8);  
+            output.write(utf.length);  
+            }  
+            else if(utf.length>125) {  
+            output.write(126);  
+            output.write(utf.length >> 8);  
+            output.write(utf.length);  
+            }  
+            else {  
+            output.write(utf.length);  
+            }  
+              
+            output.write(utf);
+            
+        } catch(Exception e) {
+        	
+        	e.printStackTrace();
+        }
+		
+
+    } 
   
 	private class SendWorker implements Runnable,IMessageEvent {
 		
@@ -311,9 +392,9 @@ public class WebSocketWorker implements Runnable {
 		     			
 		     			if (msg.payload instanceof DatagramPacket) {
 		     					String _content = new String(((DatagramPacket)msg.payload).getData(), "utf8");
-		     					this.send(_content);
+		     					send(_content);
 		     			} else if (msg.payload instanceof String) {
-		     					this.send((String)msg.payload);
+		     						send((String)msg.payload);
 		     			}
 		     			sendBuffer.remove(msg);
 			        	
@@ -329,35 +410,6 @@ public class WebSocketWorker implements Runnable {
 			return;
 		}
 		
-		/**
-		 * 
-		 * @param message
-		 * @throws Exception
-		 */
-		private void send(String message) throws Exception {  
-	          
-	        byte[] utf = message.getBytes("UTF8");  
-	          
-	        output.write(129);  
-	          
-	        if(utf.length > 65535) {  
-	        output.write(127);  
-	        output.write(utf.length >> 16);  
-	        output.write(utf.length >> 8);  
-	        output.write(utf.length);  
-	        }  
-	        else if(utf.length>125) {  
-	        output.write(126);  
-	        output.write(utf.length >> 8);  
-	        output.write(utf.length);  
-	        }  
-	        else {  
-	        output.write(utf.length);  
-	        }  
-	          
-	        output.write(utf);
-
-	    } 
 		
 		/**
 		 * 		

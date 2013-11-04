@@ -7,9 +7,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
@@ -139,6 +137,20 @@ public class DataStorageService implements Runnable {
 		return addresses;
 	}
 	
+	public ArrayList<String> resolveBaseStationUuids(String[] _uuids) {
+		ArrayList<String> baseUuids = new ArrayList<String>();
+		
+		for(String uuid : _uuids) {
+			if (entityTable.hasEntity(uuid)) {
+				Entity e = entityTable.getEntity(uuid);
+				if (e.contextUUID != null && !baseUuids.contains(e.contextUUID)){
+					baseUuids.add(e.contextUUID);
+				}
+			}
+		}
+		
+		return baseUuids;
+	}
 
 	private void saveData (Object _object, String _fileName) {
 		 

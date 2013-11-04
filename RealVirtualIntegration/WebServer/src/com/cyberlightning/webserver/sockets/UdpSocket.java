@@ -11,9 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
@@ -24,8 +22,8 @@ public class UdpSocket implements Runnable  {
 	private DatagramSocket serverSocket;
 	private int port;
 	
-	protected final String uuid = UUID.randomUUID().toString();
-	public final int type = StaticResources.UDP_RECEIVER;
+	public static final String uuid = UUID.randomUUID().toString();
+	public  final int type = StaticResources.UDP_RECEIVER;
 	
 	/**
 	 * 
@@ -144,7 +142,7 @@ public class UdpSocket implements Runnable  {
 		   				} 
 		           }
 			}
-			
+			return; //Exit thread
 		}
 
 

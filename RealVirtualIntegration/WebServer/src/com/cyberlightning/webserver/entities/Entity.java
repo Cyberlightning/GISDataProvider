@@ -41,6 +41,6 @@ public class Entity implements Serializable {
 	/**
 	 * 
 	 */
-	public float[] gps;
+	public float[] location;
 	
 }

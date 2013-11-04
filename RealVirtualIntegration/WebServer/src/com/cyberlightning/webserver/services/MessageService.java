@@ -2,22 +2,18 @@ package com.cyberlightning.webserver.services;
 
 
 import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.sockets.MessageObject;
+import com.cyberlightning.webserver.sockets.UdpSocket;
 
 /**
  * 
@@ -30,7 +26,7 @@ public class MessageService implements Runnable  {
 	private HashMap<String,IMessageEvent> registeredReceivers= new HashMap<String,IMessageEvent>();
 	public List<MessageObject> messageBuffer = Collections.synchronizedList(new ArrayList<MessageObject>());
 
-	private Map<String,String> messageLinks = new ConcurrentHashMap<String,String>();
+	private Map<String,ArrayList<String>> messageLinks = new ConcurrentHashMap<String,ArrayList<String>>();
 
 	/**
 	 * 
@@ -51,8 +47,8 @@ public class MessageService implements Runnable  {
 		while (i.hasNext()) {
 			String receiver = i.next();
 			if (receiver.contentEquals(_senderUuid)) {
-				receivers.add(this.messageLinks.get(receiver));
-			} else if (this.messageLinks.get(receiver).contentEquals(_senderUuid)) {
+				receivers.addAll(this.messageLinks.get(receiver));
+			} else if (this.messageLinks.get(receiver).contains(_senderUuid)) {
 				receivers.add(receiver);
 			}
 		}
@@ -73,21 +69,30 @@ public class MessageService implements Runnable  {
 		this.registeredReceivers.remove(_uuid);
 	}
 	
-	public void registerPublisher(String _address) {
-		
+	public void subscribeByIds(ArrayList<String> _publisherUuids, String _subscriberUuid) {
+		for (String uuid : _publisherUuids) {
+			ArrayList<String> subscriberUuids = new ArrayList<String>();
+			if(this.messageLinks.containsKey(uuid)) {
+				subscriberUuids = this.messageLinks.get(uuid);
+				subscriberUuids.add(_subscriberUuid);
+			} else {
+				subscriberUuids.add(_subscriberUuid);
+			}
+			this.messageLinks.put(uuid,subscriberUuids);
+		}
 	}
 	
-	public void unRegisterPublisher(String _address) {
-		
+	public void unsubscribeAllById(String _subscriberUuid) {
+		Iterator<ArrayList<String>> i = this.messageLinks.values().iterator();
+		while(i.hasNext()) {
+			ArrayList<String> j = i.next();
+			if (j.contains(_subscriberUuid)){
+				int k = j.indexOf(_subscriberUuid);
+				j.remove(k);
+			}
+		}
 	}
 	
-	public void registerSubscriber(String _uuid){
-		
-	}
-	
-	public void unregisterSubscriber(String _uuid) {
-		
-	}
 
 	@Override
 	public void run() {
@@ -109,21 +114,14 @@ public class MessageService implements Runnable  {
 						} 
 						break;
 					case StaticResources.TCP_CLIENT:
+						this.registeredReceivers.get(UdpSocket.uuid).onMessageReceived(msg); //TODO implement a better way for this, what if there are multiple sockets? 
 						break;
 					case StaticResources.HTTP_CLIENT:
-					//TODO
+						this.registeredReceivers.get(UdpSocket.uuid).onMessageReceived(msg); //TODO implement a better way for this, what if there are multiple sockets? 
 						break;
 						
 					}
-					
-				
 				}
-
-				
-			
-			
-			
-			
 		}	
 	}
 

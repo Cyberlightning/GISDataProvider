@@ -79,6 +79,9 @@ public abstract class StaticResources {
 	public static final int HTTP_GET = 0;
 	public static final int HTTP_POST_FILE = 1;
 	public static final int HTTP_POST_NON_FILE = 2;
+	
+	public static final String ERROR_CODE_BAD_REQUEST = "ERROR 400 BAD REQUEST";
+	public static final String ERROR_CODE_METHOD_NOT_ALLOWED = "ERROR 405 METHOD NOT ALLOWED";
 
 
 	

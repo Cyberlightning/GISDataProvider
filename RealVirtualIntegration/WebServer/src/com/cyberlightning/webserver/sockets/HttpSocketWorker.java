@@ -84,6 +84,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 		}
 		return; //Exit thread
 	}
+	
 	/**
 	 * 
 	 * @param _content
@@ -133,7 +134,6 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 	@Override
 	public void onMessageReceived(MessageObject msg) {
 		this.sendResponse(msg.payload.toString()); 
-		
 	}
 	
 	/**
@@ -155,7 +155,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 						}
 					}
 					
-				} else if (action[1].contentEquals("loadBySpatial")) {
+				} else if (action[1].contentEquals("loadBySpatialCircle")) {
 					String lat = "";
 					String lon = "";
 					int radius = 0;
@@ -190,11 +190,8 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 	private void handlePOSTMethod(String _content, boolean _isFile) {
 		
 		String[] queries = _content.split("&");
-		String id = "";
-		String actuator = "";
-		String parameter = "";
-		String value = "";
-		
+		String[] targetUUIDs = null;
+	
 		for (int i = 0; i < queries.length; i++) {
 			
 			if(queries[i].contains("action")) {
@@ -206,38 +203,24 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 						
 						if (queries[j].contains("device_id")) {
 							String[] s = queries.clone()[j].trim().split("=");
-							id = s[1];
-						} else if (queries[j].contains("actuator")){
-							String[] s = queries.clone()[j].trim().split("=");
-							actuator = s[1];
-						} else if (queries[j].contains("parameter")) {
-							String[] s = queries.clone()[j].trim().split("=");
-							parameter = s[1];
-						} else if (queries[j].contains("value")) {
-							String[] s = queries.clone()[j].trim().split("=");
-							value = s[1];
-						}
+							targetUUIDs = s[1].split(","); //check correct regex
+						} 
 					}
-					
-					
-					
+
 				}else if (action[1].contentEquals("upload")) {
 					
-					File file = new File("marker.bmp");
+					//File file = new File("marker.bmp");
 					//sendResponse(SimulateSensorResponse.uploadFile(file));
 				} 
 			}
 			
 		}
-		
-		String[] targetUUIDs = new String[1];
-		targetUUIDs[0] = id;
-		
-		MessageService.getInstance().messageBuffer.add(new MessageObject(this.uuid,StaticResources.HTTP_CLIENT,DataStorageService.getInstance().resolveBaseStationAddresses(targetUUIDs),_content));
-		
-
+		if (targetUUIDs == null) {
+			sendResponse(StaticResources.ERROR_CODE_BAD_REQUEST);
+		} else {
+			MessageService.getInstance().messageBuffer.add(new MessageObject(this.uuid,StaticResources.HTTP_CLIENT,DataStorageService.getInstance().resolveBaseStationAddresses(targetUUIDs),_content));
+			
+		}
 	}
-
-
 }
 
