@@ -154,7 +154,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 						}
 					}
 					
-				} else if (action[1].contentEquals("loadBySpatialCircle")) {
+				} else if (action[1].contentEquals("loadBySpatial")) {
 					String lat = "";
 					String lon = "";
 					int radius = 0;

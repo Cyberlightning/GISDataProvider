@@ -47,7 +47,8 @@ public class DataStorageService implements Runnable {
 		
 		try {
 			
-			
+			this.saveData(this.entityTable,StaticResources.DATABASE_FILE_NAME);
+			this.saveData(this.baseStationReferences, StaticResources.REFERENCE_TABLE_FILE_NAME);
 	    	 FileInputStream data = new FileInputStream(StaticResources.DATABASE_FILE_NAME);
 	         ObjectInputStream dataIn = new ObjectInputStream(data);
 	         this.entityTable = (EntityTable)dataIn.readObject();
@@ -182,16 +183,7 @@ public class DataStorageService implements Runnable {
 	          i.printStackTrace();
 	      }
 	}
-	
-	private void testMethod() {
-		String s = "{\"550e8400-e29b-41d4-a716-446655440111\":{\"550e8400-e29b-41d4-a716-446655440000\":{\"attributes\":{\"name\":\"Power wall outlet\",\"address\":null},\"actuators\":[{\"uuid\":null,\"attributes\":{\"type\":\"power_switch\"},\"parameters\":{\"callback\":false},\"variables\": [{\"relay\":false, \"type\": \"boolean\" }]}],\"sensors\":[{\"uuid\":null,\"attributes\":{\"type\":\"Power sensor\"},\"parameters\":{\"options\":null},\"values\": [{\"value\": 13,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"}]}]}}}";
-		byte[] b = s.getBytes();
-		DatagramPacket d = new DatagramPacket(b, b.length);
-		this.eventBuffer.put("test", d);
-	}
-	
 
-	
 	@Override
 	public void run() {
 		this.intializeData();

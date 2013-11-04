@@ -112,9 +112,10 @@ public class EntityTable implements java.io.Serializable {
 		while (rows.hasNext()) {
 			RowEntry row = rows.next();
 			if (row.location != null) {
-				double x = (double)(row.location[0] - _lat);
-				double y = (double)(row.location[1] - _lon);
-				if (Math.sqrt(Math.pow(x, 2)+Math.pow(y, 2)) < _radius) {
+				double x = row.location[0] - _lat;
+				double y = row.location[1] - _lon;
+				int cal = (int) (Math.sqrt(Math.pow(x, 2)+Math.pow(y, 2))/ 0.000008998719243599958); //for debugging
+				if ((Math.sqrt(Math.pow(x, 2)+Math.pow(y, 2))/ 0.000008998719243599958) < _radius) {
 					includedEntities.add(this.entities.get(row));
 				}
 			}

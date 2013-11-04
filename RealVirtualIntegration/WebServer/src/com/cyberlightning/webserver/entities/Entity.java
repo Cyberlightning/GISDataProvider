@@ -41,6 +41,6 @@ public class Entity implements Serializable {
 	/**
 	 * 
 	 */
-	public float[] location;
+	public double[] location = new double[2];
 	
 }

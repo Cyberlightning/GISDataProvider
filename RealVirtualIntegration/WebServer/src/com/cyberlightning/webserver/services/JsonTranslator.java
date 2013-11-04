@@ -101,7 +101,16 @@ public abstract class JsonTranslator {
 					Iterator<?> i = attributes.keySet().iterator();
 					while (i.hasNext()) {
 						String attrKey = (String)i.next();
-						e.attributes.put(attrKey, attributes.get(attrKey));		
+						
+						if (attrKey.contentEquals("location")) {
+							
+							JSONArray loc = (JSONArray) attributes.get(attrKey); //TODO could 
+							e.location[0] = (double)loc.get(0);
+							e.location[1] = (double)loc.get(1);
+							
+						} else {
+							e.attributes.put(attrKey, attributes.get(attrKey));
+						}
 					}
 				}
 				if (content.containsKey("actuators")) {
