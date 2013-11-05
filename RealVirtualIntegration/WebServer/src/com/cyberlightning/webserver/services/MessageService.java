@@ -25,6 +25,7 @@ public class MessageService implements Runnable  {
 	private HashMap<String,IMessageEvent> registeredReceivers= new HashMap<String,IMessageEvent>();
 	private Map<String,ArrayList<String>> messageLinks = new ConcurrentHashMap<String,ArrayList<String>>();
 	public CopyOnWriteArrayList<MessageObject> messageBuffer = new CopyOnWriteArrayList<MessageObject>();
+	private volatile static boolean isStarted = false;
 	
 	
 	/**
@@ -55,9 +56,13 @@ public class MessageService implements Runnable  {
 	}
 	
 	public static MessageService getInstance () {
+		isStarted = true;
 		return _messageHandler;
 	}
 	
+	public static Boolean isStarted() {
+		return isStarted;
+	}
 	public void registerReceiver(IMessageEvent receiver, String _uuid) {
 		this.registeredReceivers.put(_uuid, receiver);
 	}

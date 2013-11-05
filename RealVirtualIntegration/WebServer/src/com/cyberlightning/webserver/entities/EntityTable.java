@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 public class EntityTable implements java.io.Serializable {
@@ -46,7 +47,7 @@ public class EntityTable implements java.io.Serializable {
 	private Entity updateValues(Entity _old, Entity _new) {
 		for (Sensor sensor: _new.sensors) {
 			if(sensor.values != null) {
-				ArrayList<HashMap<String,Object>> values = sensor.values;
+				CopyOnWriteArrayList<HashMap<String,Object>> values = sensor.values;
 				for(Sensor oldSensor : _old.sensors) {
 					if (oldSensor.uuid != null && sensor.uuid != null) {
 						if (oldSensor.uuid.contentEquals(sensor.uuid)) {

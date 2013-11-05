@@ -59,6 +59,9 @@ public class DataStorageService implements Runnable {
 	         refIn.close();
 	         ref.close();
 	         
+	         Thread t = new Thread((Runnable)(new SaveFileRoutine()));
+	         t.start();
+	         
 	      } catch (IOException i) {
 	         i.printStackTrace();
 	         return;
@@ -198,8 +201,6 @@ public class DataStorageService implements Runnable {
 				try {
 					this.addEntry(this.eventBuffer.get(key));
 					this.eventBuffer.remove(key);
-					this.saveData(this.entityTable,StaticResources.DATABASE_FILE_NAME);
-					this.saveData(this.baseStationReferences, StaticResources.REFERENCE_TABLE_FILE_NAME);
 				} catch (UnsupportedEncodingException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -209,6 +210,26 @@ public class DataStorageService implements Runnable {
 		}
 	}
 	
+	private class SaveFileRoutine implements Runnable {
+
+		@Override
+		public void run() {
+			while (true) {
+				try {
+					Thread.sleep(StaticResources.SAVE_TO_HD_INTERVAL);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				EntityTable e = entityTable;
+				Map<String, InetSocketAddress> b = baseStationReferences;
+				saveData(e,StaticResources.DATABASE_FILE_NAME);
+				saveData(b, StaticResources.REFERENCE_TABLE_FILE_NAME);
+			}
+			
+		}
+		
+	}
 	
 	
 }

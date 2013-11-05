@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 import com.cyberlightning.webserver.StaticResources;
@@ -56,9 +57,12 @@ public class UdpSocket implements Runnable  {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		testMethod();
+		
 		while(true) {
         	
+			if (!MessageService.isStarted()) continue;
+			//Thread t = new Thread((Runnable)(new TestRoutine()));
+			//t.start();
         	byte[] receivedData = new byte[StaticResources.UDP_PACKET_SIZE];
     		DatagramPacket receivedPacket = new DatagramPacket(receivedData, receivedData.length);
         	
@@ -76,19 +80,37 @@ public class UdpSocket implements Runnable  {
           
 		}
 	}
-	private void testMethod() {
-		
-			String s = "{\"550e8400-e29b-41d4-a716-446655440111\":{\"550e8400-e29b-41d4-a716-446655440000\":{\"attributes\":{\"name\":\"Power wall outlet\",\"location\":[60.32,45.42]},\"actuators\":[{\"uuid\":null,\"attributes\":{\"type\":\"power_switch\"},\"parameters\":{\"callback\":false},\"variables\": [{\"relay\":false, \"type\": \"boolean\" }]}],\"sensors\":[{\"uuid\":null,\"attributes\":{\"type\":\"Power sensor\"},\"parameters\":{\"options\":null},\"values\": [{\"value\": 13,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"}]}]}}}";
-			byte[] b = s.getBytes();
-			DatagramPacket d = null;
-			try {
-				d = new DatagramPacket(b, b.length,InetAddress.getByName("dev.cyberlightning.com"), 23233);
-			} catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+	private class TestRoutine implements Runnable {
+
+		@Override
+		public void run() {
+			int j = 0;
+			while (j<50) {
+			double ds = Math.random()*10;
+				int random = (int)ds;
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				String s = "{\"550e8400-e29b-41d4-a716-446655440111\":{\"550e"+ random+"400-e29b-41d4-a716-446655440000\":{\"attributes\":{\"name\":\"Power wall outlet\",\"location\":[60.32,45.42]},\"actuators\":[{\"uuid\":null,\"attributes\":{\"type\":\"power_switch\"},\"parameters\":{\"callback\":false},\"variables\": [{\"relay\":false, \"type\": \"boolean\" }]}],\"sensors\":[{\"uuid\":null,\"attributes\":{\"type\":\"Power sensor\"},\"parameters\":{\"options\":null},\"values\": [{\"value\": 13,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"}]}]}}}";
+				byte[] b = s.getBytes();
+				DatagramPacket d = null;
+				byte[] address = {22,22,22,22};
+				try {
+					d = new DatagramPacket(b, b.length,InetAddress.getByAddress(address), 23233);
+				} catch (UnknownHostException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				MessageService.getInstance().messageBuffer.add(new MessageObject(uuid,type,d));        
 			}
-			MessageService.getInstance().messageBuffer.add(new MessageObject(uuid,this.type,d));        
+			return;
+		}
+		
 	}
+	
 	
 	private class SendWorker implements Runnable,IMessageEvent {
 		

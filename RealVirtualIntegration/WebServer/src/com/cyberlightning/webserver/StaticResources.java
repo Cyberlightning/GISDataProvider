@@ -83,6 +83,8 @@ public abstract class StaticResources {
 	public static final String ERROR_CODE_BAD_REQUEST = "ERROR 400 BAD REQUEST";
 	public static final String ERROR_CODE_METHOD_NOT_ALLOWED = "ERROR 405 METHOD NOT ALLOWED";
 	public static final String ERROR_CODE_NOT_FOUND = "ERROR 404 NOT FOUND";
+	
+	public static final long SAVE_TO_HD_INTERVAL = 25000;
 
 
 	
