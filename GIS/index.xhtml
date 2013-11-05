@@ -9,11 +9,40 @@
 </head>
 <body>
     <xml3d id="xml3dContent" xmlns="http://www.xml3d.org/2009/xml3d">
-        <transform id="t_node-camera_player" rotation="0.0 0.0 0.0 2.0" translation="0.0 0.0 0.0"/>
-        <group id="node-camera_player" transform="#t_node-camera_player">
-            <view fieldOfView="0.77699953" id="camera_player-camera"/>
+        <defs>
+            <transform id="t_node-camera_player" rotation="0.0 0.0 0.0 0.0" translation="0 0 0"/>
+
+            <shader id="orangePhong" script="urn:xml3d:shader:phong">
+                <float3 name="diffuseColor" >1 0.5 0</float3>
+                <float name="ambientIntensity" >0.5</float>
+            </shader>
+
+            <lightshader id="light1" script="urn:xml3d:lightshader:directional" >
+              <float3 name="intensity" >1 1 1</float3>
+              <bool name="castShadow">true</bool>
+              <float3 name="direction">0 1 0.5</float3>
+            </lightshader>
+
+            <light shader="#light1" />
+        </defs>
+
+        <group id="node-camera_player" transform="#t_node-camera_player" shader="#orangePhong" lightshader="#light1">
+            <view fieldOfView="0.14" id="camera_player-camera"/>
+<!--             <mesh type="triangles">
+               <int name="index">0 1 2 1 2 3</int>
+               <float3 name="position">-1.0 -1.0 -10.0 1.0 -1.0 -10.0 -1.0  1.0 -10.0 1.0  1.0 -10.0</float3>
+               <float3 name="normal">0.0 0.0 1.0 0.0 0.0 1.0 0.0 0.0 1.0 0.0 0.0 1.0</float3>
+               <float2 name="texcoord">0.0 1.0 1.0 1.0 0.0 0.0 1.0 0.0</float2>
+            </mesh> -->
         </group>
     </xml3d>
+ 
+    <script type="text/javascript">
+    function addShader(id){
+
+    }
+
+ </script>
 </body>
 <script type="text/javascript" src="scripts/map.js"></script>
 </html>
