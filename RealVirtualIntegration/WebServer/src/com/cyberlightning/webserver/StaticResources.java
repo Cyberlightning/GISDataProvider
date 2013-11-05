@@ -38,14 +38,15 @@ public abstract class StaticResources {
 	public static final int UDP_PACKET_SIZE = 1024;
 	
 	public static final int SERVER_PORT_COAP = 61616; //default compressed UDP port space defined in [RFC4944]
-
+	public static final int DEFAULT_COAP_PORT = 5683;
 	public static final int SERVER_PORT = 44446;
 	public static final String LOCAL_HOST = "127.0.0.1";
 	public static final String SERVER_DETAILS = "Cyberlightning Web Server";
 	public static final int ACTIVITY_DURATION = 300; // in seconds
 	public static final int WEB_SOCKET_PORT = 44445; 
+	public static final int DEFAULT_BASESTATION_PORT = 45454;
 	
-	public static final int MAX_CONNECTED_CLIENTS = 10;
+	public static final int MAX_CONNECTED_CLIENTS = 50;
 	
 	public static final int MAX_NUM_OF_THREADS = 7;
 	
@@ -54,7 +55,9 @@ public abstract class StaticResources {
 	public static final String CLIENT_DISCONNECTED = " disconnected, socket shutdown gracefully";
 	public static final String CLIENT_CONNECTED = " connected, connection established";
 	
-	public static final String DATABASE_FILE_PATH = "deviceDB.ser";
+	public static final String DATABASE_FILE_NAME = "deviceDB.ser";
+	public static final String REFERENCE_TABLE_FILE_NAME = "BaseStationRefernceDB.ser";
+	
 	
 	public static final int DEFAULT_NUM_OF_ENTRIES = 10000;
 	
@@ -68,7 +71,20 @@ public abstract class StaticResources {
 	public static final int TCP_CLIENT = 1;
 	public static final int UDP_RECEIVER = 2;
 	
+	public static final int QUERY_SPATIAL_CIRCLE = 0;
+	public static final int QUERY_SPATIA_BOUNDING_BOX = 1;
+	public static final int QUERY_SPATIA_SHAPE = 2;
+	public static final int QUERY_TYPE = 3;
 	
+	public static final int HTTP_GET = 0;
+	public static final int HTTP_POST_FILE = 1;
+	public static final int HTTP_POST_NON_FILE = 2;
+	
+	public static final String ERROR_CODE_BAD_REQUEST = "ERROR 400 BAD REQUEST";
+	public static final String ERROR_CODE_METHOD_NOT_ALLOWED = "ERROR 405 METHOD NOT ALLOWED";
+	public static final String ERROR_CODE_NOT_FOUND = "ERROR 404 NOT FOUND";
+	
+	public static final long SAVE_TO_HD_INTERVAL = 25000;
 
 
 	

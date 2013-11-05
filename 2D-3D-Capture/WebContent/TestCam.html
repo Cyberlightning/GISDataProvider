@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script type="text/javascript"></script>
+<script type="text/javascript" src="js_api.js"></Script>
+<script type="text/javascript">
+var serverURL = "ws://localhost:17000/";
+var video;
+
+var onFailSoHard = function(e) {
+	log("Video not supported");
+};
+
+var getBinaryData = function() {
+	//FOLLOWING 2 LINE OF CODE CONVERTS THE IMAGEDATA TO BINARY
+	var imagedata = localcontext.getImageData(0, 0, videowidth,videoheight);
+	return  binaryCodeImage(imagedata);
+}; 
+
+function startVideoCliecked() {
+	if(hasMediaSupport())
+		video = startVideo(onFailSoHard);
+	else 
+		log("Your Browser Does not support video");
+}
+
+function uploadSnapshotClicked(){
+	snapshot();
+}
+
+var snapshot = function() {	
+	if(video){
+		 localcanvas = document.createElement("canvas");
+		 localcanvas.id = "snapshot";
+		 localcontext = localcanvas.getContext('2d');
+		 videoheight= video.videoHeight;
+		 videowidth = video.videoWidth;
+		 alert(videoheight);
+		 alert(videowidth);
+		 localcanvas.width = videowidth;
+		 localcanvas.height = videoheight;	
+		 localcanvas.style.position="fixed";
+		 localcanvas.style.top="80px";
+		 localcanvas.style.left=(videowidth+400+20)+"px";
+		 localcanvas.style.zIndex= 10;
+		 localcontext.drawImage(video, 0, 0);
+		 document.body.appendChild(localcanvas);
+		 setupConnection(serverURL);	   	 
+	};	  
+};
+
+var setupConnection = function(url) {
+	 connection = new WebSocket(url);	 
+	 connection.binaryType = "arraybuffer";
+	 var handler = new ConnectionHandler;	 
+	 connection.onopen = handler.onOpen;
+	 connection.onmessage =	handler.onMessage;
+	 connection.onclose = handler.onClose;
+	 connection.onerror =  handler.onError;
+ };
+ 
+ var ConnectionHandler = function () {	 
+ };
+
+ ConnectionHandler.prototype.onOpen= function() {
+		 var d = new Date();
+		 var time=d.getFullYear()+"."+( d.getMonth()+1)+"."+d.getDate()+"_"+d.getHours()+"."+d.getMinutes()+"."+d.getSeconds();
+		 var imagematadata={
+			 type:"image",
+			 time:time, 
+			 ext:"png",			 
+			 vwidth:videowidth, vheight:videoheight, };
+		 if(connection) {
+			 imageTag = JSON.stringify(imagematadata);		 
+			 log("Sending message"+imageTag);
+			 connection.send(imageTag);			 
+		 } else {
+				 log("Connection is null");
+		 }
+	};
+
+	ConnectionHandler.prototype.onMessage = function (event) {
+		message=window.atob(event.data);	
+		
+		log(message);
+		if(message =="SERVER_READY"){
+			log("Server is listening..!");
+		//THIS PART TRIES TO EXTRACT DATA FROM THE CANVAS TO CREATE AN JPEG IMAGE
+		//var url = localcanvas.toDataURL("image/jpeg");
+		}else if (message== "FILENAME") {
+			if(connection.readyState == 1) 
+				connection.send(getBinaryData());
+		}	
+	};
+
+	ConnectionHandler.prototype.onClose = function()
+	{ 
+		 log("Connection is closed...");
+		 var localcanvas =document.getElementById("snapshot");
+		 localcontext.clearRect(0, 0, localcanvas.width, localcanvas.height);	 
+		 document.body.removeChild(localcanvas);
+	};
+
+	ConnectionHandler.prototype.onError = function (errors){
+		log('WebSocket Error'  + errors ); 
+	};
+
+	function log(text){
+		document.getElementById("consolelog").value = document.getElementById("consolelog").value + "\n"+text;
+	}
+
+</script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class ="body">
+<div id="logo"> <a href="http://www.cyberlightning.com/"> <img alt="Company Logo" src="img/logo.png"></a>
+</div>
+
+<div id="page">
+	<button onclick="startVideoCliecked()" id='videobutton'>video Start</button>
+	<button onclick="uploadSnapshotClicked()" id='snapbutton'>Take and upload Snapshot</button>
+	<button onclick="clearlogs()" id='clearlog'>Clear Logs</button>
+	<textarea rows="50" cols="175" id="consolelog"></textarea>
+	<video src="" autoplay ></video>
+	<div id='response'>
+	</div>
+</div>
+	
+</body>
+</html>

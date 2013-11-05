@@ -13,59 +13,111 @@ import com.cyberlightning.webserver.entities.Actuator;
 import com.cyberlightning.webserver.entities.Entity;
 import com.cyberlightning.webserver.entities.Sensor;
 
-
+/**
+ * 
+ * @author Tomi
+ *
+ */
 public abstract class JsonTranslator {
 	
 	/*Sample JSON string from sensors
 	 * 
 	 * {
-	    "550e8400-e29b-41d4-a716-446655440000": {
-	        "attributes": {
-	            "name": "Power wall outlet",
-	            "address": null
-	        },
-	        "actuators": [
-	            {
-	                "uuid": null,
-	                "attributes": {
-	                    "type": "power_switch"
-	                },
-	                "parameters": {
-	                    "callback": false
-	                },
-	                "variables": [
-	                    {
-	                        "relay": false,
-	                        "type": "boolean"
-	                    }
-	                ]
-	            }
-	        ],
-	        "sensors": [
-	            {
-	                "uuid": null,
-	                "attributes": {
-	                    "type": "Power sensor"
-	                },
-	                "parameters": {
-	                    "options": null
-	                },
-	                "values": [
-	                   {
-	                        "value": 16,
-	                        "time": "YY-MM-DD HH:MM",
-	                        "unit" : "Celcius"
-	                   },
-	                   {
-	                        "value": 13,
-	                        "time": "YY-MM-DD HH:MM",
-	                        "unit" : "Celcius"
-	                   }
-	                ]
-	            }
-	        ]
-	    }
-	}*/
+    "550e8400-e29b-41d4-a716-446655440000": {
+        "sensors": [
+            {
+                "values": [
+                    {
+                        "unit": "Celcius",
+                        "time": "YY-MM-DD HH:MM",
+                        "value": 13
+                    },
+                    {
+                        "unit": "Celcius",
+                        "time": "YY-MM-DD HH:MM",
+                        "value": 13
+                    },
+                    {
+                        "unit": "Celcius",
+                        "time": "YY-MM-DD HH:MM",
+                        "value": 13
+                    },
+                    {
+                        "unit": "Celcius",
+                        "time": "YY-MM-DD HH:MM",
+                        "value": 13
+                    },
+                    {
+                        "unit": "Celcius",
+                        "time": "YY-MM-DD HH:MM",
+                        "value": 13
+                    },
+                    {
+                        "unit": "Celcius",
+                        "time": "YY-MM-DD HH:MM",
+                        "value": 13
+                    },
+                    {
+                        "unit": "Celcius",
+                        "time": "YY-MM-DD HH:MM",
+                        "value": 13
+                    },
+                    {
+                        "unit": "Celcius",
+                        "time": "YY-MM-DD HH:MM",
+                        "value": 13
+                    },
+                    {
+                        "unit": "Celcius",
+                        "time": "YY-MM-DD HH:MM",
+                        "value": 13
+                    },
+                    {
+                        "unit": "Celcius",
+                        "time": "YY-MM-DD HH:MM",
+                        "value": 13
+                    },
+                    {
+                        "unit": "Celcius",
+                        "time": "YY-MM-DD HH:MM",
+                        "value": 13
+                    }
+                ],
+                "parameters": {
+                    "callback": false,
+                    "options": null
+                },
+                "attributes": {
+                    "callback": false,
+                    "options": null
+                },
+                "uuid": null
+            }
+        ],
+        "attributes": {
+            "name": "Power wall outlet"
+        },
+        "actuators": [
+            {
+                "parameters": {
+                    "callback": false,
+                    "options": null
+                },
+                "attributes": {
+                    "callback": false,
+                    "options": null
+                },
+                "uuid": null,
+                "variables": [
+                    {
+                        "relay": null,
+                        "type": null
+                    }
+                ]
+            }
+        ]
+    }
+}*/
 	
 	
 	/**Serialize sensor event in JSON form in to a list of entity objects.
@@ -78,11 +130,15 @@ public abstract class JsonTranslator {
 		JSONObject entity;
 		
 		try {
-			entity = (JSONObject) parser.parse(_jsonString);
+			JSONObject context = (JSONObject) parser.parse(_jsonString);
+			String contextUUID = (String) context.keySet().iterator().next();
+			entity = (JSONObject) context.get(contextUUID);
 			Iterator<?> keys = entity.keySet().iterator();
 			while (keys.hasNext()) {
 				String key = (String) keys.next();
 				Entity e = new Entity();
+				e.contextUUID = contextUUID; 
+				e.uuid = key;
 				JSONObject content = (JSONObject) entity.get(key);
 				
 				if (content.containsKey("attributes")) {
@@ -90,7 +146,16 @@ public abstract class JsonTranslator {
 					Iterator<?> i = attributes.keySet().iterator();
 					while (i.hasNext()) {
 						String attrKey = (String)i.next();
-						e.attributes.put(attrKey, attributes.get(attrKey));		
+						
+						if (attrKey.contentEquals("location")) {
+							
+							JSONArray loc = (JSONArray) attributes.get(attrKey); //TODO could 
+							e.location[0] = (double)loc.get(0);
+							e.location[1] = (double)loc.get(1);
+							
+						} else {
+							e.attributes.put(attrKey, attributes.get(attrKey));
+						}
 					}
 				}
 				if (content.containsKey("actuators")) {
@@ -210,12 +275,14 @@ public abstract class JsonTranslator {
 			JSONObject entityJson = new JSONObject();
 			JSONObject attributeJson = new JSONObject();
 			JSONArray actuatorsJson = new JSONArray();
+			JSONObject actuatorJson = new JSONObject();
 			JSONArray sensorsJson = new JSONArray();
-			JSONObject componentJson = new JSONObject();
+			JSONObject sensorJson = new JSONObject();
 			JSONObject attributesJson = new JSONObject();
 			JSONObject parametersJson = new JSONObject();
 			JSONArray variablesJson = new JSONArray();
 			JSONArray valuesJson = new JSONArray();
+			JSONObject valueJson = new JSONObject();
 			JSONObject variableJson = new JSONObject();
 			
 			Iterator<String> attrsKeys = entity.attributes.keySet().iterator();
@@ -227,21 +294,21 @@ public abstract class JsonTranslator {
 			
 			for (Actuator actuator : entity.actuators) {
 				
-				componentJson.put("uuid", actuator.uuid);
+				actuatorJson.put("uuid", actuator.uuid);
 				
 				Iterator<String> actAttrsKeys = actuator.parameters.keySet().iterator();
 				while (actAttrsKeys.hasNext()) {
 					String attrKey = actAttrsKeys.next();
 					attributesJson.put(attrKey, actuator.parameters.get(attrKey));
 				}
-				componentJson.put("attributes", attributesJson);
+				actuatorJson.put("attributes", attributesJson);
 				
 				Iterator<String> paramsKeys = actuator.parameters.keySet().iterator();
 				while (paramsKeys.hasNext()) {
 					String paramKey = paramsKeys.next();
 					parametersJson.put(paramKey, actuator.parameters.get(paramKey));
 				}
-				componentJson.put("parameters", parametersJson);
+				actuatorJson.put("parameters", parametersJson);
 				
 				for (int i = 0 ; i < actuator.variables.size(); i ++) {
 					
@@ -253,43 +320,46 @@ public abstract class JsonTranslator {
 					}
 					variablesJson.add(variableJson);
 				}
-				componentJson.put("variables", variablesJson);
-				actuatorsJson.add(componentJson);
+				actuatorJson.put("variables", variablesJson);
+				actuatorsJson.add(actuatorJson);
+			
 			}
 			entityJson.put("actuators", actuatorsJson);
 			
 			for (Sensor sensor : entity.sensors) {
 				
-				componentJson.put("uuid", sensor.uuid);
+				sensorJson.put("uuid", sensor.uuid);
 				
 				Iterator<String> senAttrsKeys = sensor.parameters.keySet().iterator();
 				while (senAttrsKeys.hasNext()) {
 					String senAttrKey = senAttrsKeys.next();
 					attributesJson.put(senAttrKey, sensor.parameters.get(senAttrKey));
 				}
-				componentJson.put("attributes", attributesJson);//here
+				sensorJson.put("attributes", attributesJson);//here
 				
 				Iterator<String> paramsKeys = sensor.parameters.keySet().iterator();
 				while (paramsKeys.hasNext()) {
 					String paramKey = paramsKeys.next();
 					parametersJson.put(paramKey, sensor.parameters.get(paramKey));
 				}
-				componentJson.put("parameters", parametersJson);
+				sensorJson.put("parameters", parametersJson);
 				
-				for (int i = 0 ; i < _numOfValues; i ++) {
+				for (int i = 0 ; i < sensor.values.size(); i ++) {
 					
-					if(!(i < sensor.values.size())) break;
+					if(i > _numOfValues) break;
 					
 					HashMap<String,Object > variable = sensor.values.get(i);
 					Iterator<String> j = variable.keySet().iterator();
+				
 					while (j.hasNext()) {
 						String varKey = j.next();
-						variableJson.put(varKey, variable.get(varKey));
+						valueJson.put(varKey, variable.get(varKey));
 					}
-					valuesJson.add(variableJson);
+					valuesJson.add(valueJson);
 				}
-				componentJson.put("variables", valuesJson);
-				sensorsJson.add(componentJson);	
+				sensorJson.put("values", valuesJson);
+				sensorsJson.add(sensorJson);
+				
 			}
 			
 			entityJson.put("sensors", sensorsJson);

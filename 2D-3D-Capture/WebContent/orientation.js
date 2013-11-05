@@ -61,10 +61,10 @@ function updateXValue(angle){
 
 var handleOrientationEvent = function( frontToBack, leftToRight, rotateDegrees , abs , orienation  ){
 	document.getElementById("abs").innerHTML = abs;
-	document.getElementById("alpha").innerHTML = "alpha" +rotateDegrees;
-	document.getElementById("beta").innerHTML = "beta" +frontToBack;
-	document.getElementById("gamma").innerHTML = "gamma" +leftToRight;
-	document.getElementById("orientation").innerHTML = "You are in " +orienation + "mode.";
+	document.getElementById("alpha").innerHTML = "alpha-->" +frontToBack;
+	document.getElementById("beta").innerHTML = "beta-->" +leftToRight;
+	document.getElementById("gamma").innerHTML = "gamma-->" +leftToRight;
+	document.getElementById("orientation").innerHTML = "You are in " +orienation + " mode.";
 	var c=document.getElementById("myCanvas");
 	var ctx=c.getContext("2d");
 	updateYValue(frontToBack);

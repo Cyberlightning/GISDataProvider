@@ -9,7 +9,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 
-import com.cyberlightning.android.coapclient.R;
 
 import android.app.Activity;
 import android.app.AlertDialog;

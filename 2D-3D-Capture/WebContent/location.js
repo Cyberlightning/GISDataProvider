@@ -22,6 +22,7 @@ function error(err) {
 };
 
 var initGoogleMaps = function(pos) {	
+//		var centerPosition = new google.maps.LatLng(-34.397, 150.644);
 		var centerPosition = new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
 		alert(pos.coords.latitude+":"+ pos.coords.longitude+":"+pos.coords.accuracy);
 		alert(pos.coords.altitude +":"+ pos.coords.altitudeAccuracy);

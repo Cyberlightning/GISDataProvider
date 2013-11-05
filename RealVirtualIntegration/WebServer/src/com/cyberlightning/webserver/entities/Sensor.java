@@ -3,6 +3,7 @@ package com.cyberlightning.webserver.entities;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Sensor implements Serializable {
 
@@ -13,6 +14,6 @@ public class Sensor implements Serializable {
 
 	public HashMap<String,Object> parameters = new HashMap<String,Object>();
 	public HashMap<String,Object> attributes = new HashMap<String,Object>();
-	public ArrayList<HashMap<String,Object>> values = new ArrayList<HashMap<String,Object>>();
+	public CopyOnWriteArrayList<HashMap<String, Object>> values = new CopyOnWriteArrayList<HashMap<String,Object>>();
 	public String uuid;
 }

@@ -40,7 +40,7 @@
                     "attribute vec3 position;",
 
                     "void main(void) {",
-                    "   gl_Position = vec4(position, 0.0);",
+                    "   gl_Position = vec4(position, 1.0);",
                     "}"
                 ].join("\n"),
 
@@ -48,7 +48,7 @@
                     "precision highp float;",
                     "uniform sampler2D inputTexture;",
                     "uniform vec2 quadSize;",
-                    "    vec2 texcoord = (gl_FragCoord.xy / quadSize.xy);",
+                    "vec2 texcoord = (gl_FragCoord.xy / quadSize.xy);",
 
                     "void main(void)",
                     "{",
@@ -74,7 +74,7 @@
                     "attribute vec3 position;",
 
                     "void main(void) {",
-                    "   gl_Position = vec4(position, 0.0);",
+                    "   gl_Position = vec4(position, 1.0);",
                     "}"
                 ].join("\n"),
 
