@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -130,7 +131,8 @@ public class WebSocketWorker implements Runnable {
 				    
 				    if (opcode != 8) { 
 				    	 
-				    	handleClientMessage(read());
+				    	//handleClientMessage(read());  //TODO implement how to subscribe by basestation id not socket class uuid.
+				    	testHandle(read());
 				    	 
 				    } else {
 				    	 
@@ -161,6 +163,12 @@ public class WebSocketWorker implements Runnable {
 		}
 		System.out.println(this.clientSocket.getInetAddress().getAddress().toString() + StaticResources.CLIENT_DISCONNECTED);
 		return;	//Exits thread
+	}
+	private void testHandle(String _request) { 
+		ArrayList<String> devices = new ArrayList<String> ();
+		devices.add(UdpSocket.uuid);
+		MessageService.getInstance().subscribeByIds(devices, this.uuid);
+		
 	}
 	
 	private void handleClientMessage(String _request) {
@@ -268,6 +276,7 @@ public class WebSocketWorker implements Runnable {
 			this.input.close();
 			this.clientSocket.close();
 			this.isConnected = false;
+			MessageService.getInstance().unsubscribeAllById(this.uuid);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -371,7 +380,7 @@ public class WebSocketWorker implements Runnable {
 	private class SendWorker implements Runnable,IMessageEvent {
 		
 		
-		public List<MessageObject> sendBuffer = Collections.synchronizedList(new ArrayList<MessageObject>());
+		public CopyOnWriteArrayList<MessageObject> sendBuffer = new CopyOnWriteArrayList<MessageObject>();
 		
 		
 		@Override

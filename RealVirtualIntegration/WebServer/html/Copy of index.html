@@ -170,24 +170,7 @@
                 }
             }
         }
-		var keysdf;
-		var sdsd = [];
-		var keysdfddddd = [];
-		for (var key in json) {
-		    if (json.hasOwnProperty(key)) {
-		    	for (var keyd in json[key]){
-		    		if (json[key].hasOwnProperty(keyd)) {
-		    			keysdf = keyd;
-		    			
-		    		}
-		    	}
-		        
-		    }
-		}
-		
-		var xsd = json[key]
-		var llls = xsd[keysdf];
-		sensors = llls.sensors;
+
         sensors.push(json);
 
 		if (!alreadyExists) {
