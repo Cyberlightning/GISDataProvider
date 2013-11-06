@@ -3,15 +3,16 @@
 
     function initApp() {
         // XML3D.debug.loglevel = 0; // set log level to "all"
-        initMoveable();
         requestGISData();
+        initMoveable();
     }
 
     function createXml3D(xml3dData) {
         // console.log(xml3dData);
 
         //$("#xml3dContent").empty();
-        $("#xml3dContent").append(xml3dData);
+        // $("#xml3dContent").append(xml3dData);
+        $("#MaxScene").append(xml3dData);
 
         var xml3dobject = document.getElementById("xml3dContent");
         var height = $(document).height();
@@ -22,7 +23,8 @@
 
         // Move camera to correct debugging position
         var camera_node = document.getElementById("t_node-camera_player");
-        camera_node.setAttribute("translation", "373573.78125 7488050 1676.4444580078125");
+        // camera_node.setAttribute("translation", "373573.78125 7488050 1676.4444580078125");
+        camera_node.setAttribute("translation", "399000 7488050 1676.4444580078125");
         camera_node.setAttribute("rotation", "-0.24106520414352417 0.007622132543474436 -0.9704789519309998 3.1453794327656754");
         
         var camera_player = document.getElementById("camera_player-camera");
