@@ -44,39 +44,52 @@ function initEvents(){
 
 function moveBackAndForward(x){
 	console.log("moveBackAndForward");
-	var vecX = [0, 0, 1];
-	var result = vec3.create();
-	var normalizedOut = vec3.create();
-	var translated = vec3.create();
+	// var vecX = [0, 0, 1];
+	// var result = vec3.create();
+	// var normalizedOut = vec3.create();
+	// var translated = vec3.create();
 
-	vec3.transformQuat(result, vecX, moveable.getOrientation());
-	vec3.normalize(normalizedOut, result)
-	console.log(normalizedOut);
+	// vec3.transformQuat(result, vecX, moveable.getOrientation());
+	// vec3.normalize(normalizedOut, result)
+	// console.log(normalizedOut);
 
-	// vec3.scale(translated, normalizedOut, x);
-	// console.log(result);
+	// // vec3.scale(translated, normalizedOut, x);
+	// // console.log(result);
 
-	// moveable.translate(translated);
-	moveable.translate(vec3.scale(translated, normalizedOut, x));
-	console.log(moveable.translate(vec3.scale(translated, normalizedOut, x)))
+	// // moveable.translate(translated);
+	// moveable.translate(vec3.scale(translated, normalizedOut, x));
+	// console.log(moveable.translate(vec3.scale(translated, normalizedOut, x)))
+	// console.log(moveable.getPosition());
+
 	console.log(moveable.getPosition());
+	moveable.transform.translation.x +=x;
+	// moveable.transform.translation.y +=x;
+	console.log(moveable.getPosition());
+	var camera_node = document.getElementById("t_node-camera_player");
+    // camera_node.setAttribute("translation", "389000 7488050 1676.4444580078125");
 
 }
 
 function moveLeftAndRight(y){
-	var vecY = [1, 0, 0]; // global x is local z of the camera
-	var result = vec3.create();
-	var normalizedOut = vec3.create();
-	var translated = vec3.create();
+	// var vecY = [1, 0, 0]; // global x is local z of the camera
+	// var result = vec3.create();
+	// var normalizedOut = vec3.create();
+	// var translated = vec3.create();
 
-	vec3.transformQuat(result, vecY, moveable.getOrientation());
-	vec3.normalize(normalizedOut, result)
-	// console.log(normalizedOut);
+	// vec3.transformQuat(result, vecY, moveable.getOrientation());
+	// vec3.normalize(normalizedOut, result)
+	// // console.log(normalizedOut);
 
-	vec3.scale(translated, normalizedOut, y);
-	// console.log(result);
+	// vec3.scale(translated, normalizedOut, y);
+	// // console.log(result);
 
-	moveable.translate(translated);
+	// moveable.translate(translated);
+
+	console.log(moveable.getPosition());
+	moveable.transform.translation.y +=y;
+	// moveable.transform.translation.y +=x;
+	console.log(moveable.getPosition());
+	var camera_node = document.getElementById("t_node-camera_player");
 }
 
 function moveUpAndDown(z){
@@ -206,8 +219,6 @@ function mouseDownHandler(e){
 	console.log(e.pageX+", "+e.pageY);
 	//e.preventDefault();
 	if(e.button == 2){
-		// var camera_node = document.getElementById("t_node-camera_player");
-  //       camera_node.setAttribute("translation", "389000 7488050 1676.4444580078125");
 		mouseButtonIsDown = true;
 		oldMousePosition.x = e.pageX;
 		oldMousePosition.y = e.pageY;
