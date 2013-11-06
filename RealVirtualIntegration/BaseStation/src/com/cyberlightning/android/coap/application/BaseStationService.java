@@ -24,6 +24,7 @@ import org.json.JSONObject;
 
 import com.cyberlightning.android.coap.w4ds.interfaces.*;
 import com.cyberlightning.android.coap.w4ds.messages.*;
+import com.cyberlightning.android.coapclient.R;
 
 
 import android.app.AlarmManager;
