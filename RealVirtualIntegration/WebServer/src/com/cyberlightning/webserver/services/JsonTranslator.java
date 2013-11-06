@@ -28,9 +28,9 @@ public abstract class JsonTranslator {
             {
                 "values": [
                     {
-                        "unit": "Celcius",
+                        "unit": "3DPoint",
                         "time": "YY-MM-DD HH:MM",
-                        "value": 13
+                        "value": [12,13,14]
                     },
                     {
                         "unit": "Celcius",

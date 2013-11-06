@@ -46,7 +46,11 @@ public class DataStorageService implements Runnable {
 	public void intializeData() {
 		
 		try {	
-			
+			EntityTable e = entityTable;
+			Map<String, InetSocketAddress> b = baseStationReferences;
+			saveData(e,StaticResources.DATABASE_FILE_NAME);
+			saveData(b, StaticResources.REFERENCE_TABLE_FILE_NAME);
+		
 	    	 FileInputStream data = new FileInputStream(StaticResources.DATABASE_FILE_NAME);
 	         ObjectInputStream dataIn = new ObjectInputStream(data);
 	         this.entityTable = (EntityTable)dataIn.readObject();

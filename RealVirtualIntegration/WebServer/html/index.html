@@ -18,35 +18,6 @@
 	 $(function() {
 		 $( "#accordion" ).accordion();
 		 });
-	 $(function() {
-		 var spinner = $( "#spinner" ).spinner();
-		 });
-	 $.widget("ui.formatSpinner", $.ui.spinner, {
-		    options: {
-		    },
-		    _parse: function (value) {
-		        if (typeof value === "string") {                
-		            return this.options.values.indexOf(value);
-		        }
-		        return value;            
-		    },
-		    _format: function (value) {
-		        //wrap around
-		        if (value < 0) {
-		            value = this.options.count-1;
-		        }
-		        if (value > this.options.count-1) {
-		            value = 0;
-		        }
-		        var format = this.options.values[value];
-		        return format;
-		    },          
-		});
-	 
-	   
-	
-	    
-
 	</script>
 	
 	<style>
@@ -54,84 +25,38 @@
 		font: 62.5% "Trebuchet MS", sans-serif;
 		margin: 30px;
 		background-color:#1F001F;
-	}
-    canvas{
-    }
-    
-    #buttons div {
+	} #buttons div {
   		display: inline;
   		width:100%;
- 
-  	}
-  	
-  	
-  	
+  	}.btn {
+    display: inline-block;
+    margin-right: 6px;
+    }
 	</style>
 </head>
-
-
 
 <body>
 		<div align="left" style="width:100%;height:100px">
 			<img alt="" src="assets/logo.png">	
 		</div>
-	
+	    <div align="right" style="width:100%">
+            <button id="connect_button" style="display: inline-block;" onClick="WebSocketTest()">connect</button>
+            <form style="display: inline-block;" id="frm"><input id="command_input" type="text" placeholder="Command to be sent to sensor"></form>
+			<button style="display: inline-block;" id="send_button" onClick="sendData()">Send</button></div>
 		<div style="width:100%;height:100%">
+
   			<div id="content_left" style="background-color:#D2CCD2;height:650px;width:49%;float:left;"></div>
   			<div style="background-color:#938F93;height:650px;width:0.3%;float:left;"></div>
   			<div style="background-color:#D2CCD2;height:650px;width:50.7%;float:left;">
 				<div id="accordion"></div>
   			</div>
   			<div align="right" style="background-color:#4C334C;clear:both;color:white;font-size: 9">Copyright © 2013 Cyberlightning Ltd.</div>
- 			<div id="buttons" style="width:100%;">
-  				<button id="connect_button" onClick="WebSocketTest()">connect</button>
-  				<input id="spinner-sensors" type="text" value=""/>
-  				<form id="frm"><input id="command_input" type="text" placeholder="Command to be sent to sensor"></form>
-				<button id="send_button" onClick="sendData()">Send</button>
-  			</div>
+ 			<div id="device_control" style="width:100%;"></div>
   		</div>
-		<div id="holder"></div> <!-- This needs to be removed, dummy layer for JSON data -->
+		<div id="holder">
+		</div> <!-- This needs to be removed, dummy layer for JSON data -->
 	
 	<script type="text/javascript">
-
-	//var arrPaperTypes = ["Standard 80g", "Standard 100g", "Gloss 100g", "Gloss 120g"];
-	var sensorTypes = [];
-
-	$(function() {
-	    $("#spinner-sensors").formatSpinner({
-	        values: sensorTypes,
-	        count: sensorTypes.length
-	    });
-	}); 
-	
-	var map;
-	var lat;
-	var lon;
-	
-	
-
-	function sendData() {
-		var input = frm.command_input.value;
-// 		$.ajax({
-// 	  	type: "POST",
-// 	  	url: "http://dev.cyberlightning.com:44446/" + input,
-// 	  	async: true,
-// 	  	cache: false,
-// 	  	timeout:50000,
-// 	  	success: function(data){
-// 	  		alert("success: "+data);
-// 	  	}, 
-// 	  	error: function(XMLHttpRequest, textStatus, errorThrown){
-			
-// 	  		alert("error: " + textStatus + " (" + errorThrown + ")");
-// 	             setTimeout(
-// 	                    sendData, 
-// 	                    30000); 
-// 	            }
-// 	    });
-
-		 ws.send(input);
-	};
 	
 	//Global variables
 	
@@ -155,71 +80,105 @@
 	
 	var ws; //websocket 
 	var json;
-	var sensors = [];
     var type;
+    var map;
+	var lat;
+	var lon;
+    var entities = {};
+    var selectedUUID;
+    //var currentUuid;
+    var listOfUUIDS;
 
+    function createButton(currentUuid) {
+        $("#device_control").append('<button style="display: inline-block;" onClick="changeDevice(event)">'+currentUuid+'</button>')
+    }
+    function changeDevice(e) {
+        this.selectedUUID = e.currentTarget.innerHTML;
+        updateContent(entities[selectedUUID]);
+    }
 	function setContent() {
 
-        var alreadyExists = false;
-		
-		if (sensors != null) {
-            for(var i =0;i<sensors.length;i++){
-                if(sensors[i].device_properties.type == json.device_properties.type) {
-                    alreadyExists = true;
-                    break;
-                }
-            }
-        }
-		var keysdf;
-		var sdsd = [];
-		var keysdfddddd = [];
-		for (var key in json) {
-		    if (json.hasOwnProperty(key)) {
-		    	for (var keyd in json[key]){
-		    		if (json[key].hasOwnProperty(keyd)) {
-		    			keysdf = keyd;
-		    			
-		    		}
+		for (var baseUUID in json) {
+		    if (json.hasOwnProperty(baseUUID)) {
+		    	for (var deviceUUID in json[baseUUID]){
+		    		var device = json[baseUUID];
+		    		entities[deviceUUID] = device[deviceUUID];
+
+                    if(listOfUUIDS == null) {
+                        listOfUUIDS = [];
+                        listOfUUIDS[0] = deviceUUID;
+                        //currentUuid = deviceUUID;
+                        createButton(deviceUUID);
+                    } else {
+                        var contains = true;
+                        for(var k=0; k< listOfUUIDS.length; k++) {
+                            if(listOfUUIDS[k] != deviceUUID) {
+                             contains = false;
+                            }
+                        }
+                        if(!contains){
+                            listOfUUIDS.push(deviceUUID);
+                            //currentUuid = deviceUUID;
+                             createButton(deviceUUID);
+                        }
+                    }
+
 		    	}
 		        
 		    }
 		}
-		
-		var xsd = json[key]
-		var llls = xsd[keysdf];
-		sensors = llls.sensors;
-        sensors.push(json);
 
-		if (!alreadyExists) {
-			
-			if(json.device_properties.type == "TYPE_GPS") {
-				lat = parseFloat(json.event_values[0]);
-				lon = parseFloat(json.event_values[1]);
-				type =  json.device_properties.type;
-	            sensorTypes.push(json.device_properties.type);
-				var active = $('#accordion').accordion('option', 'active');
-				$('#accordion').accordion({heightStyle: 'content'});
-				$('#accordion').append('<h3><a href="#" onclick="loadMap(event)">' + type + '</a></h3><div id="map-canvas" style="height:300px"></div>') 
-				    .accordion('destroy').accordion({ active: active});	
-				
-				
-				
-			} else {
-				type =  json.device_properties.type;
-	            sensorTypes.push(json.device_properties.type);
-				var active = $('#accordion').accordion('option', 'active');
-				$('#accordion').append('<h3><a href="#" onclick="drawCharts(event)">' + type + '</a></h3><div>'+ parseContent(json) +'</div>')
-				    .accordion('destroy').accordion({ active: active});	
-			}
-            
-		}
+		for(var uuid in entities) {
+            if(entities.hasOwnProperty(uuid)) {
+                if (selectedUUID != null) {
+                    if(selectedUUID == uuid) {
+                        updateContent(entities[uuid]);
+                    }
+                } else {
+                    selectedUUID = uuid;
+                    addNewContent(entities[uuid]);
+                }
+            }
+        }
 	}
 
-	function parseContent(data) {
-        var content = "<b>Device Id:</b><i>" + data.device_id + "</i>   <b>Current Uptime:</b> <i>" + Math.round(eval(data.device_uptime)/60000000000)  + " minutes</i></br>";
-        content += "<b>Sensor vendor: </b><i>" + data.device_properties.vendor + "</i>   <b>Power usage: </b><i>" + data.device_properties.power + " mA </i></br>";
-        content += "<b>Latest recorded sensor event: </b><i>" + data.event_timestamp + "</i>";
+    function addNewContent(obj) {
+        var sensors = obj.sensors;
+        var attr = [];
+        for (var i = 0; i < sensors.length; i++ ) {
+            if(sensors[i].attributes.type != null){
+                type = sensors[i].attributes.type;
+                var active = $('#accordion').accordion('option', 'active');
+                    if(type == "gps"){
+                        lat = parseFloat(json.event_values[0]);
+				        lon = parseFloat(json.event_values[1]);
+				        type =  json.device_properties.type;
+	                    sensorTypes.push(json.device_properties.type);
+				        $('#accordion').accordion({heightStyle: 'content'});
+				        $('#accordion').append('<h3><a href="#" onclick="loadMap(event)">' + type + '</a></h3><div id="map-canvas" style="height:300px"></div>').accordion('destroy').accordion({ active: active});
+                    }  else {
+		                $('#accordion').append('<h3><a href="#" onclick="drawCharts(event)">' + type + '</a></h3><div>'+ parseContent(sensors[i]) +'</div>').accordion('destroy').accordion({ active: active});
+                    }
+
+            }
+        }
+    }
+
+    function parseContent(obj) {
+        var content = "<b>Device Id: </b><i>" + selectedUUID + "</i>   <b>Latest Event: </b><i>" + (new Date()).toString() + "</i></br>";
+        content += "<b>Sensor values: </b></br>";
+        for(var i = 0; i < obj.values.length; i++) {
+            content += obj.values[i].value + " " + obj.values[i].unit + ", ";
+        }
         return content;
+    }
+
+    function updateContent(obj) {
+        var accordion = document.getElementById('accordion');
+        while(accordion.hasChildNodes()) {
+            accordion.removeChild(accordion.lastChild);
+        }
+        addNewContent(obj);
     }
 	
 	function loadMap(e) {
@@ -239,40 +198,38 @@
 		var cubeZ = 20;
 		var cubeY = 0;
 		
-		var tempSensorList = sensors;
+		var tempSensorList = entities[selectedUUID].sensors;
 		var xValues = [];
 		
-		var timeStamps = [];
-		var minValue = 50000;
-		var maxValue = 0;
+
+        var valueList = [];
+		var minValue;
+		var maxValue;
 		
 		for (var i = 0 ; i < tempSensorList.length; i++) {
-			if (tempSensorList[i].device_properties.type == eventTarget) {
-				xValues.push(tempSensorList[i].event_values[0]);
-				if (minValue > parseFloat(tempSensorList[i].event_values[0])) {
-					minValue = parseFloat(tempSensorList[i].event_values[0]);
-				}
-				if (maxValue < parseFloat(tempSensorList[i].event_values[0])) {
-					maxValue = parseFloat(tempSensorList[i].event_values[0]);
-				}
-			
-				timeStamps.push(tempSensorList[i].event_timestamp)	
+			if (tempSensorList[i].attributes.type == eventTarget) {
+                valueList = tempSensorList[i].values;
+                for(var j = 0; j < valueList.length; j++) {
+                    xValues.push(valueList[j].value);
+
+				    if (minValue > parseFloat(valueList[j].value) || minValue == null) {
+					    minValue = parseFloat(valueList[j].value);
+				    }if (maxValue < parseFloat(valueList[j].value) || maxValue == null) {
+					    maxValue = parseFloat(valueList[j].value);
+				    }
+                }
 			}
 		}
-		
-		if(eventTarget == "TYPE_LIGHT" || eventTarget =="TYPE_PRESSURE" || eventTarget == "TYPE_MAGNETIC_FIELD") { //TODO: implement more dynamic way to present data
-            
-			var standardized = 100/(maxValue - minValue);
-			var camera =
-				  new THREE.PerspectiveCamera(
+
+		var camera = new THREE.PerspectiveCamera(
 				    VIEW_ANGLE,
 				    ASPECT,
 				    NEAR,
 				    FAR);
 
-			var scene = new THREE.Scene();
+		var scene = new THREE.Scene();
 				
-			scene.add(camera);
+		scene.add(camera);
 				
 			// the camera starts at 0,0,0
 			// so pull it back
@@ -325,13 +282,11 @@
 			
 			while(j < xValues.length && j < 5) {
 
-				if (xValues.length > 1 ) {
-					cubeY = (parseFloat(xValues[j]) - minValue) * standardized;
-				} else {
-					cubeY = parseFloat(xValues[j]) * standardized;
-				}
-				
-				if (cubeY == 0) cubeY = 1;
+				if(minValue == maxValue) {
+                     cubeY = 50;
+                } else {
+                     cubeY = (parseFloat(xValues[j]) - minValue) / (maxValue - minValue);
+                }
 
 				var geometry = new THREE.CubeGeometry( cubeX, cubeY, cubeZ );
 
@@ -372,8 +327,14 @@
     		mesh1.position.set(0,20,-300);
     		scene.add( mesh1 );
 			renderer.render(scene, camera);
-		} 
+
 	}
+
+    function sendData() {
+		var input = frm.command_input.value;
+        ws.send(input);
+	};
+
 
 	function WebSocketTest() {
        
@@ -389,10 +350,10 @@
           else
           	{
 				// Use localhost IP for websocket
-				ws = new WebSocket("ws://127.0.0.1:44445");
+				//ws = new WebSocket("ws://127.0.0.1:44445");
 
 				// Use dev.cyberlightning.com IP for websocket	
-				//ws = new WebSocket("ws://dev.cyberlightning.com:44445");	
+				ws = new WebSocket("ws://dev.cyberlightning.com:44445");	
           	}
           ws.onopen = function() {
              // Web Socket is connected, send data using send()
