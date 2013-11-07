@@ -20,8 +20,6 @@ package com.cyberlightning.android.coap.w4ds.interfaces;
 
 import java.net.InetAddress;
 
-import com.cyberlightning.android.coap.w4ds.messages.BasicCoapRequest;
-
 
 public interface CoapChannelManager {
     public int getNewMessageID();

@@ -8,8 +8,12 @@ package com.cyberlightning.android.coap.application;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -47,19 +51,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ExpandableListView;
-import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.cyberlightning.android.coap.TI.utils.BleDeviceInfo;
 import com.cyberlightning.android.coap.TI.utils.BluetoothLeService;
-import com.cyberlightning.android.coapclient.R;
 import com.cyberlightning.android.coap.TI.utils.SensorTag;
+import com.cyberlightning.android.coapclient.R;
 
 
 public class BaseStationUI extends Activity implements DialogInterface.OnClickListener,ServiceConnection {
 	
 	public final String TAG = "BaseStationUi";
+	// This baseStation UUID
+	public static final String uuid = UUID.randomUUID().toString();
 	
 	private final static int BT_SCAN_PERIOD = 10000; // Scan duration for bluetooth in ms.
 	private boolean bluetoothLeAvailable = true;
@@ -103,6 +108,15 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 	
 	// Intent filter for gatt
 	private IntentFilter intentFilter;
+	
+	// Sensor values
+	public double ACC_X_VALUE = 0;
+	public double ACC_Y_VALUE = 0;
+	public double ACC_Z_VALUE = 0;
+	public double IRT_TEMP_VALUE = 0;
+	
+	// Sensor updater
+	Handler mHandler = new Handler();
 	
 
 	// Suppress warnings of too low API level because of bluetooth. If service is not found we just disable all BT related services.
@@ -668,13 +682,14 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 		  			if (statusConnect == BluetoothGatt.GATT_SUCCESS) {
 		  				showToast("GATT SUCCESS connection!");
 		  				BluetoothLeService.getBtGatt().discoverServices();
+		  				startSensorDataUpdater();
 		  			} else {
 		  				//setError("Connect failed. Status: " + status);
 		  			}
 		  		} else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
 		  			// GATT disconnect
 		  			int statusDisconnect = intent.getIntExtra(BluetoothLeService.EXTRA_STATUS, BluetoothGatt.GATT_FAILURE);
-		  			//stopDeviceActivity();
+		  			stopSensorDataUpdater();
 		  			if (statusDisconnect == BluetoothGatt.GATT_SUCCESS) {
 		  				showToast("disconnected!");
 		  			} else {
@@ -696,27 +711,51 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 					Integer x = (int) value[0];
 			  		Integer y = (int) value[1];
 			  		Integer z = (int) value[2] * -1;
-			  		double realX = (double)x / 64;
-			  		double realY = (double)y / 64;
-			  		double realZ = (double)z / 64;
+			  		ACC_X_VALUE = (double)x / 64;
+			  		ACC_Y_VALUE = (double)y / 64;
+			  		ACC_Z_VALUE = (double)z / 64;
 			  		
-			  		trafficDataDisplay.setText("Acc values: " + String.format("%.2f", realX) + ", " + String.format("%.2f", realY) + ", " + String.format("%.2f", realZ) + "\n");
-			  	} 
+			  		trafficDataDisplay.append("Acc values: " + String.format("%.2f", ACC_X_VALUE) + ", " + String.format("%.2f", ACC_Y_VALUE) + ", " + String.format("%.2f", ACC_Z_VALUE) + "\n");
+			  	}
+				else if (uuidStr.equals(SensorTag.UUID_IRT_DATA.toString())) {
+					int offset = 2;
+					Integer lowerByte = (int) value[offset] & 0xFF; 
+				    Integer upperByte = (int) value[offset+1] & 0xFF; // // Interpret MSB as signed
+				    double temp = (upperByte << 8) + lowerByte;
+				    IRT_TEMP_VALUE = temp/128;
+				    
+				    trafficDataDisplay.append("Temp: " + String.format("%.2f", IRT_TEMP_VALUE) + "\n");
+				}
+				else {
+					trafficDataDisplay.append("Some other data inbound.\n");
+				}
 			}
 		  };
 		  
 		  public void enableServices() {
 			  btServices = btLeService.getSupportedGattServices();
-			  int i = 0;
-			  
-			  trafficDataDisplay.append("Finding accelerometer service!\n"+SensorTag.UUID_ACC_SERV.toString() + "\n");
-			  
 			  for (BluetoothGattService gattService : btServices) {
-				  if (gattService.getUuid().compareTo(SensorTag.UUID_ACC_SERV) == 0) {
+				  if (gattService.getUuid().compareTo(SensorTag.UUID_IRT_SERV) == 0) {
+					  trafficDataDisplay.append("IRT service found!\n");
+					  
+					  List<BluetoothGattCharacteristic> gattCharacteristics = gattService.getCharacteristics();
+					  
+					  for (BluetoothGattCharacteristic characts : gattCharacteristics) {
+						  if (characts.getUuid().compareTo(SensorTag.UUID_IRT_CONF) == 0) {
+							  btLeService.writeCharacteristic(characts, (byte)1);
+							  trafficDataDisplay.append("Enabling IRT!\n");
+							  btLeService.waitIdle(100);
+						  }
+						  else if (characts.getUuid().compareTo(SensorTag.UUID_IRT_DATA) == 0) {
+							  btLeService.setCharacteristicNotification(characts, true);
+							  trafficDataDisplay.append("Accepting notifications from IRT!\n");
+							  btLeService.waitIdle(100);
+						  }
+					  }
+				  }
+				  else if (gattService.getUuid().compareTo(SensorTag.UUID_ACC_SERV) == 0) {
 					  trafficDataDisplay.append("Accelerometer service found!\n");
 					  
-					  // We have our accelerometer service now. Check for characteristic.
-					  int j = 0;
 					  List<BluetoothGattCharacteristic> gattCharacteristics = gattService.getCharacteristics();
 					  
 					  for (BluetoothGattCharacteristic characts : gattCharacteristics) {
@@ -730,11 +769,135 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 							  trafficDataDisplay.append("Accepting notifications from acccelerometer!\n");
 							  btLeService.waitIdle(100);
 						  }
-						  ++j;
 					  }
 				  }
-				  ++i;  
+				  else if (gattService.getUuid().compareTo(SensorTag.UUID_GYR_SERV) == 0) {
+					  trafficDataDisplay.append("GYRO service found!\n");
+					  
+					  List<BluetoothGattCharacteristic> gattCharacteristics = gattService.getCharacteristics();
+					  
+					  for (BluetoothGattCharacteristic characts : gattCharacteristics) {
+						  if (characts.getUuid().compareTo(SensorTag.UUID_GYR_CONF) == 0) {
+							  btLeService.writeCharacteristic(characts, (byte) 7);
+							  trafficDataDisplay.append("Enabling GYR!\n");
+							  btLeService.waitIdle(100);
+						  }
+						  else if (characts.getUuid().compareTo(SensorTag.UUID_GYR_DATA) == 0) {
+							  btLeService.setCharacteristicNotification(characts, true);
+							  trafficDataDisplay.append("Accepting notifications from GYR!\n");
+							  btLeService.waitIdle(100);
+						  }
+					  }
+				  }  
 			  }
+		  }
+
+		  Runnable sensorDataUpdater = new Runnable() {
+
+				@Override
+				public void run() {
+					// Create JSON
+					
+					// Base station id
+					String BaseStationID = uuid;
+					// MAC address
+					String deviceID = deviceInfoList.get(0).getBluetoothDevice().getAddress();
+					
+					// Accelerometer data
+					String ACC_UUID = SensorTag.UUID_ACC_SERV.toString();
+					
+					// IRT data
+					String IRT_UUID = SensorTag.UUID_IRT_SERV.toString();
+
+					JSONObject wrapper = new JSONObject();
+					try {
+						
+					JSONObject baseStation = new JSONObject();
+					JSONObject device = new JSONObject();
+					JSONArray sensors = new JSONArray();
+					
+					JSONArray values = new JSONArray();
+					values.put(ACC_X_VALUE);
+					values.put(ACC_Y_VALUE);
+					values.put(ACC_Z_VALUE);
+					
+					JSONObject value = new JSONObject();
+					value.put("time", Settings.getTimeStamp());
+					value.put("primitive", "double");
+					value.put("unit", "m/s2");
+					value.put("values", values);
+					
+					JSONObject sensor = new JSONObject();
+					sensor.put("value", value);
+					
+					JSONObject attributes = new JSONObject();
+					attributes.put("type", "accelerometer");
+					attributes.put("vendor", "Texas Instruments");
+					
+					sensor.put("attributes", attributes);
+					
+					JSONObject parameters = new JSONObject();
+					parameters.put("toggleable", "true");
+					parameters.put("options", "boolean");
+					
+					sensor.put("parameters", parameters);
+					sensor.put("uuid", ACC_UUID);
+					
+					sensors.put(sensor);
+					
+					JSONObject tempvalue = new JSONObject();
+					tempvalue.put("time", Settings.getTimeStamp());
+					tempvalue.put("primitive", "double");
+					tempvalue.put("unit", "Celsius");
+					tempvalue.put("values", IRT_TEMP_VALUE);
+					
+					JSONObject tempsensor = new JSONObject();
+					tempsensor.put("value", tempvalue);
+					
+					JSONObject tempattributes = new JSONObject();
+					tempattributes.put("type", "temperature");
+					tempattributes.put("vendor", "Texas Instruments");
+					
+					tempsensor.put("attributes", tempattributes);
+					
+					JSONObject tempparameters = new JSONObject();
+					tempparameters.put("toggleable", "true");
+					tempparameters.put("options", "boolean");
+					
+					tempsensor.put("parameters", tempparameters);
+					tempsensor.put("uuid", IRT_UUID);
+					
+					sensors.put(tempsensor);
+					
+					device.put("sensors", sensors);
+					JSONArray gps = new JSONArray();
+					gps.put("65.567");
+					gps.put("25.765");
+					JSONObject deviceAttributes = new JSONObject();
+					deviceAttributes.put("location", gps);
+					deviceAttributes.put("name", "TI CC2541 Sensor");
+					device.put("attributes", deviceAttributes);
+					baseStation.put(deviceID, device);
+					
+					wrapper.put(BaseStationID, baseStation);
+					
+					}
+					catch (JSONException e) {
+						e.printStackTrace();
+					}
+					sendMessageToService(wrapper.toString().trim());
+					
+					
+					mHandler.postDelayed(sensorDataUpdater, 1000);
+				}
+		  };
+		  
+		  void startSensorDataUpdater() {
+			  sensorDataUpdater.run(); 
+			  }
+
+		  void stopSensorDataUpdater() {
+		    mHandler.removeCallbacks(sensorDataUpdater);
 		  }
 }
 

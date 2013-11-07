@@ -17,15 +17,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.cyberlightning.android.coap.w4ds.interfaces.*;
-import com.cyberlightning.android.coap.w4ds.messages.*;
-import com.cyberlightning.android.coapclient.R;
-
 
 import android.app.AlarmManager;
 import android.app.NotificationManager;
@@ -45,6 +40,15 @@ import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
 
+import com.cyberlightning.android.coap.w4ds.interfaces.CoapMessage;
+import com.cyberlightning.android.coap.w4ds.interfaces.CoapRequest;
+import com.cyberlightning.android.coap.w4ds.messages.AbstractCoapMessage;
+import com.cyberlightning.android.coap.w4ds.messages.BasicCoapRequest;
+import com.cyberlightning.android.coap.w4ds.messages.CoapMediaType;
+import com.cyberlightning.android.coap.w4ds.messages.CoapPacketType;
+import com.cyberlightning.android.coap.w4ds.messages.CoapRequestCode;
+import com.cyberlightning.android.coapclient.R;
+
 public class BaseStationService extends Service {
 
 	private ArrayList<CoapDevice> devices = new ArrayList<CoapDevice>();
@@ -53,6 +57,7 @@ public class BaseStationService extends Service {
 	private DatagramSocket localServerSocket;	
 	private RegistrationListener serviceRegisterationListener;
 	
+	private static ConcurrentLinkedQueue<DatagramPacket> concurrentlista = new ConcurrentLinkedQueue<DatagramPacket>();
 	private static List<Messenger> connectedActivities = new ArrayList<Messenger>(); 
 	private final Messenger messenger = new Messenger(new IncomingMessageHandler()); 
 	
@@ -215,14 +220,16 @@ public class BaseStationService extends Service {
 					remoteServerSocket= new DatagramSocket(Settings.LOCAL_OUTBOUND_PORT);
 					remoteServerSocket.setReceiveBufferSize(Settings.DEFAULT_BYTE_BUFFER_SIZE);
 					remoteServerSocket.connect(InetAddress.getByName(Settings.REMOTEHOST), Settings.REMOTE_SERVER_PORT);
+					Thread t = new Thread((Runnable)(new SocketSender()));
+					t.start();
 					
 					byte[] receiveByte = new byte[Settings.DEFAULT_BYTE_BUFFER_SIZE];
-					byte[] triggerByte = new byte[Settings.DEFAULT_BYTE_BUFFER_SIZE];
-					DatagramPacket triggerPacket = new DatagramPacket(triggerByte,triggerByte.length);
+					//byte[] triggerByte = new byte[Settings.DEFAULT_BYTE_BUFFER_SIZE];
+					//DatagramPacket triggerPacket = new DatagramPacket(triggerByte,triggerByte.length);
 					DatagramPacket receivedPacket = new DatagramPacket(receiveByte, receiveByte.length);
-					String s = "TESTI";
-					triggerPacket.setData(s.getBytes());
-					remoteServerSocket.send(triggerPacket);
+					//String s = "TESTI";
+//					triggerPacket.setData(s.getBytes());
+//					remoteServerSocket.send(triggerPacket);
 					
 					while(true) {
 						remoteServerSocket.receive(receivedPacket);
@@ -349,6 +356,26 @@ public class BaseStationService extends Service {
 			}}).start();	
 	}
     
+    private class SocketSender implements Runnable {
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			while (remoteServerSocket.isConnected()) {
+				if (!concurrentlista.isEmpty()) {
+					try {
+						remoteServerSocket.send(concurrentlista.poll());
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+			return;	
+		}
+    	
+    }
+    
     /** */
     private void handleInboundLocalMessages(DatagramPacket _packet) {
     	
@@ -426,6 +453,10 @@ public class BaseStationService extends Service {
                     	connectedActivities.remove(msg.replyTo);
                             break;
                     case BaseStationService.MSG_UI_EVENT: //TODO handle UI events
+                    	byte[] receiveByte = new byte[Settings.DEFAULT_BYTE_BUFFER_SIZE];
+                    	receiveByte = msg.obj.toString().getBytes();
+    					DatagramPacket receivedPacket = new DatagramPacket(receiveByte, receiveByte.length);
+    					concurrentlista.offer(receivedPacket);
                     	break;
                     default:
                             super.handleMessage(msg);

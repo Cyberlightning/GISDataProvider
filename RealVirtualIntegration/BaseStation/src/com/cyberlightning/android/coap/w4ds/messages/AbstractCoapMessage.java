@@ -28,10 +28,9 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.Vector;
 
-//import org.apache.log4j.Logger;
-
 import com.cyberlightning.android.coap.w4ds.interfaces.CoapChannel;
 import com.cyberlightning.android.coap.w4ds.interfaces.CoapMessage;
+//import org.apache.log4j.Logger;
 
 /**
  * @author Christian Lerche <christian.lerche@uni-rostock.de>

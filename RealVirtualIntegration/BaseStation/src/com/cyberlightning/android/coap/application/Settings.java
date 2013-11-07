@@ -6,6 +6,9 @@
 
 package com.cyberlightning.android.coap.application;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public final class Settings {
    
     public final static int COAP_MESSAGE_SIZE_MAX = 1152;
@@ -26,6 +29,10 @@ public final class Settings {
 	public final static String REMOTEHOST = "dev.cyberlightning.com";
 	public static final String SERVICE_TYPE = "_coap._udp"; 
 	public static final String SERVICE_NAME = "BaseStation"; 
+	
+	public static String getTimeStamp() {
+		return  new SimpleDateFormat(DATE_FORMAT).format(new Date(System.currentTimeMillis()));
+	}
     
 
 }
