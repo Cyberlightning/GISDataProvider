@@ -86,6 +86,7 @@
 	var lon;
     var entities = {};
     var selectedUUID;
+    var gpsDrawn = false;
     //var currentUuid;
     var listOfUUIDS;
 
@@ -149,17 +150,14 @@
             if(sensors[i].attributes.type != null){
                 type = sensors[i].attributes.type;
                 var active = $('#accordion').accordion('option', 'active');
-                    if(type == "gps"){
-                        lat = parseFloat(json.event_values[0]);
-				        lon = parseFloat(json.event_values[1]);
-				        type =  json.device_properties.type;
-	                    sensorTypes.push(json.device_properties.type);
-				        $('#accordion').accordion({heightStyle: 'content'});
-				        $('#accordion').append('<h3><a href="#" onclick="loadMap(event)">' + type + '</a></h3><div id="map-canvas" style="height:300px"></div>').accordion('destroy').accordion({ active: active});
-                    }  else {
-		                $('#accordion').append('<h3><a href="#" onclick="drawCharts(event)">' + type + '</a></h3><div>'+ parseContent(sensors[i],obj.attributes.location) +'</div>').accordion('destroy').accordion({ active: active});
-                    }
-
+                $('#accordion').append('<h3><a href="#" onclick="drawCharts(event)">' + type + '</a></h3><div>'+ parseContent(sensors[i]) +'</div>').accordion('destroy').accordion({ active: active});
+            }
+            if (obj.attributes.gps != null && gpsDrawn == false) {
+            	gpsDrawn = true;
+            	lat = parseFloat(obj.attributes.gps[0]);
+				lon = parseFloat(obj.attributes.gps[1]);
+				$('#accordion').accordion({heightStyle: 'content'});
+				$('#accordion').append('<h3><a href="#" onclick="loadMap(event)">gps</a></h3><div>'+ parseContent(sensors[i],obj.attributes.gps) +'</div>').accordion('destroy').accordion({ active: active});   
             }
         }
     }
@@ -168,19 +166,17 @@
         var content = "<b>Device Id: </b><i>" + selectedUUID + "</i>   <b>Latest Event: </b><i>" + (new Date()).toString() + "</i></br>";
         if(loc != null) content += "<b>Location: </b>[" +loc + "] ";
         content += "<b>Sensor value: </b>";
-            for(var i = 0; i < obj.value.length; i++) {
-                if (obj.value[i].primitive = "3DPoint") {
-                    content += " [";
-                    for (var j = 0; j < obj.value[i].values.length; j++) {
-                     if (j < 2) content += obj.value[i].values[j] + ",";
-                     else content += obj.value[i].values[j];
-                    }
-                    content += "] (" + obj.values[i].unit + ") ";
-                } else {
-                    content += obj.value[i].values + " " + obj.value[i].unit + ", ";
-                }
-
-            }
+             if (obj.value.primitive == "3DPoint") {
+                 content += " [ ";
+                 for (var j = 0; j < obj.value.values.length; j++) {
+                     if (j < 2) content += obj.value.values[j] + ", ";
+                     else content += obj.value.values[j];
+                 }
+                 content += " ] (<i>" + obj.value.unit + "</i>) ";
+             } else if (obj.value.primitive == "double"){
+                 content += obj.value.values + " " + obj.value.unit + ", ";
+             }
+ 
         return content;
     }
 
@@ -189,18 +185,28 @@
         while(accordion.hasChildNodes()) {
             accordion.removeChild(accordion.lastChild);
         }
+        gpsDrawn = false;
         addNewContent(obj);
     }
 	
 	function loadMap(e) {
-		  var mapOptions = {
-		    zoom: 8,
+		$('content_left').append('<div id="map-canvas" style="height:100%;width:100%;"></div>');
+		var mapOptions = {
+			zoom: 12,
 		    center: new google.maps.LatLng(lat, lon),
 		    mapTypeId: google.maps.MapTypeId.ROADMAP
-		  };
-		  map = new google.maps.Map(document.getElementById('map-canvas'),mapOptions);
-		  google.maps.event.addDomListener(window, 'load', initialize);
+		};
+		map = new google.maps.Map(document.getElementById('map-canvas'),mapOptions);
+		
+		var marker = new google.maps.Marker({
+   		position:  new google.maps.LatLng(lat, lon),
+   		map: map,
+   	 	title:new google.maps.LatLng(lat, lon)
+		});
+		  
 	}
+	
+	
 	
 	function drawCharts(e) {
 		
@@ -400,10 +406,10 @@
           else
           	{
 				// Use localhost IP for websocket
-				ws = new WebSocket("ws://127.0.0.1:44445");
+				//ws = new WebSocket("ws://127.0.0.1:44445");
 
 				// Use dev.cyberlightning.com IP for websocket	
-				//ws = new WebSocket("ws://dev.cyberlightning.com:44445");	
+				ws = new WebSocket("ws://dev.cyberlightning.com:44445");	
           	}
           ws.onopen = function() {
              // Web Socket is connected, send data using send()

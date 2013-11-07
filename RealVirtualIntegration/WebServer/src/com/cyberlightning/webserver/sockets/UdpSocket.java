@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 import com.cyberlightning.webserver.StaticResources;
@@ -87,19 +88,26 @@ public class UdpSocket implements Runnable  {
 			int j = 0;
 			while (j<50) {
 			double ds = Math.random()*10;
-			double ds2 = Math.random()*10;
-			double ds3 = Math.random()*10;
+			double ds2;
+			double ds3;
 			String uid = UUID.randomUUID().toString();
-				int random = (int)ds;
-				int random2 = (int)ds2;
-				int random3 = (int)ds3;
+			Random fff = new Random();
+			if (fff.nextBoolean() == true) {
+				ds2 = -Math.random()*10;
+				ds3 = Math.random()*10;
+			} else {
+				ds2 = Math.random()*10;
+				ds3 = -Math.random()*10;
+			}
+			
+			
 				try {
 					Thread.sleep(2000);
 				} catch (InterruptedException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-				String s = "{\"5de5f289-c7f3-4994-8dfb-3639d3f7c8d0\": {\"BC:6A:29:AB:E8:B5\": {\"attributes\": { \"name\": \"Texas CL2541 Sensor\",\"gps\": [65.01,28.25]},\"sensors\": [{\"value\": {\"unit\": \"m/s2\",\"primitive\": \"double\", \"time\": \"2013-11-07 15:41\",\"values\": [ 0,-0.015625,1]},\"uuid\": \"f000aa10-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"accelerometer\",\"vendor\": \"Texas Instruments\"}},{\"value\": { \"unit\": \"Celsius\",\"primitive\": \"double\",\"time\": \"2013-11-07 15:41\",\"values\": 27.21875},\"uuid\": \"f000aa00-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"temperature\",\"vendor\": \"Texas Instruments\"}}]}}}";
+				String s = "{\"5de5f289-c7f3-4994-8dfb-3639d3f7c8d0\": {\""+uid+"\": {\"attributes\": { \"name\": \"Texas CL2541 Sensor\",\"gps\": ["+(65.03+ds)+","+(ds+25.28)+"]},\"sensors\": [{\"value\": {\"unit\": \"m/s2\",\"primitive\": \"double\", \"time\": \"2013-11-07 15:41\",\"values\": [ "+ds2+",-0.015625,"+ds3+"]},\"uuid\": \"f000aa10-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"accelerometer\",\"vendor\": \"Texas Instruments\"}},{\"value\": { \"unit\": \"Celsius\",\"primitive\": \"double\",\"time\": \"2013-11-07 15:41\",\"values\": "+(27.21875 + ds2)+"},\"uuid\": \"f000aa00-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"temperature\",\"vendor\": \"Texas Instruments\"}}]}}}";
 				
 				
 				

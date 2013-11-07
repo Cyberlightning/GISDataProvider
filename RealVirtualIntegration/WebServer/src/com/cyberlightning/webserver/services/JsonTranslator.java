@@ -147,7 +147,7 @@ public abstract class JsonTranslator {
 					while (i.hasNext()) {
 						String attrKey = (String)i.next();
 						
-						if (attrKey.contentEquals("location")) {
+						if (attrKey.contentEquals("gps")) {
 							
 							JSONArray loc = (JSONArray) attributes.get(attrKey); //TODO could 
 							e.location[0] = (double)loc.get(0);

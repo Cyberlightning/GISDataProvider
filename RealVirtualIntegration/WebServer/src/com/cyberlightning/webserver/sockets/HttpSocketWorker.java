@@ -180,7 +180,8 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 						}
 						if (queries[j].contains("radius")) {
 							String[] rad = queries[j].split("=");
-							radius = Integer.parseInt(rad[1].trim()); //TODO handle nuberformatexception
+							radius = Integer.parseInt(rad[1].trim()); 
+							//TODO handle nuberformatexception
 						}
 					}
 				
