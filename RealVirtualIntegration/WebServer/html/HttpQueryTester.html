@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<p>1. Get list of devices based on lat,lon and radius parameters. Send command with "Submit" button</p>
+<form action="http://127.0.0.1:44446/" method="get">
+<input type="hidden" name="action" value="loadBySpatial">
+Latitude: <input type="text" name="lat"><br>
+Longitude: <input type="text" name="lon"><br>
+Radius <input type="text" name="radius"><br>
+<input type="submit" value="Submit">
+</form>
+
+<br>
+<p>2. Get all data from a specific device. Please form 1 to get IDs first and place that uuid to this form to get response, otherwise server will rerun "404 NOT FOUND"</p>
+<form action="http://127.0.0.1:44446/" method="get">
+<input type="hidden" name="action" value="loadById">
+Device id: <input type="text" name="device_id"><br>
+<input type="submit" value="Submit">
+</form>
+
+<br>
+<p>3. Choose an actuator of a device and turn it off or on. Use Id that you got from query 1.</p>
+
+<form action="http://dev.cyberlightning.com:44446/" method="post">
+<input type="hidden" name="action" value="update">
+Device id: <input type="text" name="device_id"><br>
+Actuator: <input type="text" name="actuator"><br>
+Parameter: <input type="text" name="parameter"><br>
+Value: <input type="text" name="value"><br>
+<input type="submit" value="Submit">
+</form>
+
+
+<p>4. Choose a file to upload to a sensor. Send chosen file to sensor with upload button</p>
+
+<form enctype="multipart/form-data" action="http://dev.cyberlightning.com:44446/marker.bmp" method="post">
+File: <input type="FILE" name="file"/>
+<input type="submit" name="upload" value="Upload" />
+</form>
+
+
+
+</body>
+</html>

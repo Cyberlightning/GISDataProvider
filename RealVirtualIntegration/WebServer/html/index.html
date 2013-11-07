@@ -157,19 +157,30 @@
 				        $('#accordion').accordion({heightStyle: 'content'});
 				        $('#accordion').append('<h3><a href="#" onclick="loadMap(event)">' + type + '</a></h3><div id="map-canvas" style="height:300px"></div>').accordion('destroy').accordion({ active: active});
                     }  else {
-		                $('#accordion').append('<h3><a href="#" onclick="drawCharts(event)">' + type + '</a></h3><div>'+ parseContent(sensors[i]) +'</div>').accordion('destroy').accordion({ active: active});
+		                $('#accordion').append('<h3><a href="#" onclick="drawCharts(event)">' + type + '</a></h3><div>'+ parseContent(sensors[i],obj.attributes.location) +'</div>').accordion('destroy').accordion({ active: active});
                     }
 
             }
         }
     }
 
-    function parseContent(obj) {
+    function parseContent(obj,loc) {
         var content = "<b>Device Id: </b><i>" + selectedUUID + "</i>   <b>Latest Event: </b><i>" + (new Date()).toString() + "</i></br>";
+        if(loc != null) content += "<b>Location: </b>[" +loc + "] ";
         content += "<b>Sensor values: </b></br>";
-        for(var i = 0; i < obj.values.length; i++) {
-            content += obj.values[i].value + " " + obj.values[i].unit + ", ";
-        }
+            for(var i = 0; i < obj.values.length; i++) {
+                if (obj.values[i].primitive = "3DPoint") {
+                    content += " [";
+                    for (var j = 0; j < obj.values[i].value.length; j++) {
+                     if (j < 2) content += obj.values[i].value[j] + ",";
+                     else content += obj.values[i].value[j];
+                    }
+                    content += "] (" + obj.values[i].unit + ") ";
+                } else {
+                    content += obj.values[i].value + " " + obj.values[i].unit + ", ";
+                }
+
+            }
         return content;
     }
 
@@ -205,32 +216,19 @@
         var valueList = [];
 		var minValue;
 		var maxValue;
-		
-		for (var i = 0 ; i < tempSensorList.length; i++) {
-			if (tempSensorList[i].attributes.type == eventTarget) {
-                valueList = tempSensorList[i].values;
-                for(var j = 0; j < valueList.length; j++) {
-                    xValues.push(valueList[j].value);
+        var is3DPoint = false;
+        var threeDPointValues = [];
 
-				    if (minValue > parseFloat(valueList[j].value) || minValue == null) {
-					    minValue = parseFloat(valueList[j].value);
-				    }if (maxValue < parseFloat(valueList[j].value) || maxValue == null) {
-					    maxValue = parseFloat(valueList[j].value);
-				    }
-                }
-			}
-		}
-
-		var camera = new THREE.PerspectiveCamera(
+        var camera = new THREE.PerspectiveCamera(
 				    VIEW_ANGLE,
 				    ASPECT,
 				    NEAR,
 				    FAR);
 
 		var scene = new THREE.Scene();
-				
+
 		scene.add(camera);
-				
+
 			// the camera starts at 0,0,0
 			// so pull it back
 			camera.position.z = 300;
@@ -253,70 +251,122 @@
 
 			// add to the scene
 			scene.add(pointLight);
-				
-			var material = new THREE.LineBasicMaterial({color: 0x0000ff});
-				
-			var geometry = new THREE.Geometry();
-			geometry.vertices.push(new THREE.Vector3(0, 0, 0));
-			geometry.vertices.push(new THREE.Vector3(0, 100, 0));
-				
+
+
+
+		for (var i = 0 ; i < tempSensorList.length; i++) {
+			if (tempSensorList[i].attributes.type == eventTarget) {
+                valueList = tempSensorList[i].values;
+
+                for(var j = 0; j < valueList.length; j++) {
+                    if(valueList[j].primitive == "3DPoint") {
+                        is3DPoint = true;
+                        for (var k=0; k < valueList[j].value.length; k++) {
+                            threeDPointValues.push(valueList[j].value[k]);
+                        }
+                    } else {
+                        xValues.push(valueList[j].value);
+                        if (minValue > parseFloat(valueList[j].value) || minValue == null) {
+					        minValue = parseFloat(valueList[j].value);
+				        } if (maxValue < parseFloat(valueList[j].value) || maxValue == null) {
+					        maxValue = parseFloat(valueList[j].value);
+				        }
+                    }
+                }
+			}
+		}
+
+
+		if (is3DPoint){
+
+        var material = new THREE.LineBasicMaterial({color: 0x0000ff});
+
+		    var geometry = new THREE.Geometry();
+		    geometry.vertices.push(new THREE.Vector3(0, 50, 0));
+		    geometry.vertices.push(new THREE.Vector3(0, threeDPointValues[1] + 50, 0));
+
 			var line = new THREE.Line(geometry, material);
 			scene.add(line);
-				
-			var geometry = new THREE.Geometry();
-			geometry.vertices.push(new THREE.Vector3(0, 0, 0));
-			geometry.vertices.push(new THREE.Vector3(0, 0, 100));
-				
+
+            material = new THREE.LineBasicMaterial({color: 0x00ff00});
+            var geometry = new THREE.Geometry();
+            geometry.vertices.push(new THREE.Vector3(0, 50, 0));
+			geometry.vertices.push(new THREE.Vector3(0, 50, threeDPointValues[2] ));
+
 			var line = new THREE.Line(geometry, material);
-			scene.add(line);
-				
+		    scene.add(line);
+
+			material = new THREE.LineBasicMaterial({color: 0xff0000});
 			var geometry = new THREE.Geometry();
-			geometry.vertices.push(new THREE.Vector3(0, 0, 0));
-			geometry.vertices.push(new THREE.Vector3(100,0 , 0));
-				
+			geometry.vertices.push(new THREE.Vector3(0, 50, 0));
+			geometry.vertices.push(new THREE.Vector3(threeDPointValues[0],50, 0));
+
 			var line = new THREE.Line(geometry, material);
 			scene.add(line);
 			camera.lookAt( scene.position );
-				
+
+        } else {
+            var material = new THREE.LineBasicMaterial({color: 0x0000ff});
+
+			var geometry = new THREE.Geometry();
+			geometry.vertices.push(new THREE.Vector3(0, 0, 0));
+			geometry.vertices.push(new THREE.Vector3(0, 100, 0));
+
+			var line = new THREE.Line(geometry, material);
+			scene.add(line);
+
+			var geometry = new THREE.Geometry();
+			geometry.vertices.push(new THREE.Vector3(0, 0, 0));
+			geometry.vertices.push(new THREE.Vector3(0, 0, 100));
+
+			var line = new THREE.Line(geometry, material);
+			scene.add(line);
+
+			var geometry = new THREE.Geometry();
+			geometry.vertices.push(new THREE.Vector3(0, 0, 0));
+			geometry.vertices.push(new THREE.Vector3(100,0 , 0));
+
+			var line = new THREE.Line(geometry, material);
+			scene.add(line);
+			camera.lookAt( scene.position );
+
 			var j = 0;
-			
+
 			while(j < xValues.length && j < 5) {
 
-				if(minValue == maxValue) {
-                     cubeY = 50;
-                } else {
-                     cubeY = (parseFloat(xValues[j]) - minValue) / (maxValue - minValue);
-                }
+				    if(minValue == maxValue) {
+                         cubeY = 50;
+                    } else {
+                        cubeY = (parseFloat(xValues[j])/ maxValue) * 100;
+                    }
 
-				var geometry = new THREE.CubeGeometry( cubeX, cubeY, cubeZ );
+				    var geometry = new THREE.CubeGeometry( cubeX, cubeY, cubeZ );
 
-        		for ( var i = 0; i < geometry.faces.length; i += 2 ) {
-					var hex = Math.random() * 0xffffff;
-        			geometry.faces[ i ].color.setHex( hex );
-        			geometry.faces[ i + 1 ].color.setHex( hex );
-        		}
+        		    for ( var i = 0; i < geometry.faces.length; i += 2 ) {
+					    var hex = Math.random() * 0xffffff;
+        			    geometry.faces[ i ].color.setHex( hex );
+        			    geometry.faces[ i + 1 ].color.setHex( hex );
+        		    }
 
-        		var material = new THREE.MeshBasicMaterial( { vertexColors: THREE.FaceColors, overdraw: 0.5 } );
-        		cube = new THREE.Mesh( geometry, material );
-        		cube.position.y = cubeY/2;
-        		cube.position.x = cubeX/2 + j*20; //20 pixels space between bars after first
-        		cube.position.z = cubeZ/2;
-        		scene.add( cube );
-        	 
-        		j++
+        		    var material = new THREE.MeshBasicMaterial( { vertexColors: THREE.FaceColors, overdraw: 0.5 } );
+        		    cube = new THREE.Mesh( geometry, material );
+        		    cube.position.y = cubeY/2;
+        		    cube.position.x = cubeX/2 + j*20; //20 pixels space between bars after first
+        		    cube.position.z = cubeZ/2;
+        		    scene.add( cube );
 
-			}
-			
-			var canvas1 = document.createElement('canvas');
+        		    j++
+			    }
+            var canvas1 = document.createElement('canvas');
     		var context1 = canvas1.getContext('2d');
     		context1.font = "14px Arial";
     		context1.fillStyle = "rgba(0,0,0,0.95)";
     		context1.fillText("Value range: " + parseFloat(minValue).toFixed(2) + " - " + parseFloat(maxValue).toFixed(2), 0, 50);
-    		    
+
     		// canvas contents will be used for a texture
     		var texture1 = new THREE.Texture(canvas1)
     		texture1.needsUpdate = true;
-    		      
+
     		    var material1 = new THREE.MeshBasicMaterial( {map: texture1, side:THREE.DoubleSide } );
     		    material1.transparent = true;
 
@@ -325,7 +375,9 @@
     		        material1
     		      );
     		mesh1.position.set(0,20,-300);
-    		scene.add( mesh1 );
+            scene.add( mesh1 );
+            }
+
 			renderer.render(scene, camera);
 
 	}
@@ -339,8 +391,6 @@
 	function WebSocketTest() {
        
 		if ("WebSocket" in window) {
-          
-          //ws = new WebSocket("ws://127.0.0.1:44445");
           // Check if connection is already open before creating new so we do not spam server with duplicate connections.
           if (ws != null && ws.readyState === ws.OPEN)
           {

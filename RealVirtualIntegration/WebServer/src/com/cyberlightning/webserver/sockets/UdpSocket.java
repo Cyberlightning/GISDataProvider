@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 
 import com.cyberlightning.webserver.StaticResources;
@@ -61,8 +60,8 @@ public class UdpSocket implements Runnable  {
 		while(true) {
         	
 			if (!MessageService.isStarted()) continue;
-			Thread t = new Thread((Runnable)(new TestRoutine()));
-			t.start();
+			//Thread t = new Thread((Runnable)(new TestRoutine()));
+			//t.start();
         	byte[] receivedData = new byte[StaticResources.UDP_PACKET_SIZE];
     		DatagramPacket receivedPacket = new DatagramPacket(receivedData, receivedData.length);
         	
@@ -88,14 +87,21 @@ public class UdpSocket implements Runnable  {
 			int j = 0;
 			while (j<50) {
 			double ds = Math.random()*10;
+			double ds2 = Math.random()*10;
+			double ds3 = Math.random()*10;
+			String uid = UUID.randomUUID().toString();
 				int random = (int)ds;
+				int random2 = (int)ds2;
+				int random3 = (int)ds3;
 				try {
 					Thread.sleep(2000);
 				} catch (InterruptedException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-				String s = "{\"550e8400-e29b-41d4-a716-446655440111\":{\"550e8400-e29b-41d4-a716-446655440000\":{\"attributes\":{\"name\":\"Power wall outlet\",\"location\":[60.32,45.42]},\"actuators\":[{\"uuid\":null,\"attributes\":{\"type\":\"power_switch\"},\"parameters\":{\"callback\":false},\"variables\": [{\"relay\":false, \"type\": \"boolean\" }]}],\"sensors\":[{\"uuid\":null,\"attributes\":{\"type\":\"Power sensor\"},\"parameters\":{\"options\":null},\"values\": [{\"value\": 13,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"},{\"value\": 13,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"},{\"value\": 17,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"},{\"value\": 19,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"}]}]}}}";
+				//String s = "{\"550e8400-e29b-41d4-a716-446655440111\":{\"550e8400-e29b-41d4-a716-446655440000\":{\"attributes\":{\"name\":\"Power wall outlet\",\"location\":[60.32,45.42]},\"actuators\":[{\"uuid\":null,\"attributes\":{\"type\":\"power_switch\"},\"parameters\":{\"callback\":false},\"variables\": [{\"relay\":false, \"type\": \"boolean\" }]}],\"sensors\":[{\"uuid\":null,\"attributes\":{\"type\":\"Power sensor\"},\"parameters\":{\"options\":null},\"values\": [{\"value\": 13,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"},{\"value\": 13,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"},{\"value\": 17,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"},{\"value\": 19,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"}]}]}}}";
+				
+				String s= "{\"550e8400-e29b-41d4-a716-446655440000\":{\"550e840"+random+"-e29b-41d4-a716-4"+random2+"6554"+random3+"0111\":{\"sensors\":[{\"values\": [ {\"primitive\": \"3DPoint\",\"unit\": \"m/s2\",\"time\": \"YY-MM-DD HH:MM\",\"value\": ["+10*random+","+13*random+","+(-14*random)+"]}],\"parameters\": {\"toggleable\": true,\"options\": \"boolean\"},\"attributes\":{\"type\": \"accelerometer\",\"name\": \"TI accelerometer\"},\"uuid\": \"f000aa10-0451-4000-b000-000000000000\"},{\"uuid\":null,\"attributes\":{\"type\":\"Power sensor\"},\"parameters\":{\"options\":null},\"values\": [{\"primitive\": \"integer\",\"value\": 13,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"},{\"primitive\": \"integer\",\"value\": 13,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"},{\"primitive\": \"integer\",\"value\": 17,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"},{\"primitive\": \"integer\",\"value\": 19,\"time\":\"YY-MM-DD HH:MM\",\"unit\" : \"Celcius\"}]}],\"attributes\":{\"name\": \"TI CC2541 Sensor\", \"location\" : ["+random*12.32+","+random*13.42+"]},\"actuators\":[{\"parameters\":{\"callback\": false,\"options\": null},\"attributes\": {\"callback\": false,\"options\": null},\"uuid\": null,\"variables\": [{\"relay\": null,\"type\": null}]}]}}}";
 				byte[] b = s.getBytes();
 				DatagramPacket d = null;
 				byte[] address = {22,22,22,22};
@@ -106,7 +112,7 @@ public class UdpSocket implements Runnable  {
 					e.printStackTrace();
 				}
 				MessageService.getInstance().messageBuffer.add(new MessageObject(uuid,type,d));        
-			}
+			}	
 			return;
 		}
 		
