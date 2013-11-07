@@ -167,17 +167,17 @@
     function parseContent(obj,loc) {
         var content = "<b>Device Id: </b><i>" + selectedUUID + "</i>   <b>Latest Event: </b><i>" + (new Date()).toString() + "</i></br>";
         if(loc != null) content += "<b>Location: </b>[" +loc + "] ";
-        content += "<b>Sensor values: </b></br>";
-            for(var i = 0; i < obj.values.length; i++) {
-                if (obj.values[i].primitive = "3DPoint") {
+        content += "<b>Sensor value: </b>";
+            for(var i = 0; i < obj.value.length; i++) {
+                if (obj.value[i].primitive = "3DPoint") {
                     content += " [";
-                    for (var j = 0; j < obj.values[i].value.length; j++) {
-                     if (j < 2) content += obj.values[i].value[j] + ",";
-                     else content += obj.values[i].value[j];
+                    for (var j = 0; j < obj.value[i].values.length; j++) {
+                     if (j < 2) content += obj.value[i].values[j] + ",";
+                     else content += obj.value[i].values[j];
                     }
                     content += "] (" + obj.values[i].unit + ") ";
                 } else {
-                    content += obj.values[i].value + " " + obj.values[i].unit + ", ";
+                    content += obj.value[i].values + " " + obj.value[i].unit + ", ";
                 }
 
             }
@@ -256,20 +256,20 @@
 
 		for (var i = 0 ; i < tempSensorList.length; i++) {
 			if (tempSensorList[i].attributes.type == eventTarget) {
-                valueList = tempSensorList[i].values;
+                valueList = tempSensorList[i].value;
 
                 for(var j = 0; j < valueList.length; j++) {
                     if(valueList[j].primitive == "3DPoint") {
                         is3DPoint = true;
-                        for (var k=0; k < valueList[j].value.length; k++) {
-                            threeDPointValues.push(valueList[j].value[k]);
+                        for (var k=0; k < valueList[j].values.length; k++) {
+                            threeDPointValues.push(valueList[j].values[k]);
                         }
                     } else {
-                        xValues.push(valueList[j].value);
-                        if (minValue > parseFloat(valueList[j].value) || minValue == null) {
-					        minValue = parseFloat(valueList[j].value);
-				        } if (maxValue < parseFloat(valueList[j].value) || maxValue == null) {
-					        maxValue = parseFloat(valueList[j].value);
+                        xValues.push(valueList[j].values);
+                        if (minValue > parseFloat(valueList[j].values) || minValue == null) {
+					        minValue = parseFloat(valueList[j].values);
+				        } if (maxValue < parseFloat(valueList[j].values) || maxValue == null) {
+					        maxValue = parseFloat(valueList[j].values);
 				        }
                     }
                 }
@@ -400,10 +400,10 @@
           else
           	{
 				// Use localhost IP for websocket
-				//ws = new WebSocket("ws://127.0.0.1:44445");
+				ws = new WebSocket("ws://127.0.0.1:44445");
 
 				// Use dev.cyberlightning.com IP for websocket	
-				ws = new WebSocket("ws://dev.cyberlightning.com:44445");	
+				//ws = new WebSocket("ws://dev.cyberlightning.com:44445");	
           	}
           ws.onopen = function() {
              // Web Socket is connected, send data using send()
