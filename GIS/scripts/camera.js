@@ -128,7 +128,7 @@ XML3D.Xml3dSceneController = function(xml3dElement) {
     this.timer = new XML3D.util.Timer();
     this.prevPos = {x: -1, y: -1};
 
-    this.mode = "examine";
+    this.mode = "walk";
     this.revolveAroundPoint = new XML3DVec3(0, 0, 0);
     this.rotateSpeed = 1;
     this.zoomSpeed = 20;
@@ -365,8 +365,11 @@ XML3D.Xml3dSceneController.prototype.mouseMoveEvent = function(event, camera) {
             this.camera.rotateAroundPoint(mx.multiply(my), this.revolveAroundPoint);
             break;
         case(this.LOOKAROUND):
-            var dx = -this.rotateSpeed * (ev.pageX - this.prevPos.x) * 2.0 * Math.PI / this.width;
-            var dy = this.rotateSpeed * (ev.pageY - this.prevPos.y) * 2.0 * Math.PI / this.height;
+            //var dx = -this.rotateSpeed * (ev.pageX - this.prevPos.x) * 2.0 * Math.PI / this.width;
+            //var dy = this.rotateSpeed * (ev.pageY - this.prevPos.y) * 2.0 * Math.PI / this.height;
+            var dy = -this.rotateSpeed * (ev.pageX - this.prevPos.x) * 2.0 * Math.PI / this.width;
+            var dx = -this.rotateSpeed * (ev.pageY - this.prevPos.y) * 2.0 * Math.PI / this.height;
+
             var cross = this.upVector.cross(this.camera.direction);
 
             var mx = new XML3DRotation( this.upVector , dx);
@@ -427,15 +430,19 @@ XML3D.Xml3dSceneController.prototype.keyHandling = function(e) {
         case 39: // right
         case 68: // d
             var np = camera.position;
-            np.x -= dir.z * this.zoomSpeed;
-            np.z += dir.x * this.zoomSpeed;
+            // np.x -= dir.z * this.zoomSpeed;
+            // np.z += dir.x * this.zoomSpeed;
+            np.x += dir.y * this.zoomSpeed;
+            np.y -= dir.x * this.zoomSpeed;
             camera.position = np;
             break;
         case 37: // left
         case 65: // a
             var np = camera.position;
-            np.x += dir.z * this.zoomSpeed;
-            np.z -= dir.x * this.zoomSpeed;
+            // np.x += dir.z * this.zoomSpeed;
+            // np.z -= dir.x * this.zoomSpeed;
+            np.x -= dir.y * this.zoomSpeed;
+            np.y += dir.x * this.zoomSpeed;
             camera.position = np;
             break;
         case 40: // down

@@ -9,8 +9,6 @@
         xml3dobject.setAttribute("width", width);
         xml3dobject.setAttribute("height", height);
 
-        initMoveable();
-
         // Request building data from GIS server
         var buildings = createGISRequest("buildings", "428000.59375,7210617,428046.125,7210682");
         requestGISData(buildings);
