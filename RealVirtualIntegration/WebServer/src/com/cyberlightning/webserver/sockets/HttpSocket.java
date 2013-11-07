@@ -24,7 +24,7 @@ public class HttpSocket implements Runnable {
 
 	public void initialize() {
 		try {
-			this.serverSocket = new ServerSocket (this.port, StaticResources.MAX_CONNECTED_CLIENTS, InetAddress.getByName(StaticResources.LOCAL_HOST));
+			this.serverSocket = new ServerSocket (this.port);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

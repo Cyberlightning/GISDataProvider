@@ -47,6 +47,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 				int len = in.read(buffer);
 				bos.write(buffer, 0, len);
 				request = new String(bos.toByteArray(),"utf8");
+				System.out.print(request);
 				
 				String[] result = request.split("\n");
 				int fromIndex =  result[0].indexOf("?");
@@ -93,17 +94,25 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 		String statusLine = "HTTP/1.1 200 OK" + "\r\n";
 		String contentTypeLine = "Content-Type: text/plain; charset=utf-8" + "\r\n";
 		String connectionLine = "Connection: close\r\n";
+		String allowAllConnection = " Access-Control-Allow-Origin: * "+ "\r\n";
 		String contentLengthLine = "Content-Length: " + _content.length();
 		String contentLine = _content;
 		
 		try {	
 			this.output.writeBytes(statusLine);;
+			this.output.writeBytes(allowAllConnection);
 			this.output.writeBytes(contentTypeLine);
 			this.output.writeBytes(contentLengthLine);
 			this.output.writeBytes(connectionLine);
 			this.output.writeBytes("\r\n");
 			this.output.writeBytes(contentLine);
-
+			System.out.print(statusLine);
+			System.out.print(allowAllConnection);
+			System.out.print(contentTypeLine);
+			System.out.print(contentLengthLine);
+			System.out.print(connectionLine);
+			System.out.print("\r\n");
+			System.out.print(contentLine);
 			this.output.close(); //client connection will be kept alive untill response is send
 			MessageService.getInstance().unregisterReceiver(this.uuid);
 			this.isConnected = false;
