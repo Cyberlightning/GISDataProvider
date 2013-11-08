@@ -605,6 +605,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 	
 	// Starts the scan procedure for BT LE devices. Suppress warnings because API level is set to 16. Just make sure this is not run
 	// if device API support is below 18.
+	/** Starts or stops the device scan procedure for BT LE devices. Shuts down automatically after timeout BT_SCAN_PERIOD*/
 	@SuppressLint("NewApi")
 	private void scanLeDevice(final boolean enable) {
 		if (enable) {
@@ -634,6 +635,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 	
 	// Device scan callback.
 	// NB! Nexus 4 and Nexus 7 (2012) only provide one scan result per scan
+	/** Scan callback which handles found BT devices.*/ 
 	private BluetoothAdapter.LeScanCallback leScanCallback = new BluetoothAdapter.LeScanCallback() {
 
 	    public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
@@ -700,7 +702,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 	      finish();
 	    }
   }
-	  // Code to manage Service life cycle.
+	  /** Manages service life cycle. */
 	  private final ServiceConnection btServiceConnector = new ServiceConnection() {
 
 	    public void onServiceConnected(ComponentName componentName, IBinder service) {
@@ -728,6 +730,8 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 	    }
 	  };
 
+	  /** When BT device scan ends, this method connects found devices to BT service. Warning: even though we can connect multiple devices
+	   * the logic currently only accepts messages from one source.*/
 	  void connectDevices() {
 		    if (numDevs > 0) {
 		    	for (int i = 0; i < deviceInfoList.size(); ++i) {
@@ -753,6 +757,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 		    	}
 		  }
 	  
+	  /** Broadcast receiver to handle messages incoming from the bluetoothLeService*/
 	  public final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
 		  	@Override
 		  	public void onReceive(Context context, Intent intent) {
@@ -810,6 +815,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 		  		}
 		  	}
 
+		  	/** Handles data change notifications from the BT sensors.*/ 
 			private void onCharacteristicChanged(String uuidStr, byte[] value) {
 				// TODO Auto-generated method stub
 				if (uuidStr.equals(SensorTag.UUID_ACC_DATA.toString())) {
@@ -837,6 +843,8 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 			}
 		  };
 		  
+		  /** Enables sensors from TI CC2541 Sensor Tag device when all the services are discovered. 
+		   * Currently only activates IRT, GYRO and ACCELEROMETER services. */
 		  public void enableServices() {
 			  btServices = btLeService.getSupportedGattServices();
 			  for (BluetoothGattService gattService : btServices) {
@@ -897,6 +905,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 			  }
 		  }
 
+		  /** Runnable which wraps relevant BT sensor data as JSON and then sends it to webservice.*/
 		  Runnable sensorDataUpdater = new Runnable() {
 
 				@Override
@@ -1002,12 +1011,12 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 					mHandler.postDelayed(sensorDataUpdater, 1000);
 				}
 		  };
-		  
+		  /** Launches sensor data updater Runnable which sends data to webserver when BT device is connected to basestation. */
 		  void startSensorDataUpdater() {
 			  // Start the sensor data reporting to webservice. Starts on BT device connection.
 			  sensorDataUpdater.run(); 
 		  }
-
+		  /** Stops sensor data updater Runnable on BT device disconnect, */
 		  void stopSensorDataUpdater() {
 			  // Stop sensor data reporting on disconnection. 
 			  mHandler.removeCallbacks(sensorDataUpdater);
