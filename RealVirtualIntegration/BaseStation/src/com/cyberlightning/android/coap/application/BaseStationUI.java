@@ -8,7 +8,9 @@ package com.cyberlightning.android.coap.application;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.json.JSONArray;
@@ -83,6 +85,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 	private Handler btHandler = null;
 	private BluetoothLeService btLeService = null;
 	private List<BluetoothGattService> btServices;
+	private Map<String, UUID> deviceList = new HashMap<String, UUID>();
 	
 	private List<BleDeviceInfo> deviceInfoList;
 	private int numDevs = 0;
@@ -791,6 +794,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 		  			int statusConnect = intent.getIntExtra(BluetoothLeService.EXTRA_STATUS, BluetoothGatt.GATT_FAILURE);
 		  			if (statusConnect == BluetoothGatt.GATT_SUCCESS) {
 		  				showToast("GATT SUCCESS connection!");
+		  				deviceList.put(intent.getStringExtra(BluetoothLeService.EXTRA_ADDRESS), UUID.randomUUID());
 		  				BluetoothLeService.getBtGatt().discoverServices();
 		  				startSensorDataUpdater();
 		  			} else {
@@ -799,6 +803,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 		  		} else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
 		  			// GATT disconnect
 		  			int statusDisconnect = intent.getIntExtra(BluetoothLeService.EXTRA_STATUS, BluetoothGatt.GATT_FAILURE);
+		  			deviceList.remove(intent.getStringExtra(BluetoothLeService.EXTRA_ADDRESS));
 		  			stopSensorDataUpdater();
 		  			if (statusDisconnect == BluetoothGatt.GATT_SUCCESS) {
 		  				showToast("disconnected!");
@@ -915,7 +920,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 					// Base station id
 					String BaseStationID = uuid;
 					// MAC address
-					String deviceID = deviceInfoList.get(0).getBluetoothDevice().getAddress();
+					String deviceID = deviceList.get(deviceInfoList.get(0).getBluetoothDevice().getAddress()).toString();
 					
 					// Accelerometer data
 					String ACC_UUID = SensorTag.UUID_ACC_SERV.toString();
