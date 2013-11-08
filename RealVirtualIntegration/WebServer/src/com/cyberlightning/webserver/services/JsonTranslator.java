@@ -230,22 +230,27 @@ public abstract class JsonTranslator {
 								sensor.parameters.put(paramsKey, senParams.get(paramsKey));
 
 							}
-						} if (sen.containsKey("values")) {
-							JSONArray values = (JSONArray) sen.get("values");
-							int q = 0;
-							while (q < values.size()) {
-								JSONObject valueJson = (JSONObject) values.get(q);
-								Iterator<?> valueKeys = valueJson.keySet().iterator();
-								HashMap<String,Object> value = new HashMap<String,Object>();
+						} if (sen.containsKey("value")) {
+							JSONObject value =(JSONObject)sen.get("value");
+							String primitive = (String)value.get("primitive");
+							boolean is3DPoint = false;
+							if (primitive.contentEquals("3DPoint")) {
+								is3DPoint = true;
+							}
+							HashMap<String,Object> v = new HashMap<String,Object>();
+							Iterator<?> valueKeys = value.keySet().iterator();
+							
+							while (valueKeys.hasNext()) {
 								
-								while (valueKeys.hasNext()) {
-									String valueKey = (String)valueKeys.next();
-									value.put(valueKey, valueJson.get(valueKey));
+								String valueKey = (String)valueKeys.next();
+								if(is3DPoint && valueKey.contentEquals("values")) {
+									v.put(valueKey, (JSONArray) value.get("values"));
+								} else {
+									v.put(valueKey, value.get(valueKey));
 								}
 								
-								sensor.values.add(value);
-								q++;
 							}
+							sensor.values.add(v);
 						}
 						e.sensors.add(sensor);
 					}
@@ -273,93 +278,89 @@ public abstract class JsonTranslator {
 		
 		for(Entity entity : _entities) {
 			JSONObject entityJson = new JSONObject();
-			JSONObject attributeJson = new JSONObject();
-			JSONArray actuatorsJson = new JSONArray();
-			JSONObject actuatorJson = new JSONObject();
-			JSONArray sensorsJson = new JSONArray();
-			JSONObject sensorJson = new JSONObject();
-			JSONObject attributesJson = new JSONObject();
-			JSONObject parametersJson = new JSONObject();
-			JSONArray variablesJson = new JSONArray();
-			JSONArray valuesJson = new JSONArray();
-			JSONObject valueJson = new JSONObject();
-			JSONObject variableJson = new JSONObject();
+			
 			
 			Iterator<String> attrsKeys = entity.attributes.keySet().iterator();
+			JSONObject attributeJson = new JSONObject();
 			while (attrsKeys.hasNext()) {
 				String attrKey = attrsKeys.next();
 				attributeJson.put(attrKey, entity.attributes.get(attrKey));
 			}
 			entityJson.put("attributes", attributeJson);
-			
+			JSONArray actuatorsJson = new JSONArray();
 			for (Actuator actuator : entity.actuators) {
-				
+				JSONObject actuatorJson = new JSONObject();
 				actuatorJson.put("uuid", actuator.uuid);
 				
 				Iterator<String> actAttrsKeys = actuator.parameters.keySet().iterator();
+				JSONObject actuatorAttrsJson = new JSONObject();
 				while (actAttrsKeys.hasNext()) {
 					String attrKey = actAttrsKeys.next();
-					attributesJson.put(attrKey, actuator.parameters.get(attrKey));
+					actuatorAttrsJson.put(attrKey, actuator.parameters.get(attrKey));
 				}
-				actuatorJson.put("attributes", attributesJson);
+				actuatorJson.put("attributes", actuatorAttrsJson);
 				
 				Iterator<String> paramsKeys = actuator.parameters.keySet().iterator();
+				JSONObject actuatorParamsJson = new JSONObject();
 				while (paramsKeys.hasNext()) {
 					String paramKey = paramsKeys.next();
-					parametersJson.put(paramKey, actuator.parameters.get(paramKey));
+					actuatorParamsJson.put(paramKey, actuator.parameters.get(paramKey));
 				}
-				actuatorJson.put("parameters", parametersJson);
-				
+				actuatorJson.put("parameters", actuatorParamsJson);
+				JSONArray actuatorVarsJson = new JSONArray();
 				for (int i = 0 ; i < actuator.variables.size(); i ++) {
 					
 					HashMap<String,Object > variable = actuator.variables.get(i);
 					Iterator<String> j = variable.keySet().iterator();
+					JSONObject actuatorVarJson = new JSONObject();
 					while (j.hasNext()) {
 						String varKey = j.next();
-						variableJson.put(varKey, variable.get(varKey));
+						actuatorVarJson.put(varKey, variable.get(varKey));
 					}
-					variablesJson.add(variableJson);
+					
+					actuatorVarsJson.add(actuatorVarJson);
 				}
-				actuatorJson.put("variables", variablesJson);
+				actuatorJson.put("variables", actuatorVarsJson);
 				actuatorsJson.add(actuatorJson);
 			
 			}
 			entityJson.put("actuators", actuatorsJson);
-			
+			JSONArray sensorsJson = new JSONArray();
 			for (Sensor sensor : entity.sensors) {
-				
+				JSONObject sensorJson = new JSONObject();
 				sensorJson.put("uuid", sensor.uuid);
 				
-				Iterator<String> senAttrsKeys = sensor.parameters.keySet().iterator();
+				Iterator<String> senAttrsKeys = sensor.attributes.keySet().iterator();
+				JSONObject sensorAttrsJson = new JSONObject();
 				while (senAttrsKeys.hasNext()) {
 					String senAttrKey = senAttrsKeys.next();
-					attributesJson.put(senAttrKey, sensor.parameters.get(senAttrKey));
+					sensorAttrsJson.put(senAttrKey, sensor.attributes.get(senAttrKey));
 				}
-				sensorJson.put("attributes", attributesJson);//here
+				sensorJson.put("attributes", sensorAttrsJson);//here
 				
 				Iterator<String> paramsKeys = sensor.parameters.keySet().iterator();
+				JSONObject sensorParamsJson = new JSONObject();
 				while (paramsKeys.hasNext()) {
 					String paramKey = paramsKeys.next();
-					parametersJson.put(paramKey, sensor.parameters.get(paramKey));
+					sensorParamsJson.put(paramKey, sensor.parameters.get(paramKey));
 				}
-				sensorJson.put("parameters", parametersJson);
-				
+				sensorJson.put("parameters", sensorParamsJson);
+				JSONArray sensorValuesJson = new JSONArray();
 				for (int i = 0 ; i < sensor.values.size(); i ++) {
 					
 					if(i > _numOfValues) break;
 					
 					HashMap<String,Object > variable = sensor.values.get(i);
 					Iterator<String> j = variable.keySet().iterator();
-				
+					JSONObject sensorValueJson = new JSONObject();
 					while (j.hasNext()) {
 						String varKey = j.next();
-						valueJson.put(varKey, variable.get(varKey));
+						sensorValueJson.put(varKey, variable.get(varKey));
 					}
-					valuesJson.add(valueJson);
+					sensorValuesJson.add(sensorValueJson);
 				}
-				sensorJson.put("values", valuesJson);
-				sensorsJson.add(sensorJson);
-				
+				sensorJson.put("values", sensorValuesJson);
+				sensorsJson.add(sensorJson);	
 			}
 			
 			entityJson.put("sensors", sensorsJson);

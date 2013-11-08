@@ -28,10 +28,9 @@ public class WebSocketWorker implements Runnable {
 	private String serverResponse = new String();
 	private InputStream input;
 	private OutputStream output;
-	private Thread sendWorker;
+	private SendWorker sendWorker;
 	
 	private volatile boolean isConnected = true;
-
 	public final String uuid = UUID.randomUUID().toString();
 	public final int type =  StaticResources.TCP_CLIENT;
 	
@@ -113,12 +112,11 @@ public class WebSocketWorker implements Runnable {
 	
 		System.out.println(this.clientSocket.getInetAddress().getAddress().toString() + StaticResources.CLIENT_CONNECTED);
 		this.doHandShake();
-		Runnable runnable = new SendWorker();
-		this.sendWorker = new Thread(runnable);
-		this.sendWorker.start();
-	
+		
+		this.sendWorker = new SendWorker();
+		
 		while(this.isConnected) {
-			
+		
 			try {
 				if(this.input.available() > 0) {
 					
@@ -232,7 +230,7 @@ public class WebSocketWorker implements Runnable {
 				e.printStackTrace();
 			}
 		} else {
-			MessageService.getInstance().messageBuffer.add(new MessageObject(this.uuid,StaticResources.TCP_CLIENT,DataStorageService.getInstance().resolveBaseStationAddresses(targetUUIDs),_msg));
+			MessageService.getInstance().addToMessageBuffer(new MessageObject(this.uuid,StaticResources.TCP_CLIENT,DataStorageService.getInstance().resolveBaseStationAddresses(targetUUIDs),_msg));
 		}
 	}
 	
@@ -273,6 +271,7 @@ public class WebSocketWorker implements Runnable {
 		try {	
 			this.input.close();
 			this.clientSocket.close();
+			this.sendWorker.destroy();
 			this.isConnected = false;
 			MessageService.getInstance().unsubscribeAllById(this.uuid);
 		} catch (IOException e) {
@@ -379,14 +378,34 @@ public class WebSocketWorker implements Runnable {
 		
 		
 		public CopyOnWriteArrayList<MessageObject> sendBuffer = new CopyOnWriteArrayList<MessageObject>();
+		private boolean suspendFlag = true;
+		private boolean destroyFlag = false;
+		private Thread thread;
 		
-		
+		public SendWorker() {
+			this.thread = new Thread(this);
+			this.thread.start();
+		}
 		@Override
 		public void run() {
 			
 			MessageService.getInstance().registerReceiver(this,uuid);
 			
-			while (isConnected) {
+			while (!destroyFlag) {
+				
+				synchronized(this) {
+		            
+					while(suspendFlag && !destroyFlag) {
+						try {
+							wait();
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						return;
+						}
+		            }
+		        }
+				
 				if (sendBuffer.isEmpty()) continue;
 				
 				try {
@@ -405,6 +424,7 @@ public class WebSocketWorker implements Runnable {
 		     			sendBuffer.remove(msg);
 			        	
 		     		}
+		     		this.suspendThread();
 		     		
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
@@ -416,6 +436,19 @@ public class WebSocketWorker implements Runnable {
 			return;
 		}
 		
+		public void suspendThread() {
+		      suspendFlag = true;
+		}
+
+		private synchronized void wakeThread() {
+		      suspendFlag = false;
+		      notify();
+		}
+		
+		private synchronized void destroy() {
+		      this.destroyFlag = true;
+		      notify();
+		}
 		
 		/**
 		 * 		
@@ -423,6 +456,7 @@ public class WebSocketWorker implements Runnable {
 		@Override
 		public void onMessageReceived(MessageObject _msg) {
 			this.sendBuffer.add(_msg);
+			this.wakeThread();
 		}
 
 	}

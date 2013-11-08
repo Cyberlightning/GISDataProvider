@@ -12,7 +12,7 @@
 	<script src="js/jquery-1.9.1.js"></script>
 	<script src="js/jquery-ui-1.10.3.custom.js"></script>
 	<script src="js/three.min.js"></script>
-	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+<!-- 	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script> -->
 	
     <script type="text/javascript">
 	 $(function() {
@@ -89,6 +89,7 @@
     var gpsDrawn = false;
     //var currentUuid;
     var listOfUUIDS;
+    var xValues = [];
 
     function createButton(currentUuid) {
         $("#device_control").append('<button style="display: inline-block;" onClick="changeDevice(event)">'+currentUuid+'</button>')
@@ -190,7 +191,7 @@
     }
 	
 	function loadMap(e) {
-		$('content_left').append('<div id="map-canvas" style="height:100%;width:100%;"></div>');
+		/*$('content_left').append('<div id="map-canvas" style="height:100%;width:100%;"></div>');
 		var mapOptions = {
 			zoom: 12,
 		    center: new google.maps.LatLng(lat, lon),
@@ -202,7 +203,7 @@
    		position:  new google.maps.LatLng(lat, lon),
    		map: map,
    	 	title:new google.maps.LatLng(lat, lon)
-		});
+		});*/
 		  
 	}
 	
@@ -216,7 +217,7 @@
 		var cubeY = 0;
 		
 		var tempSensorList = entities[selectedUUID].sensors;
-		var xValues = [];
+		
 		
 
         var valueList = [];
@@ -263,22 +264,29 @@
 		for (var i = 0 ; i < tempSensorList.length; i++) {
 			if (tempSensorList[i].attributes.type == eventTarget) {
                 valueList = tempSensorList[i].value;
-
-                for(var j = 0; j < valueList.length; j++) {
-                    if(valueList[j].primitive == "3DPoint") {
-                        is3DPoint = true;
-                        for (var k=0; k < valueList[j].values.length; k++) {
-                            threeDPointValues.push(valueList[j].values[k]);
-                        }
-                    } else {
-                        xValues.push(valueList[j].values);
-                        if (minValue > parseFloat(valueList[j].values) || minValue == null) {
-					        minValue = parseFloat(valueList[j].values);
-				        } if (maxValue < parseFloat(valueList[j].values) || maxValue == null) {
-					        maxValue = parseFloat(valueList[j].values);
+				
+                if(valueList.primitive == "3DPoint") {
+                is3DPoint = true;
+                	for (var k=0; k < valueList.values.length; k++) {
+                		threeDPointValues.push(valueList.values[k]);
+                	}
+                } else {
+                	if (xValues.length > 5) {
+                		tempArray = [];
+                		for (var l = 1; l < xValues.length; l++) {
+                			tempArray.push(xValues[l]);
+                		}
+                		xValues = tempArray;
+                	}
+                	
+                	xValues.push(valueList.values);
+                     if (minValue > parseFloat(valueList.values) || minValue == null) {
+					    	minValue = parseFloat(valueList.values);
+				        } if (maxValue < parseFloat(valueList.values) || maxValue == null) {
+					        maxValue = parseFloat(valueList.values);
 				        }
                     }
-                }
+                
 			}
 		}
 
@@ -406,10 +414,10 @@
           else
           	{
 				// Use localhost IP for websocket
-				//ws = new WebSocket("ws://127.0.0.1:44445");
+				ws = new WebSocket("ws://127.0.0.1:44445");
 
 				// Use dev.cyberlightning.com IP for websocket	
-				ws = new WebSocket("ws://dev.cyberlightning.com:44445");	
+				//ws = new WebSocket("ws://dev.cyberlightning.com:44445");	
           	}
           ws.onopen = function() {
              // Web Socket is connected, send data using send()

@@ -3,7 +3,7 @@
 <body>
 
 <p>1. Get list of devices based on lat,lon and radius parameters. Send command with "Submit" button</p>
-<form action="http://127.0.0.1:44446/" method="get">
+<form action="http://dev.cyberlightning.com:44446/" method="get">
 <input type="hidden" name="action" value="loadBySpatial">
 Latitude: <input type="text" name="lat"><br>
 Longitude: <input type="text" name="lon"><br>
@@ -13,7 +13,7 @@ Radius <input type="text" name="radius"><br>
 
 <br>
 <p>2. Get all data from a specific device. Please form 1 to get IDs first and place that uuid to this form to get response, otherwise server will rerun "404 NOT FOUND"</p>
-<form action="http://127.0.0.1:44446/" method="get">
+<form action="http://dev.cyberlightning.com:44446/" method="get">
 <input type="hidden" name="action" value="loadById">
 Device id: <input type="text" name="device_id"><br>
 <input type="submit" value="Submit">

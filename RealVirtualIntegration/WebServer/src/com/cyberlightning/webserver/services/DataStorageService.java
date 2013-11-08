@@ -31,6 +31,9 @@ public class DataStorageService implements Runnable {
 	public Map<String, InetSocketAddress> baseStationReferences= new ConcurrentHashMap<String, InetSocketAddress>(); 
 	private EntityTable entityTable = new EntityTable();
 	
+	private Thread saveFileRoutine;
+	private boolean suspendFlag = true;
+	
 	private DataStorageService() {
 		
 	}
@@ -49,7 +52,7 @@ public class DataStorageService implements Runnable {
 			EntityTable e = entityTable;
 			Map<String, InetSocketAddress> b = baseStationReferences;
 			saveData(e,StaticResources.DATABASE_FILE_NAME);
-			saveData(b, StaticResources.REFERENCE_TABLE_FILE_NAME);
+			saveData(b, StaticResources.REFERENCE_TABLE_FILE_NAME);//remove these four lines at some point
 		
 	    	 FileInputStream data = new FileInputStream(StaticResources.DATABASE_FILE_NAME);
 	         ObjectInputStream dataIn = new ObjectInputStream(data);
@@ -63,8 +66,8 @@ public class DataStorageService implements Runnable {
 	         refIn.close();
 	         ref.close();
 	         
-	         Thread t = new Thread((Runnable)(new SaveFileRoutine()));
-	         t.start();
+	         saveFileRoutine= new Thread((Runnable)(new SaveFileRoutine()));
+	         saveFileRoutine.start();
 	         
 	      } catch (IOException i) {
 	         i.printStackTrace();
@@ -191,13 +194,38 @@ public class DataStorageService implements Runnable {
 	          i.printStackTrace();
 	      }
 	}
+	public void addToBuffer(String s, DatagramPacket d){
+		this.eventBuffer.put(s, d);
+		this.wakeThread();
+	}
+	public void suspendThread() {
+	      suspendFlag = true;
+	}
 
+	private synchronized void wakeThread() {
+	      suspendFlag = false;
+	       notify();
+	}
+	
 	@Override
 	public void run() {
 		this.intializeData();
 	
 		
 		while(true) {
+			
+			synchronized(this) {
+	            while(suspendFlag) {
+	             try {
+					wait();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					return;
+				}
+	            }
+	        }
+			
 			if (eventBuffer.isEmpty()) continue;
 			Iterator<String> i = this.eventBuffer.keySet().iterator();
 			while (i.hasNext()) {
@@ -210,7 +238,7 @@ public class DataStorageService implements Runnable {
 					e.printStackTrace();
 				}
 			}
-			
+			suspendThread();
 		}
 	}
 	

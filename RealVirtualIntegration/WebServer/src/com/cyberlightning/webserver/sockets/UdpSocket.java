@@ -49,9 +49,9 @@ public class UdpSocket implements Runnable  {
 		serverSocket = new DatagramSocket(this.port);
 		this.serverSocket.setReceiveBufferSize(StaticResources.UDP_PACKET_SIZE);
 		
-		Runnable sendWorker = new SendWorker(uuid);
-		Thread t = new Thread(sendWorker);
-		t.start();
+		//Runnable sendWorker = new SendWorker(uuid);
+		//Thread t = new Thread(sendWorker);
+		//t.start();
 		
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
@@ -61,8 +61,8 @@ public class UdpSocket implements Runnable  {
 		while(true) {
         	
 			if (!MessageService.isStarted()) continue;
-			Thread t = new Thread((Runnable)(new TestRoutine()));
-			t.start();
+			//Thread t = new Thread((Runnable)(new TestRoutine()));
+			//t.start();
         	byte[] receivedData = new byte[StaticResources.UDP_PACKET_SIZE];
     		DatagramPacket receivedPacket = new DatagramPacket(receivedData, receivedData.length);
         	
@@ -75,9 +75,9 @@ public class UdpSocket implements Runnable  {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+    		MessageService.getInstance().addToMessageBuffer(new MessageObject(uuid,StaticResources.UDP_RECEIVER, receivedPacket));
+			MessageService.getInstance().wakeThread();
     		
-    		MessageService.getInstance().messageBuffer.add(new MessageObject(uuid,StaticResources.UDP_RECEIVER, receivedPacket));        
-          
 		}
 	}
 	
@@ -102,12 +102,13 @@ public class UdpSocket implements Runnable  {
 			
 			
 				try {
-					Thread.sleep(2000);
+					Thread.sleep(10000);
 				} catch (InterruptedException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-				String s = "{\"5de5f289-c7f3-4994-8dfb-3639d3f7c8d0\": {\""+uid+"\": {\"attributes\": { \"name\": \"Texas CL2541 Sensor\",\"gps\": ["+(65.03+ds)+","+(ds+25.28)+"]},\"sensors\": [{\"value\": {\"unit\": \"m/s2\",\"primitive\": \"double\", \"time\": \"2013-11-07 15:41\",\"values\": [ "+ds2+",-0.015625,"+ds3+"]},\"uuid\": \"f000aa10-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"accelerometer\",\"vendor\": \"Texas Instruments\"}},{\"value\": { \"unit\": \"Celsius\",\"primitive\": \"double\",\"time\": \"2013-11-07 15:41\",\"values\": "+(27.21875 + ds2)+"},\"uuid\": \"f000aa00-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"temperature\",\"vendor\": \"Texas Instruments\"}}]}}}";
+				String times = StaticResources.getTimeStamp();
+				String s = "{\"5de5f289-c7f3-4994-8dfb-3639d3f7c8d0\": {\""+uid+"\": {\"attributes\": { \"name\": \"Texas CL2541 Sensor\",\"gps\": ["+(65.03+ds)+","+(ds+25.28)+"]},\"sensors\": [{\"value\": {\"unit\": \"m/s2\",\"primitive\": \"3DPoint\", \"time\": \""+times+"\",\"values\": [ "+ds2+",-0.015625,"+ds3+"]},\"uuid\": \"f000aa10-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"accelerometer\",\"vendor\": \"Texas Instruments\"}},{\"value\": { \"unit\": \"Celsius\",\"primitive\": \"double\",\"time\": \""+times+"\",\"values\": "+(27.21875 + ds2)+"},\"uuid\": \"f000aa00-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"temperature\",\"vendor\": \"Texas Instruments\"}}]}}}";
 				
 				
 				
@@ -120,7 +121,9 @@ public class UdpSocket implements Runnable  {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				MessageService.getInstance().messageBuffer.add(new MessageObject(uuid,type,d));        
+				
+				MessageService.getInstance().addToMessageBuffer(new MessageObject(uuid,type,d));
+				MessageService.getInstance().wakeThread();
 			}	
 			return;
 		}

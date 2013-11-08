@@ -26,13 +26,13 @@ public class MessageService implements Runnable  {
 	private Map<String,ArrayList<String>> messageLinks = new ConcurrentHashMap<String,ArrayList<String>>();
 	public CopyOnWriteArrayList<MessageObject> messageBuffer = new CopyOnWriteArrayList<MessageObject>();
 	private volatile static boolean isStarted = false;
-	
+	private boolean suspendFlag = true;
+	private Thread thread ;
 	
 	/**
 	 * 
 	 */
 	private MessageService() {
-		
 	}
 	
 	/**
@@ -56,8 +56,19 @@ public class MessageService implements Runnable  {
 	}
 	
 	public static MessageService getInstance () {
-		isStarted = true;
+		
 		return _messageHandler;
+		
+	}
+	public void startThread() {
+		this.thread = new Thread(this);
+		this.thread.start();
+		isStarted = true;
+	}
+	
+	public void addToMessageBuffer(MessageObject _msg) {
+		this.messageBuffer.add(_msg);
+
 	}
 	
 	public static Boolean isStarted() {
@@ -94,11 +105,35 @@ public class MessageService implements Runnable  {
 			}
 		}
 	}
+	
+	public void suspendThread() {
+	      suspendFlag = true;
+	}
 
+	public synchronized void wakeThread() {
+	      suspendFlag = false;
+	       notify();
+	}
+
+	
 	@Override
 	public void run() {
 		
 		while(true) {
+			synchronized(this) {
+	            
+				while(suspendFlag) {
+					
+					
+					try {
+						wait();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+	            }
+	        }
 			
 			if (this.messageBuffer.isEmpty()) continue;
 			
@@ -108,7 +143,8 @@ public class MessageService implements Runnable  {
 				
 					switch (msg.originType) {
 					case StaticResources.UDP_RECEIVER:
-						DataStorageService.getInstance().eventBuffer.put(msg.originUUID,(DatagramPacket) msg.payload);
+						
+						DataStorageService.getInstance().addToBuffer(msg.originUUID, (DatagramPacket) msg.payload);
 						ArrayList<String> receivers = this.resolveReceivers(msg.originUUID);
 						for (String receiver: receivers) {
 							this.registeredReceivers.get(receiver).onMessageReceived(msg);
@@ -126,6 +162,7 @@ public class MessageService implements Runnable  {
 						
 					}
 				}
+				suspendThread();
 		}	
 	}
 

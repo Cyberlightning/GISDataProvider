@@ -80,6 +80,8 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 			} catch (Exception e) {
 				e.printStackTrace();
 				System.out.print(e.getLocalizedMessage());
+				sendResponse(e.getLocalizedMessage());
+				this.isConnected = false;
 			} 	
 		}
 		return; //Exit thread
@@ -92,10 +94,10 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 	private void sendResponse(String _content) {
 		
 		String statusLine = "HTTP/1.1 200 OK" + "\r\n";
-		String contentTypeLine = "Content-Type: text/plain; charset=utf-8" + "\r\n";
+		String contentTypeLine = "Content-Type: application/json; charset=utf-8" + "\r\n";
 		String connectionLine = "Connection: close\r\n";
 		String allowAllConnection = " Access-Control-Allow-Origin: * "+ "\r\n";
-		String contentLengthLine = "Content-Length: " + _content.length();
+		String contentLengthLine = "Content-Length: " + _content.length() + "\r\n";
 		String contentLine = _content;
 		
 		try {	
@@ -180,7 +182,12 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 						}
 						if (queries[j].contains("radius")) {
 							String[] rad = queries[j].split("=");
-							radius = Integer.parseInt(rad[1].trim()); 
+							try {
+								radius = Integer.parseInt(rad[1].trim()); 
+							} catch (NumberFormatException e) {
+								sendResponse(StaticResources.ERROR_CODE_BAD_REQUEST + " Details: " + e.getMessage());
+							}
+							
 							//TODO handle nuberformatexception
 						}
 					}
@@ -190,7 +197,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 			}
 		}
 	}
-	
+
 	/**
 	 * 
 	 * @param _content
@@ -227,8 +234,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 		if (targetUUIDs == null) {
 			sendResponse(StaticResources.ERROR_CODE_BAD_REQUEST);
 		} else {
-			MessageService.getInstance().messageBuffer.add(new MessageObject(this.uuid,StaticResources.HTTP_CLIENT,DataStorageService.getInstance().resolveBaseStationAddresses(targetUUIDs),_content));
-			
+			MessageService.getInstance().addToMessageBuffer(new MessageObject(this.uuid,StaticResources.HTTP_CLIENT,DataStorageService.getInstance().resolveBaseStationAddresses(targetUUIDs),_content));
 		}
 	}
 }
