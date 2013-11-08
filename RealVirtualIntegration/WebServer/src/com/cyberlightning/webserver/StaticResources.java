@@ -40,11 +40,17 @@ public abstract class StaticResources {
 	public static final int SERVER_PORT_COAP = 61616; //default compressed UDP port space defined in [RFC4944]
 	public static final int DEFAULT_COAP_PORT = 5683;
 	public static final int SERVER_PORT = 44446;
+	public static final int WEB_SOCKET_PORT = 44445; 
+	public static final int DEFAULT_BASESTATION_PORT = 45454;
+//	public static final int SERVER_PORT_COAP = 61615; //default compressed UDP port space defined in [RFC4944]
+//	public static final int DEFAULT_COAP_PORT = 5683;
+//	public static final int SERVER_PORT = 44447;
+//	public static final int WEB_SOCKET_PORT = 44444; 
+//	public static final int DEFAULT_BASESTATION_PORT = 45457;
 	public static final String LOCAL_HOST = "127.0.0.1";
 	public static final String SERVER_DETAILS = "Cyberlightning Web Server";
 	public static final int ACTIVITY_DURATION = 300; // in seconds
-	public static final int WEB_SOCKET_PORT = 44445; 
-	public static final int DEFAULT_BASESTATION_PORT = 45454;
+
 	
 	public static final int MAX_CONNECTED_CLIENTS = 50;
 	
