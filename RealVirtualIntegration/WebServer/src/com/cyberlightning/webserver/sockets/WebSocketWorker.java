@@ -47,6 +47,7 @@ public class WebSocketWorker implements Runnable {
 	 */
 	public WebSocketWorker (Socket _client) {
 		this.clientSocket = _client;
+		
 	}
 	
 	/**
