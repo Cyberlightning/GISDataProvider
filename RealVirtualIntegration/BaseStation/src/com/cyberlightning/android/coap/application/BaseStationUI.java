@@ -8,7 +8,9 @@ package com.cyberlightning.android.coap.application;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.json.JSONArray;
@@ -33,6 +35,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -50,7 +53,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.ExpandableListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -58,15 +60,23 @@ import com.cyberlightning.android.coap.TI.utils.BleDeviceInfo;
 import com.cyberlightning.android.coap.TI.utils.BluetoothLeService;
 import com.cyberlightning.android.coap.TI.utils.SensorTag;
 import com.cyberlightning.android.coapclient.R;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 
 
-public class BaseStationUI extends Activity implements DialogInterface.OnClickListener,ServiceConnection {
-	
+public class BaseStationUI extends Activity implements DialogInterface.OnClickListener,ServiceConnection, 
+														GooglePlayServicesClient.ConnectionCallbacks,
+														GooglePlayServicesClient.OnConnectionFailedListener,
+														LocationListener	{	
 	public final String TAG = "BaseStationUi";
 	// This baseStation UUID
 	public static final String uuid = UUID.randomUUID().toString();
 	
-	private final static int BT_SCAN_PERIOD = 10000; // Scan duration for bluetooth in ms.
+	private final static int BT_SCAN_PERIOD = 5000; // Scan duration for bluetooth in ms.
 	private boolean bluetoothLeAvailable = true;
 	private boolean bluetoothLeIsEnabled = false;
 	private BluetoothAdapter btAdapter = null;
@@ -75,9 +85,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 	private Handler btHandler = null;
 	private BluetoothLeService btLeService = null;
 	private List<BluetoothGattService> btServices;
-    private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics =
-            new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
-    private ExpandableListView mGattServicesList;
+	private Map<String, UUID> deviceList = new HashMap<String, UUID>();
 	
 	private List<BleDeviceInfo> deviceInfoList;
 	private int numDevs = 0;
@@ -103,9 +111,6 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 	private static final int REQUEST_ENABLE_BT = 0;
 	private static final int WIFI_AP_REQUEST = 1;
 	
-    private final String LIST_NAME = "NAME";
-    private final String LIST_UUID = "UUID";
-	
 	// Intent filter for gatt
 	private IntentFilter intentFilter;
 	
@@ -118,9 +123,16 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 	// Sensor updater
 	Handler mHandler = new Handler();
 	
+	// Location specific variables
+	private LocationClient locationClient_;
+	private LocationRequest mLocationRequest;
+	private double latitude = 0;
+	private double longitude = 0;
+	private final int LOCATION_REQUEST_INTERVAL = 10000;
+	private final int LOCATION_FASTEST_INTERVAL = 5000;
+	
 
 	// Suppress warnings of too low API level because of bluetooth. If service is not found we just disable all BT related services.
-	//@SuppressLint({ "InlinedApi", "NewApi" })
 	@SuppressLint("NewApi")
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -143,49 +155,110 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
             
         }
         else {	    
-	        this.initNetworkConnection();
-	        connectedClientsDisplay = (TextView) findViewById(R.id.connectedDisplay);
+	        this.initNetworkConnection();	        
+	    	this.initializeBluetooth();
+	    	// Get the location manager
+		    if (servicesConnected())
+		    {
+			    locationClient_ = new LocationClient(this, this, this);
+		        // Create the LocationRequest object
+		        mLocationRequest = LocationRequest.create();
+		        // Use high accuracy
+		        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+		        // Set the update interval
+		        mLocationRequest.setInterval(LOCATION_REQUEST_INTERVAL);
+		        // Set the fastest update interval
+		        mLocationRequest.setFastestInterval(LOCATION_FASTEST_INTERVAL);
+		    }
+	    	
+	    	connectedClientsDisplay = (TextView) findViewById(R.id.connectedDisplay);
 	        trafficDataDisplay = (TextView) findViewById(R.id.trafficDisplay);
 	        deviceInfoList = new ArrayList<BleDeviceInfo>();
-	        
-	    	// Use this check to determine whether BLE is supported on the device. Then
-	    	// you can selectively disable BLE-related features.
-	    	if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-	    	    Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
-	    	    bluetoothLeAvailable = false;
-	    	}
-	    	if (bluetoothLeAvailable) {
-	    		// Initializes Bluetooth adapter.
-	    		bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-	    		btAdapter = bluetoothManager.getAdapter();
-	    		
-	    		// Ensures Bluetooth is available on the device and it is enabled. If not,
-	    		// displays a dialog requesting user permission to enable Bluetooth.
-	    		if (btAdapter == null || !btAdapter.isEnabled()) {
-	    		    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-	    		    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-	    	    }
-	    		else {
-	    			bluetoothLeIsEnabled = true;
-	    			btHandler = new Handler();
-            		startBluetoothLeService();
-            		
-            		// Broadcast reciever intent filter
-            	    this.intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-            	    this.intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
-            	    this.intentFilter.addAction(BluetoothLeService.ACTION_DATA_NOTIFY);
-            	    this.intentFilter.addAction(BluetoothLeService.ACTION_DATA_WRITE);
-            	    this.intentFilter.addAction(BluetoothLeService.ACTION_DATA_READ);
-            	    this.intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
-            	    this.intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
-            	    
-            	    registerReceiver(mGattUpdateReceiver, this.intentFilter);
-	    		}
-	    	}
         }
         connectedClientsDisplay.setMovementMethod(new ScrollingMovementMethod());
         trafficDataDisplay.setMovementMethod(new ScrollingMovementMethod());
 	}
+	
+	@Override
+	protected void onStart() {
+		super.onStart();
+		if (locationClient_ != null) {
+			locationClient_.connect();
+			Log.i(TAG, "Location client connect!");
+		}
+			
+	}
+	
+	@Override
+	protected void onStop() {
+		// If the client is connected
+        if (locationClient_.isConnected()) {
+            /*
+             * Remove location updates for a listener.
+             * The current Activity is the listener, so
+             * the argument is "this".
+             */
+            locationClient_.removeLocationUpdates(this);
+        }
+        /*
+         * After disconnect() is called, the client is
+         * considered "dead".
+         */
+        locationClient_.disconnect();
+        super.onStop();
+	}
+	
+    private boolean servicesConnected() {
+        // Check that Google Play services is available
+        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+        // If Google Play services is available
+        if (ConnectionResult.SUCCESS == resultCode) 
+        {
+            // In debug mode, log the status
+        	System.out.println("Google Play services is available.");
+            // Continue
+            return true;
+        // Google Play services was not available for some reason
+        } 
+        else 
+        {
+            // Get the error code
+            System.out.println("Some error occured when querying google play services!");
+            return false;
+        }
+    }
+    
+	@Override
+	public void onConnectionFailed(ConnectionResult arg0) {
+		// TODO Auto-generated method stub
+		connectedClientsDisplay.append("gps connection failed!");
+	}
+
+	@Override
+	public void onConnected(Bundle arg0) {
+		// TODO Auto-generated method stub
+		connectedClientsDisplay.append("gps connected!\n");
+		locationClient_.requestLocationUpdates(mLocationRequest, this);
+		
+	}
+
+	@Override
+	public void onDisconnected() {
+		// TODO Auto-generated method stub
+		connectedClientsDisplay.append("gps disconnected!\n");
+		
+	}
+	
+	@Override
+	public void onLocationChanged(Location location) {
+		latitude = location.getLatitude();
+		longitude = location.getLongitude();
+		// we got updated location. Shutdown service because basestation is most likely a stationary service provider?
+		// If we want to continue recieving updates just remove two lines declared below.
+		locationClient_.removeLocationUpdates(this);
+		locationClient_.disconnect();
+	}
+
 	
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
@@ -493,8 +566,49 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 	// # Bluetooth Low Energy related code segment starts here
 	//-----------------------------------------------------------------
 	
+	/** Initialize bluetooth LE service if available.
+	 * @return Status of service availability */
+	private boolean initializeBluetooth() {
+		// Use this check to determine whether BLE is supported on the device. Then
+    	// you can selectively disable BLE-related features.
+    	if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+    	    Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
+    	    bluetoothLeAvailable = false;
+    	}
+		if (bluetoothLeAvailable) {
+			// Initializes Bluetooth adapter.
+			bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+			btAdapter = bluetoothManager.getAdapter();
+			
+			// Ensures Bluetooth is available on the device and it is enabled. If not,
+			// displays a dialog requesting user permission to enable Bluetooth.
+			if (btAdapter == null || !btAdapter.isEnabled()) {
+			    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+			    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+		    }
+			else {
+				bluetoothLeIsEnabled = true;
+				btHandler = new Handler();
+	    		startBluetoothLeService();
+	    		
+	    		// Broadcast reciever intent filter
+	    	    this.intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+	    	    this.intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
+	    	    this.intentFilter.addAction(BluetoothLeService.ACTION_DATA_NOTIFY);
+	    	    this.intentFilter.addAction(BluetoothLeService.ACTION_DATA_WRITE);
+	    	    this.intentFilter.addAction(BluetoothLeService.ACTION_DATA_READ);
+	    	    this.intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
+	    	    this.intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
+	    	    
+	    	    registerReceiver(mGattUpdateReceiver, this.intentFilter);
+			}
+		}
+		return bluetoothLeAvailable;
+	}
+	
 	// Starts the scan procedure for BT LE devices. Suppress warnings because API level is set to 16. Just make sure this is not run
 	// if device API support is below 18.
+	/** Starts or stops the device scan procedure for BT LE devices. Shuts down automatically after timeout BT_SCAN_PERIOD*/
 	@SuppressLint("NewApi")
 	private void scanLeDevice(final boolean enable) {
 		if (enable) {
@@ -524,6 +638,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 	
 	// Device scan callback.
 	// NB! Nexus 4 and Nexus 7 (2012) only provide one scan result per scan
+	/** Scan callback which handles found BT devices.*/ 
 	private BluetoothAdapter.LeScanCallback leScanCallback = new BluetoothAdapter.LeScanCallback() {
 
 	    public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
@@ -565,11 +680,6 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 	private void addDevice(BleDeviceInfo device) {
 	    this.numDevs++;
 	    this.deviceInfoList.add(device);
-	    /*mScanView.notifyDataSetChanged(); //TODO need ScanView?
-	    if (this.numDevs > 1)
-	      mScanView.setStatus(this.numDevs + " devices");
-	    else
-	      mScanView.setStatus("1 device");*/
 	}
 	
 	private BleDeviceInfo findDeviceInfo(BluetoothDevice device) {
@@ -595,7 +705,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 	      finish();
 	    }
   }
-	  // Code to manage Service life cycle.
+	  /** Manages service life cycle. */
 	  private final ServiceConnection btServiceConnector = new ServiceConnection() {
 
 	    public void onServiceConnected(ComponentName componentName, IBinder service) {
@@ -623,6 +733,8 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 	    }
 	  };
 
+	  /** When BT device scan ends, this method connects found devices to BT service. Warning: even though we can connect multiple devices
+	   * the logic currently only accepts messages from one source.*/
 	  void connectDevices() {
 		    if (numDevs > 0) {
 		    	for (int i = 0; i < deviceInfoList.size(); ++i) {
@@ -648,6 +760,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 		    	}
 		  }
 	  
+	  /** Broadcast receiver to handle messages incoming from the bluetoothLeService*/
 	  public final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
 		  	@Override
 		  	public void onReceive(Context context, Intent intent) {
@@ -681,6 +794,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 		  			int statusConnect = intent.getIntExtra(BluetoothLeService.EXTRA_STATUS, BluetoothGatt.GATT_FAILURE);
 		  			if (statusConnect == BluetoothGatt.GATT_SUCCESS) {
 		  				showToast("GATT SUCCESS connection!");
+		  				deviceList.put(intent.getStringExtra(BluetoothLeService.EXTRA_ADDRESS), UUID.randomUUID());
 		  				BluetoothLeService.getBtGatt().discoverServices();
 		  				startSensorDataUpdater();
 		  			} else {
@@ -689,6 +803,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 		  		} else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
 		  			// GATT disconnect
 		  			int statusDisconnect = intent.getIntExtra(BluetoothLeService.EXTRA_STATUS, BluetoothGatt.GATT_FAILURE);
+		  			deviceList.remove(intent.getStringExtra(BluetoothLeService.EXTRA_ADDRESS));
 		  			stopSensorDataUpdater();
 		  			if (statusDisconnect == BluetoothGatt.GATT_SUCCESS) {
 		  				showToast("disconnected!");
@@ -705,6 +820,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 		  		}
 		  	}
 
+		  	/** Handles data change notifications from the BT sensors.*/ 
 			private void onCharacteristicChanged(String uuidStr, byte[] value) {
 				// TODO Auto-generated method stub
 				if (uuidStr.equals(SensorTag.UUID_ACC_DATA.toString())) {
@@ -732,6 +848,8 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 			}
 		  };
 		  
+		  /** Enables sensors from TI CC2541 Sensor Tag device when all the services are discovered. 
+		   * Currently only activates IRT, GYRO and ACCELEROMETER services. */
 		  public void enableServices() {
 			  btServices = btLeService.getSupportedGattServices();
 			  for (BluetoothGattService gattService : btServices) {
@@ -792,6 +910,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 			  }
 		  }
 
+		  /** Runnable which wraps relevant BT sensor data as JSON and then sends it to webservice.*/
 		  Runnable sensorDataUpdater = new Runnable() {
 
 				@Override
@@ -801,7 +920,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 					// Base station id
 					String BaseStationID = uuid;
 					// MAC address
-					String deviceID = deviceInfoList.get(0).getBluetoothDevice().getAddress();
+					String deviceID = deviceList.get(deviceInfoList.get(0).getBluetoothDevice().getAddress()).toString();
 					
 					// Accelerometer data
 					String ACC_UUID = SensorTag.UUID_ACC_SERV.toString();
@@ -871,8 +990,13 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 					
 					device.put("sensors", sensors);
 					JSONArray gps = new JSONArray();
-					gps.put("65.567");
-					gps.put("25.765");
+					// If accurate location has not been recieved, use phones last known location.
+					if (latitude == 0 || longitude == 0) {
+						latitude = locationClient_.getLastLocation().getLatitude();
+						longitude = locationClient_.getLastLocation().getLongitude();
+					}
+					gps.put(latitude);
+					gps.put(longitude);
 					JSONObject deviceAttributes = new JSONObject();
 					deviceAttributes.put("location", gps);
 					deviceAttributes.put("name", "TI CC2541 Sensor");
@@ -885,19 +1009,22 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 					catch (JSONException e) {
 						e.printStackTrace();
 					}
+					// JSON is built. Send it through message service
 					sendMessageToService(wrapper.toString().trim());
 					
-					
+					// Repeat this function again in 1000ms.
 					mHandler.postDelayed(sensorDataUpdater, 1000);
 				}
 		  };
-		  
+		  /** Launches sensor data updater Runnable which sends data to webserver when BT device is connected to basestation. */
 		  void startSensorDataUpdater() {
+			  // Start the sensor data reporting to webservice. Starts on BT device connection.
 			  sensorDataUpdater.run(); 
-			  }
-
+		  }
+		  /** Stops sensor data updater Runnable on BT device disconnect, */
 		  void stopSensorDataUpdater() {
-		    mHandler.removeCallbacks(sensorDataUpdater);
+			  // Stop sensor data reporting on disconnection. 
+			  mHandler.removeCallbacks(sensorDataUpdater);
 		  }
 }
 
