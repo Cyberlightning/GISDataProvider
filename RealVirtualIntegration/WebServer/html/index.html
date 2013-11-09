@@ -86,10 +86,10 @@
 	var lon;
     var entities = {};
     var selectedUUID;
-    var gpsDrawn = false;
+    //var gpsDrawn = false;
     //var currentUuid;
     var listOfUUIDS;
-    var xValues = [];
+    var valueContainer = {};
 
     function createButton(currentUuid) {
         $("#device_control").append('<button style="display: inline-block;" onClick="changeDevice(event)">'+currentUuid+'</button>')
@@ -134,15 +134,59 @@
             if(entities.hasOwnProperty(uuid)) {
                 if (selectedUUID != null) {
                     if(selectedUUID == uuid) {
+                        updateValueHistory(entities[uuid],uuid);
                         updateContent(entities[uuid]);
                     }
                 } else {
                     selectedUUID = uuid;
+                    updateValueHistory(entities[uuid],uuid);
                     addNewContent(entities[uuid]);
                 }
             }
         }
 	}
+
+    function updateValueHistory(obj,uuid){
+        var hasEntries = false;
+
+        if (valueContainer.hasOwnProperty(uuid)) {
+            hasEntries = true;
+            var entry = valueContainer[uuid];
+            for (var j = 0; j < obj.sensors.length; j++) {
+                var values = {};
+                for (var value in entry) {
+                     var tempArray = [];
+                    if(entry[value].length > 4){
+                        var dd = entry[value];
+                        for (var k = 1; k < dd.length; k++) {
+                            tempArray.push(dd[k]);
+                        }
+                        tempArray.push(obj.sensors[j].value.values);
+                        values[value] = tempArray;
+                    }else {
+                        tempArray = entry[value];
+                        tempArray.push(obj.sensors[j].value.values)
+                         values[value] = tempArray;
+                    }
+                }
+                valueContainer[uuid] = values;
+            }
+        }
+        if (!hasEntries ) {
+            var sensorvals = {};
+            for (var j = 0; j < obj.sensors.length; j++) {
+               if ( obj.sensors[j].value.values.length > 1) {
+                   var values = [];
+                   values = obj.sensors[j].value.values;
+               } else {
+                   var values = obj.sensors[j].value.values;
+               }
+               sensorvals[obj.sensors[j].attributes.type] = values;
+            }
+            valueContainer[uuid] = sensorvals;
+        }
+
+    }
 
     function addNewContent(obj) {
         var sensors = obj.sensors;
@@ -153,8 +197,8 @@
                 var active = $('#accordion').accordion('option', 'active');
                 $('#accordion').append('<h3><a href="#" onclick="drawCharts(event)">' + type + '</a></h3><div>'+ parseContent(sensors[i]) +'</div>').accordion('destroy').accordion({ active: active});
             }
-            if (obj.attributes.gps != null && gpsDrawn == false) {
-            	gpsDrawn = true;
+            if (obj.attributes.gps != null) {
+
             	lat = parseFloat(obj.attributes.gps[0]);
 				lon = parseFloat(obj.attributes.gps[1]);
 				$('#accordion').accordion({heightStyle: 'content'});
@@ -165,8 +209,10 @@
 
     function parseContent(obj,loc) {
         var content = "<b>Device Id: </b><i>" + selectedUUID + "</i>   <b>Latest Event: </b><i>" + (new Date()).toString() + "</i></br>";
-        if(loc != null) content += "<b>Location: </b>[" +loc + "] ";
-        content += "<b>Sensor value: </b>";
+        if(loc != null){
+            content += "<b>Location: </b>[" +loc + "] ";
+        }else {
+            content += "<b>Sensor value: </b>";
              if (obj.value.primitive == "3DPoint") {
                  content += " [ ";
                  for (var j = 0; j < obj.value.values.length; j++) {
@@ -177,7 +223,7 @@
              } else if (obj.value.primitive == "double"){
                  content += obj.value.values + " " + obj.value.unit + ", ";
              }
- 
+        }
         return content;
     }
 
@@ -186,7 +232,7 @@
         while(accordion.hasChildNodes()) {
             accordion.removeChild(accordion.lastChild);
         }
-        gpsDrawn = false;
+
         addNewContent(obj);
     }
 	
@@ -286,7 +332,7 @@
 					        maxValue = parseFloat(valueList.values);
 				        }
                     }
-                
+                break;
 			}
 		}
 
@@ -414,10 +460,10 @@
           else
           	{
 				// Use localhost IP for websocket
-				//ws = new WebSocket("ws://127.0.0.1:44445");
+				ws = new WebSocket("ws://127.0.0.1:44445");
 
 				// Use dev.cyberlightning.com IP for websocket	
-				ws = new WebSocket("ws://dev.cyberlightning.com:44445");	
+				//ws = new WebSocket("ws://dev.cyberlightning.com:44445");
           	}
           ws.onopen = function() {
              // Web Socket is connected, send data using send()
