@@ -119,8 +119,6 @@ public class WebSocketWorker implements Runnable {
 		while(this.isConnected) {
 		
 			try {
-				if(this.input.available() > 0) {
-					
 					int opcode = this.input.read();  
 				    @SuppressWarnings("unused")
 					boolean whole = (opcode & 0b10000000) !=0;  
@@ -150,7 +148,7 @@ public class WebSocketWorker implements Runnable {
 				    	System.out.println("Client message type: " + opcode);
 				    	this.closeSocketGracefully();
 				    }
-				}
+				
 				
 			} catch (Exception e) {
 				e.printStackTrace();
