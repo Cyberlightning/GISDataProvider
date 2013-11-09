@@ -86,7 +86,7 @@
 	var lon;
     var entities = {};
     var selectedUUID;
-    //var gpsDrawn = false;
+    var gpsShown = false;
     //var currentUuid;
     var listOfUUIDS;
     var valueContainer = {};
@@ -152,32 +152,40 @@
         if (valueContainer.hasOwnProperty(uuid)) {
             hasEntries = true;
             var entry = valueContainer[uuid];
-            for (var j = 0; j < obj.sensors.length; j++) {
-                var values = {};
+            var values = {};
+            for (var j  = 0; j < obj.sensors.length; j++) {
                 for (var value in entry) {
-                     var tempArray = [];
-                    if(entry[value].length > 4){
-                        var dd = entry[value];
-                        for (var k = 1; k < dd.length; k++) {
-                            tempArray.push(dd[k]);
+
+                    if (value == obj.sensors[j].attributes.type) {
+                        if(entry[value].length > 4){
+                            var tempArray = [];
+                            var dd = entry[value];
+                            for (var k = 1; k < dd.length; k++) {
+                                tempArray.push(dd[k]);
+                            }
+                            tempArray.push(obj.sensors[j].value.values);
+                            values[value] = tempArray;
+                        }else {
+                            var tempArray = [];
+                            var dd = entry[value];
+                            for (var k = 0; k < dd.length; k++) {
+                                tempArray.push(dd[k]);
+                            }
+                            tempArray.push(obj.sensors[j].value.values)
+                            values[value] = tempArray;
                         }
-                        tempArray.push(obj.sensors[j].value.values);
-                        values[value] = tempArray;
-                    }else {
-                        tempArray = entry[value];
-                        tempArray.push(obj.sensors[j].value.values)
-                         values[value] = tempArray;
-                    }
                 }
-                valueContainer[uuid] = values;
             }
+            }
+            valueContainer[uuid] = values;
+
         }
         if (!hasEntries ) {
             var sensorvals = {};
             for (var j = 0; j < obj.sensors.length; j++) {
-               if ( obj.sensors[j].value.values.length > 1) {
+               if ( obj.sensors[j].value.primitive == "3DPoint") {
                    var values = [];
-                   values = obj.sensors[j].value.values;
+                   values.push(obj.sensors[j].value.values);
                } else {
                    var values = obj.sensors[j].value.values;
                }
@@ -192,19 +200,20 @@
         var sensors = obj.sensors;
         var attr = [];
         for (var i = 0; i < sensors.length; i++ ) {
-            if(sensors[i].attributes.type != null){
+            if(sensors[i].attributes.type != null ){
                 type = sensors[i].attributes.type;
                 var active = $('#accordion').accordion('option', 'active');
                 $('#accordion').append('<h3><a href="#" onclick="drawCharts(event)">' + type + '</a></h3><div>'+ parseContent(sensors[i]) +'</div>').accordion('destroy').accordion({ active: active});
             }
-            if (obj.attributes.gps != null) {
-
+            if (obj.attributes.gps != null && gpsShown == false) {
+               gpsShown = true;
             	lat = parseFloat(obj.attributes.gps[0]);
 				lon = parseFloat(obj.attributes.gps[1]);
 				$('#accordion').accordion({heightStyle: 'content'});
 				$('#accordion').append('<h3><a href="#" onclick="loadMap(event)">gps</a></h3><div>'+ parseContent(sensors[i],obj.attributes.gps) +'</div>').accordion('destroy').accordion({ active: active});   
             }
         }
+        gpsShown = false;
     }
 
     function parseContent(obj,loc) {
