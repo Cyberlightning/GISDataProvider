@@ -346,9 +346,11 @@ public abstract class JsonTranslator {
 				}
 				sensorJson.put("parameters", sensorParamsJson);
 				JSONArray sensorValuesJson = new JSONArray();
-				for (int i = 0 ; i < sensor.values.size(); i ++) {
+				int count = 1;
+				for (int i = (sensor.values.size()-1) ; i > -1; i--) { //return latest value first;
 					
-					if(i > _numOfValues) break;
+					if(count > _numOfValues) break;
+					count++;
 					
 					HashMap<String,Object > variable = sensor.values.get(i);
 					Iterator<String> j = variable.keySet().iterator();

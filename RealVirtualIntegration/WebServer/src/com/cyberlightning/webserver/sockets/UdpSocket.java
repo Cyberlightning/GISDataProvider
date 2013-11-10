@@ -22,7 +22,6 @@ public class UdpSocket implements Runnable  {
 	
 	private DatagramSocket serverSocket;
 	private int port;
-	
 	public static final String uuid = UUID.randomUUID().toString();
 	public  final int type = StaticResources.UDP_RECEIVER;
 	
@@ -102,18 +101,19 @@ public class UdpSocket implements Runnable  {
 			
 			
 				try {
-					Thread.sleep(4000);
+					Thread.sleep(6000);
 				} catch (InterruptedException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 				String times = StaticResources.getTimeStamp();
+				
 				//String s = "{\"5de5f289-c7f3-4994-8dfb-3639d3f7c8d0\": {\""+uid+"\": {\"attributes\": { \"name\": \"Texas CL2541 Sensor\",\"gps\": ["+(65.03+ds)+","+(ds+25.28)+"]},\"sensors\": [{\"value\": {\"unit\": \"m/s2\",\"primitive\": \"3DPoint\", \"time\": \""+times+"\",\"values\": [ "+ds2+",-2.15625,"+ds3+"]},\"uuid\": \"f000aa10-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"accelerometer\",\"vendor\": \"Texas Instruments\"}},{\"value\": { \"unit\": \"Celsius\",\"primitive\": \"double\",\"time\": \""+times+"\",\"values\": "+(27.21875 + ds2)+"},\"uuid\": \"f000aa00-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"temperature\",\"vendor\": \"Texas Instruments\"}}]}}}";
-				String s = "{\"5de5f289-c7f3-4994-8dfb-3639d3f7c8d0\": {\"5de5f239-c7f3-4994-8dfb-3639d3f7c8d0\": {\"attributes\": { \"name\": \"Texas CL2541 Sensor\",\"gps\": ["+(65.03+ds)+","+(ds+25.28)+"]},\"sensors\": [{\"value\": {\"unit\": \"m/s2\",\"primitive\": \"3DPoint\", \"time\": \""+times+"\",\"values\": [ "+ds2+",-2.15625,"+ds3+"]},\"uuid\": \"f000aa10-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"accelerometer\",\"vendor\": \"Texas Instruments\"}},{\"value\": { \"unit\": \"Celsius\",\"primitive\": \"double\",\"time\": \""+times+"\",\"values\": "+(27.21875 + ds2)+"},\"uuid\": \"f000aa00-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"temperature\",\"vendor\": \"Texas Instruments\"}}]}}}";
-				
-				
-				
-				byte[] b = s.getBytes();
+				//String s = "{\"5de5f289-c7f3-4994-8dfb-3639d3f7c8d0\": {\"SENSOR2\": {\"attributes\": { \"name\": \"Texas CL2541 Sensor\",\"gps\": ["+(65.03+ds)+","+(ds+25.28)+"]},\"sensors\": [{\"value\": {\"unit\": \"m/s2\",\"primitive\": \"3DPoint\", \"time\": \""+times+"\",\"values\": [ "+ds2+",-2.15625,"+ds3+"]},\"uuid\": \"f000aa10-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"accelerometer\",\"vendor\": \"Texas Instruments\"}},{\"value\": { \"unit\": \"Celsius\",\"primitive\": \"double\",\"time\": \""+times+"\",\"values\": "+(27.21875 + ds2)+"},\"uuid\": \"f000aa00-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"temperature\",\"vendor\": \"Texas Instruments\"}}]}}}";
+				String dds = "{\"5de5f289-c7f3-4994-8dfb-3639d3f7c8d0\": {\"5de5f200-c7f3-4994-8dfb-3639d3f7c8d0\": {\"attributes\": { \"name\": \"Texas CL2541 Sensor\",\"gps\": [65.061049,25.4680896]},\"sensors\": [{\"value\": {\"unit\": \"m/s2\",\"primitive\": \"3DPoint\", \"time\": \""+times+"\",\"values\": [ "+ds2+",-2.15625,"+ds3+"]},\"uuid\": \"f000aa10-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"accelerometer\",\"vendor\": \"Texas Instruments\"}},{\"value\": { \"unit\": \"Celsius\",\"primitive\": \"double\",\"time\": \""+times+"\",\"values\": "+(27.21875 + ds2)+"},\"uuid\": \"f000aa00-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"temperature\",\"vendor\": \"Texas Instruments\"}}]}}}";
+				byte[]  b = dds.getBytes();
+			
+
 				DatagramPacket d = null;
 				byte[] address = {22,22,22,22};
 				try {
