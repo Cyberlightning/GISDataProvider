@@ -31,7 +31,29 @@
   	}.btn {
     display: inline-block;
     margin-right: 6px;
-    }
+    }#content_left {
+      background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyYWRpYWxHcmFkaWVudCBpZD0iZyI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjOTk5OTk5Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMjcyODI2Ii8+PC9yYWRpYWxHcmFkaWVudD48cmVjdCB4PSIwJSIgeT0iMCUiIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMyNzI4MjYiIC8+PHJlY3QgeD0iMCUiIHk9Ii0xNDUuNjg5NyUiIHdpZHRoPSIyMDAlIiBoZWlnaHQ9IjM5MS4zNzkzJSIgZmlsbD0idXJsKCNnKSIgLz48L3N2Zz4=);
+background-image: -webkit-gradient(radial, 100% 50%, 0, 100% 50%, 227, color-stop(0%, #999999), color-stop(100%, #272826));
+background-image: -webkit-radial-gradient(right center, farthest-side circle, #999999 0%, #272826 100%);
+background-image: -moz-radial-gradient(right center, farthest-side circle, #999999 0%, #272826 100%);
+background-image: -ms-radial-gradient(right center, farthest-side circle, #999999 0%, #272826 100%);
+background-image: -o-radial-gradient(right center, farthest-side circle, #999999 0%, #272826 100%);
+background-image: radial-gradient(farthest-side circle at right center, #999999 0%, #272826 100%);
+
+
+
+                      }#content_right {
+       /* CSS */
+background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyYWRpYWxHcmFkaWVudCBpZD0iZyI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjOTk5OTk5Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMjcyODI2Ii8+PC9yYWRpYWxHcmFkaWVudD48cmVjdCB4PSIwJSIgeT0iMCUiIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMyNzI4MjYiIC8+PHJlY3QgeD0iLTEwMCUiIHk9Ii0xNDUuNjg5NyUiIHdpZHRoPSIyMDAlIiBoZWlnaHQ9IjM5MS4zNzkzJSIgZmlsbD0idXJsKCNnKSIgLz48L3N2Zz4=);
+background-image: -webkit-gradient(radial, 0% 50%, 0, 0% 50%, 227, color-stop(0%, #999999), color-stop(100%, #272826));
+background-image: -webkit-radial-gradient(left center, farthest-side circle, #999999 0%, #272826 100%);
+background-image: -moz-radial-gradient(left center, farthest-side circle, #999999 0%, #272826 100%);
+background-image: -ms-radial-gradient(left center, farthest-side circle, #999999 0%, #272826 100%);
+background-image: -o-radial-gradient(left center, farthest-side circle, #999999 0%, #272826 100%);
+background-image: radial-gradient(farthest-side circle at left center, #999999 0%, #272826 100%);
+
+                                             }
+
 	</style>
 </head>
 
@@ -47,7 +69,7 @@
 
   			<div id="content_left" style="background-color:#D2CCD2;height:650px;width:49%;float:left;"></div>
   			<div style="background-color:#938F93;height:650px;width:0.3%;float:left;"></div>
-  			<div style="background-color:#D2CCD2;height:650px;width:50.7%;float:left;">
+  			<div id="content_right" style="background-color:#D2CCD2;height:650px;width:50.7%;float:left;">
 				<div id="accordion"></div>
   			</div>
   			<div align="right" style="background-color:#4C334C;clear:both;color:white;font-size: 9">Copyright © 2013 Cyberlightning Ltd.</div>
@@ -60,7 +82,7 @@
 	
 	//Global variables
 	
-	var WIDTH = $("#content_left").height();
+	var WIDTH = $("#content_left").height() + 100;
 	var HEIGHT = $("#content_left").width();
 	
 
@@ -87,7 +109,7 @@
     var entities = {};
     var selectedUUID;
     var gpsShown = false;
-    //var currentUuid;
+    var selectedSensor;
     var listOfUUIDS;
     var valueContainer = {};
 
@@ -136,6 +158,7 @@
                     if(selectedUUID == uuid) {
                         updateValueHistory(entities[uuid],uuid);
                         updateContent(entities[uuid]);
+                        drawCharts(uuid);
                     }
                 } else {
                     selectedUUID = uuid;
@@ -223,14 +246,31 @@
         }else {
             content += "<b>Sensor value: </b>";
              if (obj.value.primitive == "3DPoint") {
-                 content += " [ ";
-                 for (var j = 0; j < obj.value.values.length; j++) {
-                     if (j < 2) content += obj.value.values[j] + ", ";
-                     else content += obj.value.values[j];
+                 var sensors = valueContainer[selectedUUID]
+                 var values = sensors[obj.attributes.type];
+                 content += "</br>"
+                 var linenumber = 1;
+                 for (var l = (values.length - 1); l > -1; l--) {
+                     var valueArray = values[l];
+                     content += "<b>"+linenumber+ ". </b>"+"[ ";
+                     linenumber++;
+                     for (var d = 0; d < valueArray.length; d++) {
+                        if (d < 2) content +=valueArray[d] + ", ";
+                        else content += valueArray[d];
+                     }
+                     content += " ] (<i>" + obj.value.unit + "</i>)</br> ";
+
                  }
-                 content += " ] (<i>" + obj.value.unit + "</i>) ";
              } else if (obj.value.primitive == "double"){
-                 content += obj.value.values + " " + obj.value.unit + ", ";
+                 var sensors = valueContainer[selectedUUID]
+                 var values = sensors[obj.attributes.type];
+                 content += "</br>"
+                 var linenumber = 1;
+                 for (var l = (values.length -1); l > -1; l--) {
+                     content += "<b>" + linenumber + ".</b> "+ values[l] + " " + obj.value.unit + "</br>";
+                     linenumber++;
+                 }
+
              }
         }
         return content;
@@ -265,8 +305,23 @@
 	
 	
 	function drawCharts(e) {
-		
-		var eventTarget = e.currentTarget.innerHTML; //works on both chrome and FF
+
+        var eventTarget;
+		if (selectedSensor == null ) {
+            if (e.currentTarget == null) {
+                return;
+            } else {
+                selectedSensor = e.currentTarget.innerHTML;
+            }
+
+        }
+        if (e.currentTarget != null) {
+            if(selectedSensor != e.currentTarget.innerHTML){
+            selectedSensor = e.currentTarget.innerHTML;
+            }
+        }
+
+        eventTarget = selectedSensor;
 		var cubeX = 20;
 		var cubeZ = 20;
 		var cubeY = 0;
@@ -304,75 +359,58 @@
 			$container.append(renderer.domElement);
 
 			// create a point light
-			var pointLight = new THREE.PointLight(0xFFFFFF);
 
-			// set its position
-			pointLight.position.x = 10;
-			pointLight.position.y = 50;
-			pointLight.position.z = 130;
-
-			// add to the scene
-			scene.add(pointLight);
-
-
-
-		for (var i = 0 ; i < tempSensorList.length; i++) {
-			if (tempSensorList[i].attributes.type == eventTarget) {
-                valueList = tempSensorList[i].value;
-				
-                if(valueList.primitive == "3DPoint") {
-                is3DPoint = true;
-                	for (var k=0; k < valueList.values.length; k++) {
-                		threeDPointValues.push(10*(valueList.values[k]));
+        var temperatureArray = [];
+        var device = valueContainer[selectedUUID];
+        for (var sensor in device){
+            if(sensor ==eventTarget ){
+                var tempArray = device[sensor];
+                if(tempArray[0].length > 1) {
+                    is3DPoint = true;
+                	for (var k=0; k < tempArray.length; k++) {
+                		threeDPointValues.push(tempArray[k]);
                 	}
                 } else {
-                	if (xValues.length > 5) {
-                		tempArray = [];
-                		for (var l = 1; l < xValues.length; l++) {
-                			tempArray.push(xValues[l]);
-                		}
-                		xValues = tempArray;
-                	}
-                	
-                	xValues.push(valueList.values);
-                     if (minValue > parseFloat(valueList.values) || minValue == null) {
-					    	minValue = parseFloat(valueList.values);
-				        } if (maxValue < parseFloat(valueList.values) || maxValue == null) {
-					        maxValue = parseFloat(valueList.values);
-				        }
+                    temperatureArray = device[sensor];
+                	for (var c = 0; c < tempArray.length; c++) {
+                        if (minValue > parseFloat(tempArray[c]) || minValue == null) {
+					    	minValue = parseFloat(tempArray[c]);
+				        } if (maxValue < parseFloat(tempArray[c]) || maxValue == null) {
+					        maxValue = parseFloat(tempArray[c]);
+			            }
                     }
-                break;
-			}
-		}
-
+                }
+            }
+        }
 
 		if (is3DPoint){
-
-       		var material = new THREE.LineBasicMaterial({color: 0x0000ff});
+            var points = threeDPointValues[0];
+       		var material = new THREE.LineBasicMaterial({color: 0x0000ff,linewidth: 3, fog:true});
 
 		    var geometry = new THREE.Geometry();
 		    geometry.vertices.push(new THREE.Vector3(0, 50, 0));
-		    geometry.vertices.push(new THREE.Vector3(0, threeDPointValues[1] + 50, 0));
+		    geometry.vertices.push(new THREE.Vector3(0, (10*points[1]) + 50, 0));
 
 			var line = new THREE.Line(geometry, material);
 			scene.add(line);
 
-            material = new THREE.LineBasicMaterial({color: 0x00ff00});
+            material = new THREE.LineBasicMaterial({color: 0x00ff00,linewidth: 3, fog:true});
             geometry = new THREE.Geometry();
             geometry.vertices.push(new THREE.Vector3(0, 50, 0));
-			geometry.vertices.push(new THREE.Vector3(0, 50, threeDPointValues[2] ));
+			geometry.vertices.push(new THREE.Vector3(0, 50, (points[2]*10) ));
 
 			line = new THREE.Line(geometry, material);
 		    scene.add(line);
 
-			material = new THREE.LineBasicMaterial({color: 0xff0000});
+			material = new THREE.LineBasicMaterial({color: 0xff0000,linewidth: 3, fog:true});
 			geometry = new THREE.Geometry();
 			geometry.vertices.push(new THREE.Vector3(0, 50, 0));
-			geometry.vertices.push(new THREE.Vector3(threeDPointValues[0],50, 0));
+			geometry.vertices.push(new THREE.Vector3((points[0]*10),50, 0));
 
 			line = new THREE.Line(geometry, material);
 			scene.add(line);
 			camera.lookAt( scene.position );
+            renderer.render(scene, camera);
 
         } else {
             var material = new THREE.LineBasicMaterial({color: 0x0000ff});
@@ -401,12 +439,12 @@
 
 			var j = 0;
 
-			while(j < xValues.length && j < 5) {
+			while(j < temperatureArray.length && j < 5) {
 
 				    if(minValue == maxValue) {
                          cubeY = 50;
                     } else {
-                        cubeY = (parseFloat(xValues[j])/ maxValue) * 100;
+                        cubeY = (parseFloat(temperatureArray[j])/ maxValue) * 100;
                     }
 
 				    var geometry = new THREE.CubeGeometry( cubeX, cubeY, cubeZ );
@@ -445,9 +483,19 @@
     		      );
     		mesh1.position.set(0,20,-300);
             scene.add( mesh1 );
+            var pointLight = new THREE.PointLight(0xFFFFFF);
+
+			// set its position
+			pointLight.position.x = 10;
+			pointLight.position.y = 50;
+			pointLight.position.z = 130;
+
+			// add to the scene
+			scene.add(pointLight);
+            renderer.render(scene, camera);
             }
 
-			renderer.render(scene, camera);
+
 
 	}
 
