@@ -1,12 +1,14 @@
 package com.cyberlightning.realvirtualsensorsimulator;
 
 
+import java.util.Observable;
+import java.util.Observer;
 
 import com.example.realvirtualsensorsimulator.R;
 
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.app.Activity;
+import android.content.Context;
 import android.text.method.ScrollingMovementMethod;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -17,11 +19,14 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements Observer {
 	
-	public Button showButton;
-	public TextView receivedMessages;
-	public TextView sendMessages;
+	private Button showButton;
+	private SensorListener sensorListener;
+	private TextView receivedMessages;
+	private TextView sendMessages;
+	
+	
 	
 	// Tags to store saved instance state of this activity
 	private static final String STATE_RECEIVED_MESSAGES = "StateReceivedMessages";
@@ -72,12 +77,25 @@ public class MainActivity extends Activity {
 	    	
 	}
     
+    public static Context getAppContext() {
+    return MainActivity.getAppContext(); 
+    }
+    
     private void StartApplication() {
     	this.receivedMessages = (TextView)findViewById(R.id.inboundMessagesDisplay);
 		this.sendMessages = (TextView)findViewById(R.id.outboundMessagesDisplay);
 		this.receivedMessages.setMovementMethod(new ScrollingMovementMethod());
 		this.sendMessages.setMovementMethod(new ScrollingMovementMethod());
 		
+		this.sensorListener = new SensorListener();
+		this.sensorListener.addObserver(this);
+		
     }
+
+	@Override
+	public void update(Observable observable, Object data) {
+		// TODO Auto-generated method stub
+		
+	}
     
 }
