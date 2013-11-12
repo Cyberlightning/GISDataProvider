@@ -365,10 +365,8 @@ XML3D.Xml3dSceneController.prototype.mouseMoveEvent = function(event, camera) {
             this.camera.rotateAroundPoint(mx.multiply(my), this.revolveAroundPoint);
             break;
         case(this.LOOKAROUND):
-            //var dx = -this.rotateSpeed * (ev.pageX - this.prevPos.x) * 2.0 * Math.PI / this.width;
-            //var dy = this.rotateSpeed * (ev.pageY - this.prevPos.y) * 2.0 * Math.PI / this.height;
-            var dy = -this.rotateSpeed * (ev.pageX - this.prevPos.x) * 2.0 * Math.PI / this.width;
-            var dx = -this.rotateSpeed * (ev.pageY - this.prevPos.y) * 2.0 * Math.PI / this.height;
+            var dx = -this.rotateSpeed * (ev.pageX - this.prevPos.x) * 2.0 * Math.PI / this.width;
+            var dy = this.rotateSpeed * (ev.pageY - this.prevPos.y) * 2.0 * Math.PI / this.height;
 
             var cross = this.upVector.cross(this.camera.direction);
 
@@ -423,31 +421,37 @@ XML3D.Xml3dSceneController.prototype.keyHandling = function(e) {
     var dir = camera.direction;
     if (xml3d) {
         switch (KeyID) {
-        case 38: // up
+        case 38: // ahead
         case 87: // w
             camera.position = camera.position.add(dir.scale(this.zoomSpeed));
             break;
         case 39: // right
         case 68: // d
             var np = camera.position;
-            // np.x -= dir.z * this.zoomSpeed;
-            // np.z += dir.x * this.zoomSpeed;
-            np.x += dir.y * this.zoomSpeed;
-            np.y -= dir.x * this.zoomSpeed;
+            np.x -= dir.z * this.zoomSpeed;
+            np.z += dir.x * this.zoomSpeed;
             camera.position = np;
             break;
         case 37: // left
         case 65: // a
             var np = camera.position;
-            // np.x += dir.z * this.zoomSpeed;
-            // np.z -= dir.x * this.zoomSpeed;
-            np.x -= dir.y * this.zoomSpeed;
-            np.y += dir.x * this.zoomSpeed;
+            np.x += dir.z * this.zoomSpeed;
+            np.z -= dir.x * this.zoomSpeed;
             camera.position = np;
             break;
-        case 40: // down
+        case 40: // backward
         case 83: // s
             camera.position = camera.position.subtract(dir.scale(this.zoomSpeed));
+            break;
+        case 32: // up
+        case 33:
+            var np = camera.position;
+            np.y += this.zoomSpeed;
+            break;
+        case 90: //down
+        case 34:
+            var np = camera.position;
+            np.y -= this.zoomSpeed;
             break;
 
         default:
@@ -523,4 +527,3 @@ XML3D.Xml3dSceneController.getController = function(xml3d) {
 
 })();
 
-/***********************************************************************/
