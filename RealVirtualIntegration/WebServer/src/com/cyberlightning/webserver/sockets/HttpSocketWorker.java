@@ -79,9 +79,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 		
 			} catch (Exception e) {
 				e.printStackTrace();
-				System.out.print(e.getLocalizedMessage());
-				sendResponse(e.getLocalizedMessage());
-				this.isConnected = false;
+				sendResponse(StaticResources.ERROR_CODE_BAD_REQUEST);
 			} 	
 		}
 		return; //Exit thread
@@ -115,14 +113,23 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 			System.out.print(connectionLine);
 			System.out.print("\r\n");
 			System.out.print(contentLine);
-			this.output.close(); //client connection will be kept alive untill response is send
-			MessageService.getInstance().unregisterReceiver(this.uuid);
-			this.isConnected = false;
+			this.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
+	}
+	private void close() {
+		
+		MessageService.getInstance().unregisterReceiver(this.uuid);
+		this.isConnected = false;
+		try {
+			this.output.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	/**

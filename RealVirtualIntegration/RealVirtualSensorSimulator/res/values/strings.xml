@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">RealVirtualSensorSimulator</string>
+    <string name="action_settings">Settings</string>
+    <string name="view_inbound_messages">Received Transmissions:</string>
+    <string name="view_status_title">Send Transmissions:</string>
+
+</resources>
