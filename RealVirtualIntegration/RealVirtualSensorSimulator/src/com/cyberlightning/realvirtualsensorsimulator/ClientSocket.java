@@ -9,7 +9,7 @@ import java.util.Observable;
 
 import android.os.Message;
 
-public class ClientSocket extends Observable implements Runnable {
+public class ClientSocket extends Observable implements Runnable, IClientSocket {
 	
 	private DatagramSocket localCoapSocket;
 	
@@ -76,6 +76,12 @@ public class ClientSocket extends Observable implements Runnable {
 			}
 			
 		}
+		
+	}
+
+	@Override
+	public void sendMessage(Message _msg) {
+		// TODO Auto-generated method stub
 		
 	}
 	

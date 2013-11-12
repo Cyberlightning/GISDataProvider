@@ -40,7 +40,7 @@ public abstract class JsonParser {
 		return device;
 	}
 	
-	private static JSONObject createFromSensorEvent(SensorEvent event) {
+	public static String createFromSensorEvent(SensorEvent event, Location _location) {
 		
 		JSONArray values = new JSONArray();
 		JSONObject device = new JSONObject();
@@ -69,7 +69,7 @@ public abstract class JsonParser {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return device;
+		return device.toString();
 	}
 	
 	private static String resolveDeviceById(int _id) {

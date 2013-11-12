@@ -27,6 +27,8 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 
 	private ConcurrentLinkedQueue<SensorEvent> sensorEventQueue= new ConcurrentLinkedQueue<SensorEvent>();
 	private List<Sensor> deviceSensors;
+	private Location location;
+
 	
 	public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm";
 	
@@ -45,8 +47,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		while(true) {
 			
 			synchronized(this) {
-	            
-				while(suspendFlag && !destroyFlag) {
+	            while(suspendFlag && !destroyFlag) {
 					try {
 						wait();
 					} catch (InterruptedException e) {
@@ -55,8 +56,13 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 						return;
 					}
 	            }
+	            if (destroyFlag) break; 
 	        }
+			if (this.sensorEventQueue.isEmpty()) continue;
+			this.sendMessage(JsonParser.createFromSensorEvent(this.sensorEventQueue.poll(), location));
+			
 		}
+		return;
 	}
 	
 	public void suspendThread() {
@@ -91,7 +97,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 			Criteria criteria = new Criteria();
 			criteria.setAccuracy(0);
 			String bestProvider = locationManager.getBestProvider(criteria, true);
-			Location location = locationManager.getLastKnownLocation(bestProvider); 
+			this.location= locationManager.getLastKnownLocation(bestProvider); 
 			//TODO handle location if gotten
 		}
 	}
@@ -137,6 +143,12 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		this.registerSensorListeners();
 		this.wakeThread();
 	}
+	
+	@Override
+	public void end() {
+		this.unregisterAllSensors();
+		this.destroy();
+	}
 
 
 	@Override
@@ -169,8 +181,8 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		}
 
 		@Override
-		public void onLocationChanged(Location location) {
-			//TODO Auto-generated text block
+		public void onLocationChanged(Location _location) {
+			location = _location;
 		}
 
 		@Override

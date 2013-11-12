@@ -7,6 +7,7 @@ import java.util.Observer;
 import com.example.realvirtualsensorsimulator.R;
 
 import android.os.Bundle;
+import android.os.Message;
 import android.app.Activity;
 import android.content.Context;
 import android.text.method.ScrollingMovementMethod;
@@ -22,7 +23,8 @@ import android.widget.Toast;
 public class MainActivity extends Activity implements Observer {
 	
 	private Button showButton;
-	private SensorListener sensorListener;
+	private ISensorListener sensorListener;
+	private IClientSocket clientSocket;
 	private TextView receivedMessages;
 	private TextView sendMessages;
 	
@@ -87,14 +89,23 @@ public class MainActivity extends Activity implements Observer {
 		this.receivedMessages.setMovementMethod(new ScrollingMovementMethod());
 		this.sendMessages.setMovementMethod(new ScrollingMovementMethod());
 		
-		this.sensorListener = new SensorListener();
-		this.sensorListener.addObserver(this);
+		SensorListener sensorListener = new SensorListener();
+		sensorListener.addObserver(this);
+		this.sensorListener = sensorListener;
+		
+		ClientSocket clientSocket= new ClientSocket();
+		clientSocket.addObserver(this);
+		this.clientSocket = clientSocket;
 		
     }
 
 	@Override
 	public void update(Observable observable, Object data) {
-		// TODO Auto-generated method stub
+		if (observable instanceof ClientSocket) {
+			
+		} else if (observable instanceof SensorListener) {
+			this.clientSocket.sendMessage((Message)data); // we know data is a Message object
+		}
 		
 	}
     
