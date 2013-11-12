@@ -1,7 +1,15 @@
 (function() {
+    // Define global parameters
+    var crs, boundingbox, layer; // What happens if there are several layers with different bb's?
+    // Map some id to each layer and use that same id for all options in that layer (crs, bb and so on..)?
 
     function initApp() {
-        // XML3D.debug.loglevel = 0; // set log level to "all"
+        var baseUrl = "http://localhost:9090/geoserver/";
+
+        // XML3D.debug.loglevel = 0; // set log level to "all"       
+
+        // Get server capabilities
+        getServerCapabilities(baseUrl, "w3ds", "0.4.0");
 
         var xml3dobject = document.getElementById("xml3dContent");
         var height = $(document).height();
@@ -10,27 +18,26 @@
         xml3dobject.setAttribute("height", height);
 
         // Request building data from GIS server
-        var buildings = createGISRequest("buildings", "428000.59375,7210617,428046.125,7210682");
-        requestGISData(buildings);
+        var buildings = createGISRequest(baseUrl, "buildings", "428000.59375,7210617,428046.125,7210682");
+        httpRequest(buildings, addXml3DContent);
 
         // Request terrain data from GIS server
-        var terrain = createGISRequest("terrain", "410000.0,7194000.0,446000.0,7223960.0");
-        requestGISData(terrain);
+        var terrain = createGISRequest(baseUrl, "terrain", "410000.0,7194000.0,446000.0,7223960.0");
+        //var terrain = createGISRequest(baseUrl, "lappi", "374000.0,7488050.0,422000.0,7536000.0");
+        httpRequest(terrain, addXml3DContent);
 
         // Move camera to correct debugging position
         var camera_node = document.getElementById("t_node-camera_player");
 
         //lappi
-        //camera_node.setAttribute("translation", "373573.78125 7488050 1676.4444580078125");
+        //camera_node.setAttribute("translation", "373573.78125 1676.4444580078125 7488050");
         //camera_node.setAttribute("translation", "399000 7488050 1676.4444580078125");
 
         //oulu
         camera_node.setAttribute("translation", "426990.5 7211167.5 328.6792907714844");
 
-
-        camera_node.setAttribute("rotation", "-0.24106520414352417 0.007622132543474436 -0.9704789519309998 3.1453794327656754");
         var camera_player = document.getElementById("camera_player-camera");
-        camera_player.setAttribute("orientation", "-0.74122554063797 -0.6073552966117859 -0.2858394682407379 4.331712643691064");
+        camera_player.setAttribute("orientation", "0.0 1.0 0.0 4.608328501404633");
 
     }
 
@@ -42,23 +49,30 @@
 
     }
 
-    function createGISRequest(layer, boundingbox) {
-        var request;
-        var baseUrl = "http://localhost:9090/geoserver/";
+    function parseServerCapabilities(response) {
+        // console.log(response);
+
+    }
+
+    function getServerCapabilities(baseUrl, service, version) {
+        var requestUrl = baseUrl + "ows?service=" + service + "&version=" + version + "&request=GetCapabilities";
+        httpRequest(requestUrl, parseServerCapabilities);
+    }
+
+    function createGISRequest(baseUrl, layer, boundingbox) {
+        var requestUrl;
         var workspace = "fiware";
         var service = "w3ds?version=0.4&service=w3ds";
         var format = "&format=model/xml3d+xml";
         var crs = "&crs=EPSG:3047";
         var request = "&request=GetScene";
 
-        
-
-        request = baseUrl + service + request + crs + format+"&layers="+workspace+":"+layer+"&boundingbox="+boundingbox;
-        console.log(request);
-        return request;
+        requestUrl = baseUrl + service + request + crs + format+"&layers="+workspace+":"+layer+"&boundingbox="+boundingbox;
+        console.log(requestUrl);
+        return requestUrl;
     }
 
-    function requestGISData(httpRequest) {
+    function httpRequest(requestUrl, callback) {
         var xmlhttp;
         if (window.XMLHttpRequest) {
             xmlhttp = new XMLHttpRequest();
@@ -66,14 +80,14 @@
             xmlhttp = new XDomainRequest();
         }
 
-        xmlhttp.onreadystatechange=function() {
+        // Set callback function
+        xmlhttp.onreadystatechange = function() {
             if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-                addXml3DContent(xmlhttp.responseText);
+                callback(xmlhttp.responseText);
             }
         }
 
-        xmlhttp.open("GET", httpRequest , true);
-
+        xmlhttp.open("GET", requestUrl , true);
         xmlhttp.send();
     }
 
