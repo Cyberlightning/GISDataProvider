@@ -11,9 +11,9 @@ import android.provider.Settings.Secure;
 
 public abstract class JsonParser {
 	
-	private final String deviceId = Secure.getString((MainActivity.getAppContext().getContentResolver()), Secure.ANDROID_ID);
+	private static final String deviceId = Secure.getString((MainActivity.getAppContext().getContentResolver()), Secure.ANDROID_ID);
 	
-	private JSONObject createFromLocation(Location event) {
+	public static JSONObject createFromLocation(Location event) {
 		
 		JSONArray values = new JSONArray();
 		JSONObject device = new JSONObject();
@@ -40,7 +40,7 @@ public abstract class JsonParser {
 		return device;
 	}
 	
-	private JSONObject createFromSensorEvent(SensorEvent event) {
+	private static JSONObject createFromSensorEvent(SensorEvent event) {
 		
 		JSONArray values = new JSONArray();
 		JSONObject device = new JSONObject();
@@ -48,7 +48,7 @@ public abstract class JsonParser {
 		
 		try {
 			
-			properties.put("type", this.resolveDeviceById(event.sensor.getType()));
+			properties.put("type", resolveDeviceById(event.sensor.getType()));
 			properties.put("version", event.sensor.getVersion());
 			properties.put("vendor", event.sensor.getVendor());
 			properties.put("range", event.sensor.getMaximumRange());
@@ -72,7 +72,7 @@ public abstract class JsonParser {
 		return device;
 	}
 	
-	private String resolveDeviceById(int _id) {
+	private static String resolveDeviceById(int _id) {
 		String name = null;
 		switch(_id){
 			case Sensor.TYPE_ACCELEROMETER: name = "TYPE_ACCELEROMETER";
