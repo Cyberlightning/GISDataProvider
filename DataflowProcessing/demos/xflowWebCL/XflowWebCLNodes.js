@@ -60,10 +60,10 @@
 
                 }
 
-                kernel.setKernelArg(0, bufIn);
-                kernel.setKernelArg(1, bufOut);
-                kernel.setKernelArg(2, width, WebCL.types.UINT);
-                kernel.setKernelArg(3, height, WebCL.types.UINT);
+                kernel.setArg(0, bufIn);
+                kernel.setArg(1, bufOut);
+                kernel.setArg(2, new Uint32Array([width]));
+                kernel.setArg(3, new Uint32Array([height]));
 
 
                 // Write the buffer to OpenCL device memory
@@ -145,10 +145,10 @@
 
                 }
 
-                kernel.setKernelArg(0, bufIn);
-                kernel.setKernelArg(1, bufOut);
-                kernel.setKernelArg(2, width, WebCL.types.UINT);
-                kernel.setKernelArg(3, height, WebCL.types.UINT);
+                kernel.setArg(0, bufIn);
+                kernel.setArg(1, bufOut);
+                kernel.setArg(2, new Uint32Array([width]));
+                kernel.setArg(3, new Uint32Array([height]));
 
                 // Write the buffer to OpenCL device memory
                 cmdQueue.enqueueWriteBuffer(bufIn, false, 0, bufSize, image.data, []);

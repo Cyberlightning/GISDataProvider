@@ -16,7 +16,7 @@
      *
      */
 
-    var platforms = WebCL.getPlatformIDs(),
+    var platforms = WebCL.getPlatforms(),
         platform,
         devices,
         ctx,
@@ -27,7 +27,7 @@
     console.log("WebCL: Available platforms:");
 
     platforms.forEach(function (p) {
-        var name = p.getPlatformInfo(WebCL.CL_PLATFORM_NAME);
+        var name = p.getInfo(WebCL.CL_PLATFORM_NAME);
         console.log(name);
 
         if (name.indexOf(DEFAULT_PLATFORM) !== -1) {
@@ -40,15 +40,15 @@
         platform = platforms[0];
     }
 
-    console.log("WebCL: Setting platform to: " + platform.getPlatformInfo(WebCL.CL_PLATFORM_NAME));
+    console.log("WebCL: Setting platform to: " + platform.getInfo(WebCL.CL_PLATFORM_NAME));
 
-    ctx = WebCL.createContextFromType([WebCL.CL_CONTEXT_PLATFORM, platform], WebCL.CL_DEVICE_TYPE_DEFAULT);
-    devices = ctx.getContextInfo(WebCL.CL_CONTEXT_DEVICES);
+    ctx = WebCL.createContext([WebCL.CL_CONTEXT_PLATFORM, platform]);
+    devices = ctx.getInfo(WebCL.CL_CONTEXT_DEVICES);
 
-    console.log("WebCL: Available devices on " + platform.getPlatformInfo(WebCL.CL_PLATFORM_NAME) + ":");
+    console.log("WebCL: Available devices on " + platform.getInfo(WebCL.CL_PLATFORM_NAME) + ":");
 
     devices.forEach(function (device) {
-        console.log(device.getDeviceInfo(WebCL.CL_DEVICE_NAME));
+        console.log(device.getInfo(WebCL.CL_DEVICE_NAME));
     });
 
     // Create command queue using the first available device
@@ -74,11 +74,11 @@
 
             var program, kernel;
 
-            program = ctx.createProgramWithSource(codeStr /* loadKernel("clProgramDesaturate")*/);
+            program = ctx.createProgram(codeStr /* loadKernel("clProgramDesaturate")*/);
 
 
             try {
-                program.buildProgram([devices[0]], "");
+                program.build([devices[0]], "");
             } catch (e) {
                 console.error("WebCL: Failed to build WebCL program: "
                     + program.getProgramBuildInfo(devices[0], WebCL.CL_PROGRAM_BUILD_STATUS)

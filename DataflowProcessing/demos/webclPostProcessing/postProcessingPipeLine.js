@@ -178,10 +178,10 @@
                 gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, tempTexBuffer);
                 sourceTex.unbind();
 
-                grayScaleKernel.setKernelArg(0, clBufIn);
-                grayScaleKernel.setKernelArg(1, clBufOut);
-                grayScaleKernel.setKernelArg(2, width, WebCL.types.UINT);
-                grayScaleKernel.setKernelArg(3, height, WebCL.types.UINT);
+                grayScaleKernel.setArg(0, clBufIn);
+                grayScaleKernel.setArg(1, clBufOut);
+                grayScaleKernel.setArg(2, new Uint32Array([width]));
+                grayScaleKernel.setArg(3, new Uint32Array([height]));
 
                 // Write the buffer to OpenCL device memory
                 webcl.cmdQueue.enqueueWriteBuffer(clBufIn, false, 0, bufSize, tempTexBuffer, []);
@@ -192,10 +192,10 @@
                 // Read the result buffer from OpenCL device
                 webcl.cmdQueue.enqueueReadBuffer(clBufOut, false, 0, bufSize, tempTexBuffer, []);
 
-                thresholdKernel.setKernelArg(0, clBufIn);
-                thresholdKernel.setKernelArg(1, clBufOut);
-                thresholdKernel.setKernelArg(2, width, WebCL.types.UINT);
-                thresholdKernel.setKernelArg(3, height, WebCL.types.UINT);
+                thresholdKernel.setArg(0, clBufIn);
+                thresholdKernel.setArg(1, clBufOut);
+                thresholdKernel.setArg(2, new Uint32Array([width]));
+                thresholdKernel.setArg(3, new Uint32Array([height]));
 
 
                 // Write the buffer to OpenCL device memory
@@ -271,7 +271,6 @@
 
             PPPipeline = new webgl.PostProcessingPipeline(renderI.context);
             PPPipeline.init();
-            console.log(PPPipeline)
             renderI.setRenderPipeline(PPPipeline);
             currentPipeline = "postProcess";
         }
