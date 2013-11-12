@@ -92,7 +92,8 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 	 * @param _content
 	 */
 	private void sendResponse(String _content) {
-		
+		if (_content == null) {
+		}
 		String statusLine = "HTTP/1.1 200 OK" + "\r\n";
 		String contentTypeLine = "Content-Type: application/json; charset=utf-8" + "\r\n";
 		String connectionLine = "Connection: close\r\n";
@@ -161,7 +162,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 					for (int j = 0; j < queries.length;j++) {
 						if (queries[j].contains("device_id")) {
 							String[] device = queries[j].split("=");
-							sendResponse(DataStorageService.getInstance().getEntryById(device[1]));
+							sendResponse(DataStorageService.getInstance().getEntryById(device[1], 1));
 						}
 					}
 					
@@ -192,7 +193,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 						}
 					}
 				
-					sendResponse(DataStorageService.getInstance().getEntriesByParameter(new SpatialQuery(Float.parseFloat(lat),Float.parseFloat(lon),radius,10)));
+					sendResponse(DataStorageService.getInstance().getEntriesByParameter(new SpatialQuery(Float.parseFloat(lat),Float.parseFloat(lon),radius,1)));
 				} 
 			}
 		}

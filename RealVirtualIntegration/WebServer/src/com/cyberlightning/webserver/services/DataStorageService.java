@@ -106,14 +106,14 @@ public class DataStorageService implements Runnable {
 	 * @param _uuid
 	 * @return
 	 */
-	public String getEntryById(String _uuid) {
+	public String getEntryById(String _uuid, int _maxResults) {
 		
 		String jsonString = null;
 		ArrayList<Entity> entities = new ArrayList<Entity>();
 		Entity e = entityTable.getEntity(_uuid);
 		if (e != null) {
 			entities.add(e);
-			jsonString = JsonTranslator.encodeJson(entities, 40);
+			jsonString = JsonTranslator.encodeJson(entities, _maxResults);
 		} else {
 			jsonString = StaticResources.ERROR_404_MESSAGE;
 		}
@@ -143,7 +143,7 @@ public class DataStorageService implements Runnable {
 			break;
 		}
 		
-		return JsonTranslator.encodeJson(entities, 40);
+		return JsonTranslator.encodeJson(entities,_query.maxResults);
 		
 	}
 	/**
