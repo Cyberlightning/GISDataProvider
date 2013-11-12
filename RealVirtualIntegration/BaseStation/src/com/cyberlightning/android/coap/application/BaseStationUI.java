@@ -118,6 +118,11 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 	public double ACC_X_VALUE = 0;
 	public double ACC_Y_VALUE = 0;
 	public double ACC_Z_VALUE = 0;
+	
+	public double GYR_X_VALUE = 0;
+	public double GYR_Y_VALUE = 0;
+	public double GYR_Z_VALUE = 0;
+	
 	public double IRT_TEMP_VALUE = 0;
 	
 	// Sensor updater
@@ -830,23 +835,26 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 			  		ACC_X_VALUE = (double)x / 64;
 			  		ACC_Y_VALUE = (double)y / 64;
 			  		ACC_Z_VALUE = (double)z / 64;
-			  		
-			  		trafficDataDisplay.append("Acc values: " + String.format("%.2f", ACC_X_VALUE) + ", " + String.format("%.2f", ACC_Y_VALUE) + ", " + String.format("%.2f", ACC_Z_VALUE) + "\n");
 			  	}
 				else if (uuidStr.equals(SensorTag.UUID_IRT_DATA.toString())) {
 					int offset = 2;
-					Integer lowerByte = (int) value[offset] & 0xFF; 
-				    Integer upperByte = (int) value[offset+1] & 0xFF; // // Interpret MSB as signed
-				    double temp = (upperByte << 8) + lowerByte;
+				    double temp = shortSignedAtOffset(value, 2);
 				    IRT_TEMP_VALUE = temp/128;
-				    
-				    trafficDataDisplay.append("Temp: " + String.format("%.2f", IRT_TEMP_VALUE) + "\n");
 				}
-				else {
-					trafficDataDisplay.append("Some other data inbound.\n");
+				else if (uuidStr.equals(SensorTag.UUID_GYR_DATA.toString())) {
+					// TODO Gyroscope data handling
+					GYR_X_VALUE = shortSignedAtOffset(value, 0) * (500f / 65536f) * -1;
+					GYR_Y_VALUE = shortSignedAtOffset(value, 2) * (500f / 65536f);
+					GYR_Z_VALUE = shortSignedAtOffset(value, 4) * (500f / 65536f);
 				}
 			}
 		  };
+		  
+		  private static Integer shortSignedAtOffset(byte[] c, int offset) {
+			    Integer lowerByte = (int) c[offset] & 0xFF; 
+			    Integer upperByte = (int) c[offset+1]; // // Interpret MSB as signed
+			    return (upperByte << 8) + lowerByte;
+			  }
 		  
 		  /** Enables sensors from TI CC2541 Sensor Tag device when all the services are discovered. 
 		   * Currently only activates IRT, GYRO and ACCELEROMETER services. */
@@ -927,6 +935,9 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 					
 					// IRT data
 					String IRT_UUID = SensorTag.UUID_IRT_SERV.toString();
+					
+					// GYRO data
+					String GYR_UUID = SensorTag.UUID_GYR_SERV.toString();
 
 					JSONObject wrapper = new JSONObject();
 					try {
@@ -942,7 +953,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 					
 					JSONObject value = new JSONObject();
 					value.put("time", Settings.getTimeStamp());
-					value.put("primitive", "double");
+					value.put("primitive", "3DPoint");
 					value.put("unit", "m/s2");
 					value.put("values", values);
 					
@@ -988,6 +999,35 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 					
 					sensors.put(tempsensor);
 					
+					JSONArray gyrovalues = new JSONArray();
+					gyrovalues.put(GYR_X_VALUE);
+					gyrovalues.put(GYR_Y_VALUE);
+					gyrovalues.put(GYR_Z_VALUE);
+					
+					JSONObject gyrovalue = new JSONObject();
+					gyrovalue.put("time", Settings.getTimeStamp());
+					gyrovalue.put("primitive", "3DPoint");
+					gyrovalue.put("unit", "m/s2");
+					gyrovalue.put("values", gyrovalues);
+					
+					JSONObject gyrosensor = new JSONObject();
+					gyrosensor.put("value", gyrovalue);
+					
+					JSONObject gyroattributes = new JSONObject();
+					gyroattributes.put("type", "accelerometer");
+					gyroattributes.put("vendor", "Texas Instruments");
+					
+					sensor.put("attributes", gyroattributes);
+					
+					JSONObject gyroparameters = new JSONObject();
+					gyroparameters.put("toggleable", "true");
+					gyroparameters.put("options", "boolean");
+					
+					sensor.put("parameters", gyroparameters);
+					sensor.put("uuid", GYR_UUID);
+					
+					//sensors.put(gyrosensor);
+					
 					device.put("sensors", sensors);
 					JSONArray gps = new JSONArray();
 					// If accurate location has not been recieved, use phones last known location.
@@ -998,7 +1038,7 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 					gps.put(latitude);
 					gps.put(longitude);
 					JSONObject deviceAttributes = new JSONObject();
-					deviceAttributes.put("location", gps);
+					deviceAttributes.put("gps", gps);
 					deviceAttributes.put("name", "TI CC2541 Sensor");
 					device.put("attributes", deviceAttributes);
 					baseStation.put(deviceID, device);
@@ -1012,8 +1052,11 @@ public class BaseStationUI extends Activity implements DialogInterface.OnClickLi
 					// JSON is built. Send it through message service
 					sendMessageToService(wrapper.toString().trim());
 					
-					// Repeat this function again in 1000ms.
-					mHandler.postDelayed(sensorDataUpdater, 1000);
+					trafficDataDisplay.setText("Data sent to webserver\n" +
+							"Accelerometer: " + String.format("%.2f", ACC_X_VALUE) + ", " + String.format("%.2f", ACC_Y_VALUE) + ", " + String.format("%.2f", ACC_Z_VALUE) + "\n" +
+							"Temperature: " + String.format("%.2f", IRT_TEMP_VALUE));
+					// Repeat this function again in X amount of ms.
+					mHandler.postDelayed(sensorDataUpdater, 500);
 				}
 		  };
 		  /** Launches sensor data updater Runnable which sends data to webserver when BT device is connected to basestation. */
