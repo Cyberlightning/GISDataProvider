@@ -25,7 +25,7 @@ public abstract class StaticResources {
 	
 	public static final String RESPONSE_CLIENT_REQUEST_MESSAGE = "The HTTP Client request is ....<BR>";
 	
-	public static final String ERROR_404_MESSAGE = "<b>ERROR 404: The requested resource not found</b>";
+	
 	
 	public static final int CLIENT_PROTOCOL_COAP= 1;
 	
@@ -89,6 +89,7 @@ public abstract class StaticResources {
 	public static final String ERROR_CODE_BAD_REQUEST = "ERROR 400 BAD REQUEST";
 	public static final String ERROR_CODE_METHOD_NOT_ALLOWED = "ERROR 405 METHOD NOT ALLOWED";
 	public static final String ERROR_CODE_NOT_FOUND = "ERROR 404 NOT FOUND";
+
 	
 	public static final long SAVE_TO_HD_INTERVAL = 200000;
 

@@ -18,7 +18,7 @@ import com.cyberlightning.webserver.entities.Sensor;
  * @author Tomi
  *
  */
-public abstract class JsonTranslator {
+public abstract class TranslationService {
 	
 	/*Sample JSON string from sensors
 	 * 

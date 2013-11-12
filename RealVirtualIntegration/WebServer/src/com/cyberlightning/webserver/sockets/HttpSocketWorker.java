@@ -92,8 +92,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 	 * @param _content
 	 */
 	private void sendResponse(String _content) {
-		if (_content == null) {
-		}
+		
 		String statusLine = "HTTP/1.1 200 OK" + "\r\n";
 		String contentTypeLine = "Content-Type: application/json; charset=utf-8" + "\r\n";
 		String connectionLine = "Connection: close\r\n";

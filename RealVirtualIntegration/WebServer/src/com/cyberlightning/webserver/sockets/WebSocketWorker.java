@@ -159,6 +159,7 @@ public class WebSocketWorker implements Runnable {
 		System.out.println(this.clientSocket.getInetAddress().getAddress().toString() + StaticResources.CLIENT_DISCONNECTED);
 		return;	//Exits thread
 	}
+	
 	private void testHandle(String _request) { 
 		ArrayList<String> devices = new ArrayList<String> ();
 		devices.add(UdpSocket.uuid);
@@ -268,11 +269,12 @@ public class WebSocketWorker implements Runnable {
 	 */
 	private void closeSocketGracefully() {
 		try {	
-			this.input.close();
-			this.clientSocket.close();
+			MessageService.getInstance().unsubscribeAllById(this.uuid);
 			this.sendWorker.destroy();
 			this.isConnected = false;
-			MessageService.getInstance().unsubscribeAllById(this.uuid);
+			this.input.close();
+			this.clientSocket.close();
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

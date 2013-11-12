@@ -24,7 +24,7 @@ public class UdpSocket implements Runnable  {
 	private int port;
 	public static final String uuid = UUID.randomUUID().toString();
 	public  final int type = StaticResources.UDP_RECEIVER;
-	
+	private SendWorker sendWorker;
 	/**
 	 * 
 	 */
@@ -47,20 +47,19 @@ public class UdpSocket implements Runnable  {
 			
 		serverSocket = new DatagramSocket(this.port);
 		this.serverSocket.setReceiveBufferSize(StaticResources.UDP_PACKET_SIZE);
-		
-		//Runnable sendWorker = new SendWorker(uuid);
-		//Thread t = new Thread(sendWorker);
-		//t.start();
+		this.sendWorker = new SendWorker(uuid);
 		
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			this.sendWorker.destroy();
 		}
 		
 		while(true) {
         	
 			if (!MessageService.isStarted()) continue;
 			Thread t = new Thread((Runnable)(new TestRoutine()));
+			
 			t.start();
         	byte[] receivedData = new byte[StaticResources.UDP_PACKET_SIZE];
     		DatagramPacket receivedPacket = new DatagramPacket(receivedData, receivedData.length);
@@ -135,13 +134,17 @@ public class UdpSocket implements Runnable  {
 		
 		public List<MessageObject> sendBuffer = Collections.synchronizedList(new ArrayList<MessageObject>());
 		public String uuid;
-		
+		private boolean suspendFlag = true;
+		private boolean destroyFlag = false;
+		private Thread thread;
 		/**
 		 * 
 		 * @param _uuid
 		 */
 		public SendWorker (String _uuid) {
 			this.uuid = _uuid;
+			this.thread = new Thread(this);
+			this.thread.start();
 		}
 		
 		@Override
@@ -151,6 +154,18 @@ public class UdpSocket implements Runnable  {
 			
 			while (true) {
 				 
+				synchronized(this) {
+		            
+					while(suspendFlag && !destroyFlag) {
+						try {
+							wait();
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						return;
+						}
+		            }
+		        }
 				if (!sendBuffer.isEmpty()) {
 		        	   
 		        	   try {
@@ -173,21 +188,35 @@ public class UdpSocket implements Runnable  {
 				     			}
 				     			sendBuffer.remove(msg);
 				     		}
+				     		this.suspendThread();
 
 		   				} catch (IOException e) {
 		   					// TODO Auto-generated catch block
 		   					e.printStackTrace();
 		   					break;
 		   				} 
-		           }
+		       }
 			}
 			return; //Exit thread
 		}
 
+		public void suspendThread() {
+		      suspendFlag = true;
+		}
 
+		private synchronized void wakeThread() {
+		      suspendFlag = false;
+		      notify();
+		}
+		
+		private synchronized void destroy() {
+		      this.destroyFlag = true;
+		      notify();
+		}
 		@Override
 		public void onMessageReceived(MessageObject _msg) {
 			this.sendBuffer.add(_msg);
+			this.wakeThread();
 		}
 		
 		

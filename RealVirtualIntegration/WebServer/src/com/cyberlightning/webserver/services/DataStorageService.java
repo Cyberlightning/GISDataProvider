@@ -85,7 +85,7 @@ public class DataStorageService implements Runnable {
 	 * @throws UnsupportedEncodingException
 	 */
 	public void addEntry (DatagramPacket _data) throws UnsupportedEncodingException {
-		ArrayList<Entity> entities = JsonTranslator.decodeSensorJson(new String(_data.getData(),"utf8"));
+		ArrayList<Entity> entities = TranslationService.decodeSensorJson(new String(_data.getData(),"utf8"));
 		String contextUUID = null;
 		for (Entity entity : entities) {
 			RowEntry entry = new RowEntry(StaticResources.getTimeStamp());
@@ -113,9 +113,9 @@ public class DataStorageService implements Runnable {
 		Entity e = entityTable.getEntity(_uuid);
 		if (e != null) {
 			entities.add(e);
-			jsonString = JsonTranslator.encodeJson(entities, _maxResults);
+			jsonString = TranslationService.encodeJson(entities, _maxResults);
 		} else {
-			jsonString = StaticResources.ERROR_404_MESSAGE;
+			jsonString = StaticResources.ERROR_CODE_NOT_FOUND;
 		}
 
 		return jsonString;
@@ -143,7 +143,8 @@ public class DataStorageService implements Runnable {
 			break;
 		}
 		
-		return JsonTranslator.encodeJson(entities,_query.maxResults);
+		if (entities.size() == 0 )return StaticResources.ERROR_CODE_NOT_FOUND;
+		else return TranslationService.encodeJson(entities,_query.maxResults);
 		
 	}
 	/**
