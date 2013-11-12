@@ -2,7 +2,6 @@
 <head>
     <script type="text/javascript" src="deps/xml3d.js"></script>
     <script type="text/javascript" src="scripts/camera.js"></script>
-    <script type="text/javascript" src="scripts/xml3d-motion.js"></script>
     <script type="text/javascript" src="deps/jquery.min.js"></script>
     <title>XML3D map service</title>
 </head>
@@ -19,7 +18,7 @@
             <lightshader id="light1" script="urn:xml3d:lightshader:directional" >
               <float3 name="intensity" >1 1 1</float3>
               <bool name="castShadow">true</bool>
-              <float3 name="direction">0 1 0.5</float3>
+              <float3 name="direction">0 -0.3 1.0</float3>
             </lightshader>
 
             <light shader="#light1" />
@@ -29,22 +28,9 @@
         <group xmlns="http://www.xml3d.org/2009/xml3d" id="MaxScene">
           <group id="node-camera_player" transform="#t_node-camera_player" shader="#orangePhong" lightshader="#light1">
               <view fieldOfView="0.37" id="camera_player-camera"/>
-  <!--             <mesh type="triangles">
-                 <int name="index">0 1 2 1 2 3</int>
-                 <float3 name="position">-1.0 -1.0 -10.0 1.0 -1.0 -10.0 -1.0  1.0 -10.0 1.0  1.0 -10.0</float3>
-                 <float3 name="normal">0.0 0.0 1.0 0.0 0.0 1.0 0.0 0.0 1.0 0.0 0.0 1.0</float3>
-                 <float2 name="texcoord">0.0 1.0 1.0 1.0 0.0 0.0 1.0 0.0</float2>
-              </mesh> -->
           </group>
         </group>
     </xml3d>
- 
-    <script type="text/javascript">
-    function addShader(id){
-
-    }
-
- </script>
 </body>
 <script type="text/javascript" src="scripts/map.js"></script>
 </html>
