@@ -58,16 +58,16 @@ public class UdpSocket implements Runnable  {
 		while(true) {
         	
 			if (!MessageService.isStarted()) continue;
-			Thread t = new Thread((Runnable)(new TestRoutine()));
+			//Thread t = new Thread((Runnable)(new TestRoutine()));
 			
-			t.start();
+			//t.start();
         	byte[] receivedData = new byte[StaticResources.UDP_PACKET_SIZE];
     		DatagramPacket receivedPacket = new DatagramPacket(receivedData, receivedData.length);
         	
     		try {
         		
 				serverSocket.receive(receivedPacket);
-				System.out.println("Basestation packet received from " + receivedPacket.getAddress().getHostAddress());
+				System.out.println("Basestation packet received from " + new String(receivedPacket.getData(),"utf8"));
 				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -100,7 +100,7 @@ public class UdpSocket implements Runnable  {
 			
 			
 				try {
-					Thread.sleep(6000);
+					Thread.sleep(4000);
 				} catch (InterruptedException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -109,7 +109,10 @@ public class UdpSocket implements Runnable  {
 				
 				//String s = "{\"5de5f289-c7f3-4994-8dfb-3639d3f7c8d0\": {\""+uid+"\": {\"attributes\": { \"name\": \"Texas CL2541 Sensor\",\"gps\": ["+(65.03+ds)+","+(ds+25.28)+"]},\"sensors\": [{\"value\": {\"unit\": \"m/s2\",\"primitive\": \"3DPoint\", \"time\": \""+times+"\",\"values\": [ "+ds2+",-2.15625,"+ds3+"]},\"uuid\": \"f000aa10-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"accelerometer\",\"vendor\": \"Texas Instruments\"}},{\"value\": { \"unit\": \"Celsius\",\"primitive\": \"double\",\"time\": \""+times+"\",\"values\": "+(27.21875 + ds2)+"},\"uuid\": \"f000aa00-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"temperature\",\"vendor\": \"Texas Instruments\"}}]}}}";
 				//String s = "{\"5de5f289-c7f3-4994-8dfb-3639d3f7c8d0\": {\"SENSOR2\": {\"attributes\": { \"name\": \"Texas CL2541 Sensor\",\"gps\": ["+(65.03+ds)+","+(ds+25.28)+"]},\"sensors\": [{\"value\": {\"unit\": \"m/s2\",\"primitive\": \"3DPoint\", \"time\": \""+times+"\",\"values\": [ "+ds2+",-2.15625,"+ds3+"]},\"uuid\": \"f000aa10-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"accelerometer\",\"vendor\": \"Texas Instruments\"}},{\"value\": { \"unit\": \"Celsius\",\"primitive\": \"double\",\"time\": \""+times+"\",\"values\": "+(27.21875 + ds2)+"},\"uuid\": \"f000aa00-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"temperature\",\"vendor\": \"Texas Instruments\"}}]}}}";
-				String dds = "{\"5de5f289-c7f3-4994-8dfb-3639d3f7c8d0\": {\"5de5f200-c7f3-4994-8dfb-3639d3f7c8d0\": {\"attributes\": { \"name\": \"Texas CL2541 Sensor\",\"gps\": [65.061049,25.4680896]},\"sensors\": [{\"value\": {\"unit\": \"m/s2\",\"primitive\": \"3DPoint\", \"time\": \""+times+"\",\"values\": [ "+ds2+",-2.15625,"+ds3+"]},\"uuid\": \"f000aa10-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"accelerometer\",\"vendor\": \"Texas Instruments\"}},{\"value\": { \"unit\": \"Celsius\",\"primitive\": \"double\",\"time\": \""+times+"\",\"values\": "+(27.21875 + ds2)+"},\"uuid\": \"f000aa00-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"temperature\",\"vendor\": \"Texas Instruments\"}}]}}}";
+				//String dds = "{\"5de5f289-c7f3-4994-8dfb-3639d3f7c8d0\": {\"5de5f200-c7f3-4994-8dfb-3639d3f7c8d0\": {\"attributes\": { \"name\": \"Texas CL2541 Sensor\",\"gps\": [65.061049,25.4680896]},\"sensors\": [{\"value\": {\"unit\": \"m/s2\",\"primitive\": \"3DPoint\", \"time\": \""+times+"\",\"values\": [ "+ds2+",-2.15625,"+ds3+"]},\"uuid\": \"f000aa10-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"accelerometer\",\"vendor\": \"Texas Instruments\"}},{\"value\": { \"unit\": \"Celsius\",\"primitive\": \"double\",\"time\": \""+times+"\",\"values\": "+(27.21875 + ds2)+"},\"uuid\": \"f000aa00-0451-4000-b000-000000000000\",\"parameters\": {\"toggleable\": \"true\",\"options\": \"boolean\"},\"attributes\": {\"type\": \"temperature\",\"vendor\": \"Texas Instruments\"}}]}}}";
+				//String dds = "{\"d23c058698435eff\":{\"d23c058698435eff\":{\"sensors\":[{\"value\":{\"primitive\":\"3DPoint\",\"time\":\"2749-05-17 16:50\",\"values\":[2.0045621395111084,-0.19144247472286224,-1.7531667947769165]},\"parameters\":{\"interval\":\"ms\",\"toggleable\":\"boolean\"},\"attributes\":{\"type\":\"rotation\",\"vendor\":\"Google Inc.\",\"name\":\"Rotation Vector Sensor\"}}]}}}";
+				//String dds = "{\"d23c058698435eff\":{\"d23c058698435eff\":{\"sensors\":[{\"value\":{\"unit\":\"μT\",\"primitive\":\"3DPoint\",\"time\":\"2777-03-12 15:19\",\"values\":[0.017108917236328125,-0.0018523354083299637,-0.5829010009765625]},\"parameters\":{\"interval\":\"ms\",\"toggleable\":\"boolean\"},\"attributes\":{\"type\":\"magneticfield\",\"power\":0.5,\"vendor\":\"Invensense\",\"name\":\"MPL magnetic field\"}}]}}}";
+				String dds = "{\"d23c058698435eff\":{\"d23c058698435eff\":{\"sensors\":[{\"value\":{\"unit\":\"lx\",\"primitive\":\"3DPoint\",\"time\":\"2869-02-12 08:39\",\"values\":[25,0,0]},\"parameters\":{\"interval\":\"ms\",\"toggleable\":\"boolean\"},\"attributes\":{\"type\":\"light\",\"power\":0.75,\"vendor\":\"Capella\",\"name\":\"CM3663 Light sensor\"}}],\"attributes\":{\"gps\":[65.5,25.3],\"name\":\"Android device\"}}}}";
 				byte[]  b = dds.getBytes();
 			
 

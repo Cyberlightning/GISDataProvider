@@ -1,13 +1,16 @@
 package com.cyberlightning.realvirtualsensorsimulator;
 
 
+
 import java.util.Observable;
 import java.util.Observer;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.example.realvirtualsensorsimulator.R;
 
 import android.os.Bundle;
 import android.os.Message;
+import android.provider.Settings.Secure;
 import android.app.Activity;
 import android.content.Context;
 import android.text.method.ScrollingMovementMethod;
@@ -20,19 +23,25 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity implements Observer {
+public class MainActivity extends Activity implements Observer,IMainActivity {
 	
 	private Button showButton;
-	private ISensorListener sensorListener;
+	private ConcurrentLinkedQueue <Message> inboundBuffer = new ConcurrentLinkedQueue<Message>();
 	private IClientSocket clientSocket;
+	private ISensorListener sensorListener;
+	private InboundMessageHandler inboundMessageHandler;
 	private TextView receivedMessages;
 	private TextView sendMessages;
+	
+	public static String deviceId;
+	public static String deviceName = "Android device";
 	
 	
 	
 	// Tags to store saved instance state of this activity
 	private static final String STATE_RECEIVED_MESSAGES = "StateReceivedMessages";
 	private static final String STATE_SEND_MESSAGES = "StateSendMessages"; 
+	
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,8 +52,9 @@ public class MainActivity extends Activity implements Observer {
 			this.sendMessages.setText(savedInstanceState.getString(STATE_SEND_MESSAGES));
 			this.receivedMessages.setText(savedInstanceState.getString(STATE_RECEIVED_MESSAGES));
 		}
+        deviceId = Secure.getString((getApplicationContext().getContentResolver()), Secure.ANDROID_ID);
         this.StartApplication();
-		
+	
     }
     
     @Override
@@ -61,6 +71,25 @@ public class MainActivity extends Activity implements Observer {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
+    }
+    @Override
+	public void onResume() {
+		super.onResume();
+	}
+    
+    @Override
+    public void onPause() { 
+    	super.onPause();
+    }
+  
+    @Override
+    public void onBackPressed() {
+    	
+    }
+  
+    @Override
+    protected void onDestroy() {
+    	super.onDestroy(); 
     }
     
     private void showToast(String _message) {
@@ -79,34 +108,93 @@ public class MainActivity extends Activity implements Observer {
 	    	
 	}
     
-    public static Context getAppContext() {
-    return MainActivity.getAppContext(); 
-    }
-    
+   
     private void StartApplication() {
     	this.receivedMessages = (TextView)findViewById(R.id.inboundMessagesDisplay);
 		this.sendMessages = (TextView)findViewById(R.id.outboundMessagesDisplay);
 		this.receivedMessages.setMovementMethod(new ScrollingMovementMethod());
 		this.sendMessages.setMovementMethod(new ScrollingMovementMethod());
 		
-		SensorListener sensorListener = new SensorListener();
-		sensorListener.addObserver(this);
-		this.sensorListener = sensorListener;
+		this.inboundMessageHandler = new InboundMessageHandler();
 		
 		ClientSocket clientSocket= new ClientSocket();
 		clientSocket.addObserver(this);
 		this.clientSocket = clientSocket;
 		
+		SensorListener sensorListener = new SensorListener(this);
+		sensorListener.addObserver(this);
+		this.sensorListener = sensorListener;
+		
+		
+	
+		
     }
+    
+    public class InboundMessageHandler implements Runnable {
 
+    	private boolean suspendFlag = true;
+		private boolean destroyFlag = false;
+		private Thread thread;
+		
+		public InboundMessageHandler() {
+			this.thread = new Thread(this);
+			this.thread.start();
+		}
+		
+    	@Override
+		public void run() {
+			while (true) {
+				synchronized(this) {
+		            while(suspendFlag && !destroyFlag) {
+						try {
+							wait();
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+							return;
+						}
+		            }
+		            if (destroyFlag) break; 
+		        }
+				if(inboundBuffer.isEmpty()) continue;
+				Message msg = inboundBuffer.poll();
+				
+			}
+			
+		}
+    	
+    	public void suspendThread() {
+		      suspendFlag = true;
+		}
+
+		private synchronized void wakeThread() {
+		      suspendFlag = false;
+		      notify();
+		}
+		
+		private synchronized void destroy() {
+		      this.destroyFlag = true;
+		      notify();
+		}
+    	
+    }
+    
+   
 	@Override
 	public void update(Observable observable, Object data) {
 		if (observable instanceof ClientSocket) {
+			this.inboundBuffer.offer((Message) data);
 			
 		} else if (observable instanceof SensorListener) {
-			this.clientSocket.sendMessage((Message)data); // we know data is a Message object
+			this.clientSocket.sendMessage((Message)data); 
 		}
 		
+	}
+
+	@Override
+	public Context getContext() {
+		// TODO Auto-generated method stub
+		return this.getApplicationContext();
 	}
     
 }

@@ -130,7 +130,9 @@ public abstract class TranslationService {
 		JSONObject entity;
 		
 		try {
+			
 			JSONObject context = (JSONObject) parser.parse(_jsonString);
+			System.out.print("Translator line 133: " +_jsonString);
 			String contextUUID = (String) context.keySet().iterator().next();
 			entity = (JSONObject) context.get(contextUUID);
 			Iterator<?> keys = entity.keySet().iterator();
@@ -261,6 +263,7 @@ public abstract class TranslationService {
 		} catch (ParseException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
+			System.out.print("ParseException: " + e1.getMessage());
 		}
 		
 		return entities;

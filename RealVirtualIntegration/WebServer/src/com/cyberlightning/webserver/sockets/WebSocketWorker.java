@@ -126,8 +126,8 @@ public class WebSocketWorker implements Runnable {
 				    
 				    if (opcode != 8) { 
 				    	 
-				    	handleClientMessage(read());  //TODO implement how to subscribe by basestation id not socket class uuid.
-				    	//testHandle(read());
+				    	//handleClientMessage(read());  //TODO implement how to subscribe by basestation id not socket class uuid.
+				    	testHandle(read());
 				    	
 				    	 
 				    } else {

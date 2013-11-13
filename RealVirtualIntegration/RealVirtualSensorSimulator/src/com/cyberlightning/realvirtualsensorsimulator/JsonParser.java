@@ -1,109 +1,225 @@
 package com.cyberlightning.realvirtualsensorsimulator;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONStringer;
 
+import android.annotation.SuppressLint;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.location.Location;
-import android.provider.Settings.Secure;
+import android.util.JsonWriter;
 
 public abstract class JsonParser {
 	
-	private static final String deviceId = Secure.getString((MainActivity.getAppContext().getContentResolver()), Secure.ANDROID_ID);
+	public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm";
 	
-	public static JSONObject createFromLocation(Location event) {
-		
-		JSONArray values = new JSONArray();
-		JSONObject device = new JSONObject();
-		JSONObject properties=  new JSONObject();
-		
-		try {
-			
-			properties.put("type", "TYPE_GPS");
-			
-			values.put(event.getLatitude());
-			values.put(event.getLongitude());
-			if (event.hasAltitude()) values.put(event.getAltitude());
-			
-			device.put("device_id",  deviceId);
-			device.put("device_properties", properties);
-			//device.put("event_timestamp", getTimeStamp());
-			if (event.hasAccuracy())device.put("event_accuracy", event.getAccuracy());
-			device.put("event_values", values);
-			
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return device;
-	}
+	/*{
+	    "9627f38e-51a1-4d87-9d1f-9790e01ecfef": {
+
+	        "BC:6A:29:AB:E8:B5": {
+	            "sensors": [
+	                {
+	                    "value": {
+	                        "unit": "m/s2",
+	                        "primitive": "double",
+	                        "time": "2013-11-07 16:03",
+	                        "values": [
+	                            0,
+	                            0.109375,
+	                            -1.015625
+
+	                        ]
+	                    },
+	                    "uuid": "f000aa10-0451-4000-b000-000000000000",
+	                    "parameters": {
+	                        "toggleable": "true",
+	                        "options": "boolean"
+	                    },
+	                    "attributes": {
+	                        "type": "accelerometer",
+	                        "vendor": "Texas Instruments"
+	                    }
+	                },
+	                {
+	                    "value": {
+	                        "unit": "Celsius",
+	                        "primitive": "double",
+	                        "time": "2013-11-07 16:03",
+	                        "values": 22.8125
+
+	                    },
+	                    "uuid": "f000aa00-0451-4000-b000-000000000000",
+	                    "parameters": {
+	                        "toggleable": "true",
+	                        "options": "boolean"
+	                    },
+	                    "attributes": {
+	                        "type": "temperature",
+	                        "vendor": "Texas Instruments"
+	                    }
+	                }
+	            ],
+	            "attributes": {
+	                "location": [
+	                    "65.567",
+	                    "25.765"
+	                ],
+	                "name": "TI CC2541 Sensor"
+	            }
+	        }
+	    }
+	}*/
+	
 	
 	public static String createFromSensorEvent(SensorEvent event, Location _location) {
 		
-		JSONArray values = new JSONArray();
+		JSONObject wrapper = new JSONObject();
 		JSONObject device = new JSONObject();
-		JSONObject properties=  new JSONObject();
+		JSONObject sensorWraper = new JSONObject();
+		JSONArray sensors = new JSONArray();
+		JSONObject sensor = new JSONObject();
+		JSONObject value = new JSONObject();
+		JSONArray values = new JSONArray();
+		JSONObject sensorParams = new JSONObject();
+		JSONObject sensorAttrs = new JSONObject();
+		JSONArray location = new JSONArray();
+		JSONObject attributes = new JSONObject();
 		
 		try {
 			
-			properties.put("type", resolveDeviceById(event.sensor.getType()));
-			properties.put("version", event.sensor.getVersion());
-			properties.put("vendor", event.sensor.getVendor());
-			properties.put("range", event.sensor.getMaximumRange());
-			properties.put("delay", event.sensor.getMinDelay());
-			properties.put("power", event.sensor.getPower());
-			properties.put("resolution", event.sensor.getResolution());
-			for (float value : event.values) {
-				values.put(value);
+			if (_location != null) {
+				location.put(_location.getLatitude());
+				location.put(_location.getLongitude());
+			} else {
+				location.put(65.5);
+				location.put(25.3);
 			}
-			device.put("device_id", deviceId );
-			device.put("device_properties", properties);
-			device.put("device_uptime", event.timestamp);
-			//device.put("event_timestamp", getTimeStamp());
-			device.put("event_accuracy", event.accuracy);
-			device.put("event_values", values);
+			attributes.put("gps", location);
+			attributes.put("name", MainActivity.deviceName);
+			
+			sensorAttrs.put("type", resolveSensorTypeById(event.sensor.getType()));
+			sensorAttrs.put("vendor", event.sensor.getVendor());
+			sensorAttrs.put("power", event.sensor.getPower());
+			sensorAttrs.put("name", event.sensor.getName());
+			sensor.put("attributes", sensorAttrs);
+			
+			sensorParams.put("toggleable", "boolean");
+			sensorParams.put("interval", "ms");
+			sensor.put("parameters", sensorParams);
+			
+			for(int i = 0; i < event.values.length; i++) {
+				values.put(event.values[i]);
+			}
+			
+			value.put("values", values);
+			value.put("time", getTimeStamp(event.timestamp));
+			value.put("primitive",resolvePrimitive(event.values));
+			value.put("unit", resolveSensorUnitById(event.sensor.getType())); //TODO implement a more accurate and dynamic way
+			
+			sensor.put("value", value);
+			sensors.put(sensor);
+			
+			sensorWraper.put("sensors", sensors);
+			sensorWraper.put("attributes", attributes);
+			device.put(MainActivity.deviceId, sensorWraper);
+			wrapper.put(MainActivity.deviceId, device);
+			
 			
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return device.toString();
+		return wrapper.toString();
 	}
 	
-	private static String resolveDeviceById(int _id) {
-		String name = null;
+	private static String resolvePrimitive(float[] values) {
+		String primitive = "";
+		if(values.length ==1) primitive = "double";
+		if(values.length ==2) primitive = "2DPoint";
+		if(values.length ==3) primitive = "3DPoint";
+		
+		return primitive;
+		
+	}
+	
+	@SuppressLint("SimpleDateFormat")
+	public static String getTimeStamp(Long timeInMillis) {
+		return  new SimpleDateFormat(DATE_FORMAT).format(new Date(timeInMillis));
+	}
+	private static String resolveSensorUnitById(int _id) {
+		String unit = null;
 		switch(_id){
-			case Sensor.TYPE_ACCELEROMETER: name = "TYPE_ACCELEROMETER";
+			case Sensor.TYPE_ACCELEROMETER: unit = "m/s2";
 				break;
-			case Sensor.TYPE_AMBIENT_TEMPERATURE:name = "TYPE_AMBIENT_TEMPERATURE";
+			case Sensor.TYPE_AMBIENT_TEMPERATURE:unit = "celcius";
 				break;
-			case Sensor.TYPE_GAME_ROTATION_VECTOR:name = "TYPE_GAME_ROTATION_VECTOR";
+			case Sensor.TYPE_GAME_ROTATION_VECTOR:unit = "rad/s";
 				break;
-			case Sensor.TYPE_GRAVITY:name = "TYPE_GRAVITY";
+			case Sensor.TYPE_GRAVITY:unit = "m/s2";
 				break;
-			case Sensor.TYPE_GYROSCOPE:name = "TYPE_GYROSCOPE";
+			case Sensor.TYPE_GYROSCOPE:unit = "rad/s";
 				break;
-			case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:name = "TYPE_GYROSCOPE_UNCALIBRATED";
+			case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:unit = "rad/s";
 				break;
-			case Sensor.TYPE_LIGHT:name = "TYPE_LIGHT";
+			case Sensor.TYPE_LIGHT:unit = "lx";
 				break;
-			case Sensor.TYPE_LINEAR_ACCELERATION:name = "TYPE_LINEAR_ACCELERATION";
+			case Sensor.TYPE_LINEAR_ACCELERATION:unit = "m/s2";
 				break;
-			case Sensor.TYPE_MAGNETIC_FIELD:name = "TYPE_MAGNETIC_FIELD";
+			case Sensor.TYPE_MAGNETIC_FIELD:unit = "micro Tesla";
 				break;
-			case Sensor.TYPE_PRESSURE:name = "TYPE_PRESSURE";
+			case Sensor.TYPE_PRESSURE:unit = "hPa";
 				break;
-			case Sensor.TYPE_PROXIMITY:name = "TYPE_PROXIMITY";
+			case Sensor.TYPE_PROXIMITY:unit = "cm";
 				break;
-			case Sensor.TYPE_SIGNIFICANT_MOTION:name = "TYPE_SIGNIFICANT_MOTION";
+			case Sensor.TYPE_SIGNIFICANT_MOTION:unit = "significantmotion";
 				break;
-			case Sensor.TYPE_ORIENTATION:name = "TYPE_ORIENTATION";
+			case Sensor.TYPE_ORIENTATION:unit = "orientation";
+				break;
+			case Sensor.TYPE_RELATIVE_HUMIDITY: unit = "%";
 				break;
 			
 			}
 			
+			return unit;
+		}
+	private static String resolveSensorTypeById(int _id) {
+		String name = null;
+		switch(_id){
+			case Sensor.TYPE_ACCELEROMETER: name = "accelerometer";
+				break;
+			case Sensor.TYPE_AMBIENT_TEMPERATURE:name = "temperature";
+				break;
+			case Sensor.TYPE_GAME_ROTATION_VECTOR:name = "gamerotationvector";
+				break;
+			case Sensor.TYPE_GRAVITY:name = "gravity";
+				break;
+			case Sensor.TYPE_GYROSCOPE:name = "gyroscope";
+				break;
+			case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:name = "gyroscopeuncalibrated";
+				break;
+			case Sensor.TYPE_LIGHT:name = "light";
+				break;
+			case Sensor.TYPE_LINEAR_ACCELERATION:name = "linearacceleration";
+				break;
+			case Sensor.TYPE_MAGNETIC_FIELD:name = "magneticfield";
+				break;
+			case Sensor.TYPE_PRESSURE:name = "pressure";
+				break;
+			case Sensor.TYPE_PROXIMITY:name = "proximity";
+				break;
+			case Sensor.TYPE_SIGNIFICANT_MOTION:name = "significantmotion";
+				break;
+			case Sensor.TYPE_ORIENTATION:name = "orientation";
+				break;
+			case Sensor.TYPE_RELATIVE_HUMIDITY: name = "relativehumidity";
+				break;
+			
+			}
 			return name;
 		}
 

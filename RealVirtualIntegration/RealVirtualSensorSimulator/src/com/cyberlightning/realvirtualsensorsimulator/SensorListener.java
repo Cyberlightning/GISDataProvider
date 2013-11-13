@@ -2,12 +2,12 @@ package com.cyberlightning.realvirtualsensorsimulator;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
 import java.util.List;
 import java.util.Observable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -26,18 +26,21 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 
 
 	private ConcurrentLinkedQueue<SensorEvent> sensorEventQueue= new ConcurrentLinkedQueue<SensorEvent>();
+	private IMainActivity application;
 	private List<Sensor> deviceSensors;
 	private Location location;
-
-	
-	public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm";
+	private Thread thread;
 	
 	private boolean suspendFlag = true;
 	private boolean destroyFlag = false;
 
 	
-	public SensorListener() {
+	public SensorListener(MainActivity _activity) {
+		this.application = _activity;
 		this.registerSensorListeners();
+		this.thread = new Thread(this);
+		this.thread.start();
+		
 	}
 	
 	@Override
@@ -81,14 +84,14 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	
 	private void registerSensorListeners(){
 			
-		this.deviceSensors = ((SensorManager) MainActivity.getAppContext().getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).getSensorList(Sensor.TYPE_ALL);
+		this.deviceSensors = ((SensorManager) this.application.getContext().getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).getSensorList(Sensor.TYPE_ALL);
 
 		for (Sensor sensor : this.deviceSensors) {
-			((SensorManager) MainActivity.getAppContext().getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+			((SensorManager) this.application.getContext().getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
 		}
 		
-		LocationManager locationManager = (LocationManager)MainActivity.getAppContext().getSystemService(Context.LOCATION_SERVICE);
-		if (MainActivity.getAppContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS)) {
+		LocationManager locationManager = (LocationManager)this.application.getContext().getSystemService(Context.LOCATION_SERVICE);
+		if (this.application.getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS)) {
 			LocationListener locationListener = new GpsListener();  
 			locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, locationListener);	
 		} else {
@@ -103,11 +106,11 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	}
 	private void unregisterSpecificSensor(int _type) {
 		for (Sensor sensor : this.deviceSensors) {
-			if (sensor.getType() ==_type) ((SensorManager) MainActivity.getAppContext().getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).unregisterListener(this, sensor);
+			if (sensor.getType() ==_type) ((SensorManager) this.application.getContext().getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).unregisterListener(this, sensor);
 		}	
 	}
 	private void unregisterAllSensors() {
-		((SensorManager) MainActivity.getAppContext().getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).unregisterListener(this);
+		((SensorManager) this.application.getContext().getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).unregisterListener(this);
 	}
 	
 	private void sendMessage(String _payload) { //TODO just a stub
@@ -119,15 +122,12 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
 		// TODO Auto-generated method stub
 	}
-	
-	@SuppressLint("SimpleDateFormat")
-	public static String getTimeStamp() {
-		return  new SimpleDateFormat(DATE_FORMAT).format(new Date(System.currentTimeMillis()));
-	}
+
 	
 	@Override
 	public void onSensorChanged(SensorEvent _event) { 
 		this.sensorEventQueue.offer(_event);
+		this.wakeThread();
 	}
 	
 	
