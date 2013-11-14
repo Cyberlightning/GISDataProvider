@@ -169,6 +169,7 @@ public class WebSocketWorker implements Runnable {
 		
 	}
 	
+	@SuppressWarnings("unused")
 	private void handleClientMessage(String _request) {
 		String[] result = _request.split("\n");
 		int fromIndex =  result[0].indexOf("?");
@@ -419,9 +420,15 @@ public class WebSocketWorker implements Runnable {
 		     			MessageObject msg = i.next();
 		     			
 		     			if (msg.payload instanceof DatagramPacket) {
-		     					//String _content = new String(((DatagramPacket)msg.payload).getData(), "utf8");
-		     					String _content = Gzip.decompress(((DatagramPacket)msg.payload).getData());
-		     					send(_content);
+		     				
+		     				String content;
+		     				if(Gzip.isCompressed(((DatagramPacket)msg.payload).getData())) {
+		     					content = Gzip.decompress(((DatagramPacket)msg.payload).getData());
+		     				} else {
+		     					content = new String(((DatagramPacket)msg.payload).getData(), "utf8");
+		     				}
+		     				send(content);
+		     					
 		     			} else if (msg.payload instanceof String) {
 		     						send((String)msg.payload);
 		     			}

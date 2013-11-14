@@ -1,7 +1,6 @@
 package com.cyberlightning.realvirtualsensorsimulator;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -9,13 +8,11 @@ import java.util.Iterator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONStringer;
 
 import android.annotation.SuppressLint;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.location.Location;
-import android.util.JsonWriter;
 
 public abstract class JsonParser {
 	
@@ -84,13 +81,9 @@ public abstract class JsonParser {
 		JSONObject wrapper = new JSONObject();
 		JSONObject device = new JSONObject();
 		JSONObject sensorWraper = new JSONObject();
-		JSONArray sensors = new JSONArray();
-		
-		
-		
-		
-		JSONArray location = new JSONArray();
 		JSONObject attributes = new JSONObject();
+		JSONArray sensors = new JSONArray();
+		JSONArray location = new JSONArray();
 		
 		try {
 			
@@ -101,6 +94,7 @@ public abstract class JsonParser {
 				location.put(65.5);
 				location.put(25.3);
 			}
+			
 			attributes.put("gps", location);
 			attributes.put("name", MainActivity.deviceName);
 			
@@ -163,6 +157,7 @@ public abstract class JsonParser {
 		}
 	}
 	
+	@SuppressWarnings("deprecation")
 	private static String resolvePrimitive(int _id) {
 		String primitive = null;
 		
@@ -204,6 +199,7 @@ public abstract class JsonParser {
 	public static String getTimeStamp() {
 		return  new SimpleDateFormat(DATE_FORMAT).format(new Date(System.currentTimeMillis()));
 	}
+	@SuppressWarnings("deprecation")
 	public static String resolveSensorUnitById(int _id) {
 		String unit = null;
 		switch(_id){
@@ -240,6 +236,8 @@ public abstract class JsonParser {
 			
 			return unit;
 		}
+	
+	@SuppressWarnings("deprecation")
 	public static String resolveSensorTypeById(int _id) {
 		String name = null;
 		switch(_id){

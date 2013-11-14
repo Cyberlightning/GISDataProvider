@@ -1,6 +1,5 @@
 package com.cyberlightning.webserver.entities;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -97,6 +96,14 @@ public class EntityTable implements java.io.Serializable {
 			}
 		}
 		return entity;
+	}
+	
+	public void appendOldEntities (Map<RowEntry, Entity> _entities) {
+		Iterator<RowEntry> rows = _entities.keySet().iterator();
+		while (rows.hasNext()) {
+			RowEntry row = rows.next();
+			this.addEntity(row, _entities.get(row));
+		}
 	}
 	
 	

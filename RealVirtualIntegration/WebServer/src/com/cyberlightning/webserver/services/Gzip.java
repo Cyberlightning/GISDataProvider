@@ -32,6 +32,13 @@ public class Gzip {
 	    is.close();
 	    return string.toString();
 	}
-	 
 	
+	public static boolean isCompressed(byte[] bytes) throws IOException {
+	      if ((bytes == null) || (bytes.length < 2)) {
+	          return false;
+	      } else {
+	    	  return ((bytes[0] == (byte) (GZIPInputStream.GZIP_MAGIC)) && (bytes[1] == (byte) (GZIPInputStream.GZIP_MAGIC >> 8)));
+	      }
+	 }
+
 }

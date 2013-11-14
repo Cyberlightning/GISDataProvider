@@ -131,7 +131,6 @@ public abstract class TranslationService {
 		
 		try {
 			JSONObject context = (JSONObject) parser.parse(_jsonString.trim());
-			System.out.print("Translator line 133: " +_jsonString);
 			String contextUUID = (String) context.keySet().iterator().next();
 			entity = (JSONObject) context.get(contextUUID);
 			Iterator<?> keys = entity.keySet().iterator();

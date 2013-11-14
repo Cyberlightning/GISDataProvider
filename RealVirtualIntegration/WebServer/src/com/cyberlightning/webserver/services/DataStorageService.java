@@ -5,7 +5,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -50,11 +49,6 @@ public class DataStorageService implements Runnable {
 	public void intializeData() {
 		
 		try {	
-			EntityTable e = entityTable;
-			Map<String, InetSocketAddress> b = baseStationReferences;
-			saveData(e,StaticResources.DATABASE_FILE_NAME);
-			saveData(b, StaticResources.REFERENCE_TABLE_FILE_NAME);//remove these four lines at some point
-		
 	    	FileInputStream data = new FileInputStream(StaticResources.DATABASE_FILE_NAME);
 	        ObjectInputStream dataIn = new ObjectInputStream(data);
 	        this.entityTable = (EntityTable)dataIn.readObject();
@@ -75,6 +69,12 @@ public class DataStorageService implements Runnable {
 	         return;
 	      } catch(ClassNotFoundException c) {
 	         System.out.println("Database not found! ");
+	         
+	         EntityTable e = entityTable;
+	         Map<String, InetSocketAddress> b = baseStationReferences;
+	         saveData(e,StaticResources.DATABASE_FILE_NAME);
+	         saveData(b, StaticResources.REFERENCE_TABLE_FILE_NAME);//remove these four lines at some point
+				
 	         c.printStackTrace();
 	         return;
 	      } 
@@ -88,7 +88,11 @@ public class DataStorageService implements Runnable {
 	public void addEntry (DatagramPacket _data) throws IOException {
 		
 		if(this.saveInProcessFlag) addEntry(_data); //call recursively untill save process complete
-		ArrayList<Entity> entities = TranslationService.decodeSensorJson(Gzip.decompress(_data.getData()));
+		String data;
+		if(Gzip.isCompressed(_data.getData())) data = Gzip.decompress(_data.getData());
+		else data = new String(_data.getData(),"utf8");
+		
+		ArrayList<Entity> entities = TranslationService.decodeSensorJson(data);
 		String contextUUID = null;
 		for (Entity entity : entities) {
 			RowEntry entry = new RowEntry(StaticResources.getTimeStamp());
@@ -113,7 +117,8 @@ public class DataStorageService implements Runnable {
 		
 		String jsonString = null;
 		ArrayList<Entity> entities = new ArrayList<Entity>();
-		Entity e = entityTable.getEntity(_uuid);
+		EntityTable persistentEntityTable = this.loadData(true);
+		Entity e = persistentEntityTable.getEntity(_uuid);
 		if (e != null) {
 			entities.add(e);
 			jsonString = TranslationService.encodeJson(entities, _maxResults);
@@ -152,9 +157,10 @@ public class DataStorageService implements Runnable {
 	}
 	
 	@SuppressWarnings("unused")
-	private EntityTable loadData() {
+	private EntityTable loadData(Boolean _isQuery) {
 		
-		if (this.saveInProcessFlag) loadData(); // if save in process call recursively untill complete to avoid concurrency problems
+		if (this.saveInProcessFlag && _isQuery) loadData(_isQuery); // if save in process call recursively untill complete to avoid concurrency problems
+		
 		try {
 			FileInputStream data = new FileInputStream(StaticResources.DATABASE_FILE_NAME);
 			ObjectInputStream dataIn = new ObjectInputStream(data);
@@ -179,15 +185,15 @@ public class DataStorageService implements Runnable {
 	public ArrayList<Entity> getEntitiesBySpatialCircle(Float _lat, Float _lon, int _radius) {
 		
 		ArrayList<Entity> includedEntities = new ArrayList<Entity>();
-		EntityTable entityTable = this.loadData();
-		Iterator<RowEntry> rows = entityTable.entities.keySet().iterator();
+		EntityTable persistentEntityTable = this.loadData(true);
+		Iterator<RowEntry> rows = persistentEntityTable.entities.keySet().iterator();
 		while (rows.hasNext()) {
 			RowEntry row = rows.next();
 			if (row.location != null) {
 				double x = row.location[0] - _lat;
 				double y = row.location[1] - _lon;
 				if ((Math.sqrt(Math.pow(x, 2)+Math.pow(y, 2))/ 0.000008998719243599958) < _radius) {
-					includedEntities.add(entityTable.entities.get(row));
+					includedEntities.add(persistentEntityTable.entities.get(row));
 				}
 			}
 		}
@@ -301,7 +307,11 @@ public class DataStorageService implements Runnable {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				if (entityTable.entities.isEmpty()) continue;
+				
 				saveInProcessFlag = true;
+				EntityTable oldEntities = loadData(false);
+				entityTable.appendOldEntities(oldEntities.entities);
 				saveData(entityTable,StaticResources.DATABASE_FILE_NAME);
 				entityTable.clearAll();
 				saveData(baseStationReferences, StaticResources.REFERENCE_TABLE_FILE_NAME);
@@ -310,7 +320,7 @@ public class DataStorageService implements Runnable {
 			}
 			
 		}
-		
+
 	}
 	
 	
