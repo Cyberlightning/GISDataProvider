@@ -1,6 +1,7 @@
 package com.cyberlightning.realvirtualsensorsimulator;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 import org.json.JSONArray;
@@ -76,17 +77,16 @@ public abstract class JsonParser {
 	}*/
 	
 	
-	public static String createFromSensorEvent(SensorEvent event, Location _location) {
+	public static String createFromSensorEvent(ArrayList<SensorEvent> _sensorEvents, Location _location) {
 		
 		JSONObject wrapper = new JSONObject();
 		JSONObject device = new JSONObject();
 		JSONObject sensorWraper = new JSONObject();
 		JSONArray sensors = new JSONArray();
-		JSONObject sensor = new JSONObject();
-		JSONObject value = new JSONObject();
-		JSONArray values = new JSONArray();
-		JSONObject sensorParams = new JSONObject();
-		JSONObject sensorAttrs = new JSONObject();
+		
+		
+		
+		
 		JSONArray location = new JSONArray();
 		JSONObject attributes = new JSONObject();
 		
@@ -102,28 +102,36 @@ public abstract class JsonParser {
 			attributes.put("gps", location);
 			attributes.put("name", MainActivity.deviceName);
 			
-			sensorAttrs.put("type", resolveSensorTypeById(event.sensor.getType()));
-			sensorAttrs.put("vendor", event.sensor.getVendor());
-			sensorAttrs.put("power", event.sensor.getPower());
-			sensorAttrs.put("name", event.sensor.getName());
-			sensor.put("attributes", sensorAttrs);
-			
-			sensorParams.put("toggleable", "boolean");
-			sensorParams.put("interval", "ms");
-			sensor.put("parameters", sensorParams);
-			
-			for(int i = 0; i < event.values.length; i++) {
-				values.put(event.values[i]);
+			for (SensorEvent event : _sensorEvents) {
+				JSONObject sensorAttrs = new JSONObject();
+				JSONObject sensor = new JSONObject();
+				JSONArray values = new JSONArray();
+				JSONObject sensorParams = new JSONObject();
+				JSONObject value = new JSONObject();
+				
+				sensorAttrs.put("type", resolveSensorTypeById(event.sensor.getType()));
+				sensorAttrs.put("vendor", event.sensor.getVendor());
+				sensorAttrs.put("power", event.sensor.getPower());
+				sensorAttrs.put("name", event.sensor.getName());
+				sensor.put("attributes", sensorAttrs);
+				
+				sensorParams.put("toggleable", "boolean");
+				sensorParams.put("interval", "ms");
+				sensor.put("parameters", sensorParams);
+				
+				for(int i = 0; i < event.values.length; i++) {
+					values.put(event.values[i]);
+				}
+				
+				value.put("values", values);
+				value.put("time", getTimeStamp(event.timestamp));
+				value.put("primitive",resolvePrimitive(event.values));
+				value.put("unit", resolveSensorUnitById(event.sensor.getType())); //TODO implement a more accurate and dynamic way
+				
+				sensor.put("value", value);
+				sensors.put(sensor);
 			}
-			
-			value.put("values", values);
-			value.put("time", getTimeStamp(event.timestamp));
-			value.put("primitive",resolvePrimitive(event.values));
-			value.put("unit", resolveSensorUnitById(event.sensor.getType())); //TODO implement a more accurate and dynamic way
-			
-			sensor.put("value", value);
-			sensors.put(sensor);
-			
+
 			sensorWraper.put("sensors", sensors);
 			sensorWraper.put("attributes", attributes);
 			device.put(MainActivity.deviceId, sensorWraper);

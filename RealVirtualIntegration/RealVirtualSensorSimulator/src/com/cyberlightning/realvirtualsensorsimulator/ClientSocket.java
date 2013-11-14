@@ -33,7 +33,7 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 	public static final int MESSAGE_TYPE_OUTBOUND = 2;
 	public static final int MESSAGE_TYPE_UNKNOWNHOST_ERROR= 3;
 	
-	public static final String SERVER_DEFAULT_ADDRESS = "10.0.2.2";
+	public static final String SERVER_DEFAULT_ADDRESS = "dev.cyberlightning.com";
 	
 	public ClientSocket() {
 		this(DEFAULT_INBOUND_SOCKET);
@@ -122,9 +122,15 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 				
 				Message msg = outboundBuffer.poll();
 				String payload = (String)msg.obj;
-				
-				byte[] payloadBuffer = new byte[1024];
-				payloadBuffer = payload.trim().getBytes();
+				byte[] payloadBuffer = null;
+				try {
+					payloadBuffer = Gzip.compress(payload);
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				//byte[] payloadBuffer = new byte[payload.trim().getBytes().length];
+				//payloadBuffer = payload.trim().getBytes();
 				
 				DatagramPacket packet = new DatagramPacket(payloadBuffer, payloadBuffer.length,serverAddress,61616);
 				try {

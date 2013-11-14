@@ -1,13 +1,12 @@
 package com.cyberlightning.realvirtualsensorsimulator;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Observable;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -25,7 +24,7 @@ import android.os.Message;
 public class SensorListener extends Observable implements SensorEventListener,ISensorListener,Runnable  {
 
 
-	private ConcurrentLinkedQueue<SensorEvent> sensorEventQueue= new ConcurrentLinkedQueue<SensorEvent>();
+	private ConcurrentHashMap<Integer,SensorEvent> sensorEventTable = new ConcurrentHashMap<Integer,SensorEvent>();
 	private IMainActivity application;
 	private List<Sensor> deviceSensors;
 	private Location location;
@@ -34,6 +33,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	private boolean suspendFlag = true;
 	private boolean destroyFlag = false;
 
+	public static final long SENSOR_EVENT_INTERVAL = 5000;
 	
 	public SensorListener(MainActivity _activity) {
 		this.application = _activity;
@@ -61,9 +61,23 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	            }
 	            if (destroyFlag) break; 
 	        }
-			if (this.sensorEventQueue.isEmpty()) continue;
-			this.sendMessage(JsonParser.createFromSensorEvent(this.sensorEventQueue.poll(), location));
 			
+			try {
+				Thread.sleep(SENSOR_EVENT_INTERVAL);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			Iterator<Integer> key = this.sensorEventTable.keySet().iterator();
+			ArrayList<SensorEvent> tempArray = new ArrayList<SensorEvent>(this.deviceSensors.size());
+			
+			while (key.hasNext()) {
+				tempArray.add(this.sensorEventTable.get(key.next()));
+			}
+			
+			this.sendMessage(JsonParser.createFromSensorEvent(tempArray, location));
+			this.suspendThread();
 		}
 		return;
 	}
@@ -126,7 +140,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	
 	@Override
 	public void onSensorChanged(SensorEvent _event) { 
-		this.sensorEventQueue.offer(_event);
+		this.sensorEventTable.put(_event.sensor.getType(), _event);
 		this.wakeThread();
 	}
 	
