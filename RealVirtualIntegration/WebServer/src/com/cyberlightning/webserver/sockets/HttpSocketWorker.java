@@ -117,6 +117,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			this.close();
 		}
 		
 	}
@@ -160,16 +161,31 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 	private void handleGETMethod(String _content) {
 		
 		String[] queries = _content.split("&");
+		String[] maxResults;
+		int max = 0;
 		
 		for (int i = 0; i < queries.length; i++) {
 			if(queries[i].contains("action")) {
 				String[] action = queries[i].split("=");
 				if (action[1].contentEquals("loadById")) {
+					String[] device = null;
 					for (int j = 0; j < queries.length;j++) {
 						if (queries[j].contains("device_id")) {
-							String[] device = queries[j].split("=");
-							sendResponse(DataStorageService.getInstance().getEntryById(device[1], 1));
+							device = queries[j].split("=");
+							
+						} if (queries[j].contains("maxResults")) {
+							maxResults = queries[j].split("=");
+							try {
+								max = Integer.parseInt(maxResults[1].trim()); 
+							} catch (NumberFormatException e) {
+								max = 1;
+							}
 						}
+					}
+					if (device[1] == null || max < 0) {
+						sendResponse(StaticResources.ERROR_CODE_BAD_REQUEST);
+					} else {
+						sendResponse(DataStorageService.getInstance().getEntryById(device[1], max));
 					}
 					
 				} else if (action[1].contentEquals("loadBySpatial")) {
@@ -192,14 +208,24 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 							try {
 								radius = Integer.parseInt(rad[1].trim()); 
 							} catch (NumberFormatException e) {
-								sendResponse(StaticResources.ERROR_CODE_BAD_REQUEST + " Details: " + e.getMessage());
+								radius = 0;
 							}
-							
-							//TODO handle nuberformatexception
+						}
+						if (queries[j].contains("maxResults")) {
+							maxResults = queries[j].split("=");
+							try {
+								max = Integer.parseInt(maxResults[1].trim()); 
+							} catch (NumberFormatException e) {
+								max = 1;
+							}
 						}
 					}
-				
-					sendResponse(DataStorageService.getInstance().getEntriesByParameter(new SpatialQuery(Float.parseFloat(lat),Float.parseFloat(lon),radius,1)));
+					if (lat == null || lon == null || radius < 1 || max < 0) {
+						sendResponse(StaticResources.ERROR_CODE_BAD_REQUEST);
+					} else {
+						sendResponse(DataStorageService.getInstance().getEntriesByParameter(new SpatialQuery(Float.parseFloat(lat),Float.parseFloat(lon),radius,max)));
+					}
+					
 				} 
 			}
 		}
