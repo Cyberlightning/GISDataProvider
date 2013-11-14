@@ -34,6 +34,7 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 	public static final int MESSAGE_TYPE_UNKNOWNHOST_ERROR= 3;
 	
 	public static final String SERVER_DEFAULT_ADDRESS = "dev.cyberlightning.com";
+	public static final int SERVER_DEFAULT_PORT =61616;
 	
 	public ClientSocket() {
 		this(DEFAULT_INBOUND_SOCKET);
@@ -129,10 +130,8 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-				//byte[] payloadBuffer = new byte[payload.trim().getBytes().length];
-				//payloadBuffer = payload.trim().getBytes();
 				
-				DatagramPacket packet = new DatagramPacket(payloadBuffer, payloadBuffer.length,serverAddress,61616);
+				DatagramPacket packet = new DatagramPacket(payloadBuffer, payloadBuffer.length,serverAddress,SERVER_DEFAULT_PORT);
 				try {
 					serverSocket.send(packet);
 				} catch (IOException e) {

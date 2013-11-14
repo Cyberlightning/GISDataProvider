@@ -91,7 +91,7 @@ public abstract class StaticResources {
 	public static final String ERROR_CODE_NOT_FOUND = "ERROR 404 NOT FOUND";
 
 	
-	public static final long SAVE_TO_HD_INTERVAL = 200000;
+	public static final long SAVE_TO_HD_INTERVAL = 10000;
 
 
 	

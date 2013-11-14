@@ -33,6 +33,7 @@ public class DataStorageService implements Runnable {
 	
 	private Thread saveFileRoutine;
 	private boolean suspendFlag = true;
+	private volatile boolean saveInProcessFlag = false;
 	
 	private DataStorageService() {
 		
@@ -54,20 +55,20 @@ public class DataStorageService implements Runnable {
 			saveData(e,StaticResources.DATABASE_FILE_NAME);
 			saveData(b, StaticResources.REFERENCE_TABLE_FILE_NAME);//remove these four lines at some point
 		
-	    	 FileInputStream data = new FileInputStream(StaticResources.DATABASE_FILE_NAME);
-	         ObjectInputStream dataIn = new ObjectInputStream(data);
-	         this.entityTable = (EntityTable)dataIn.readObject();
-	         dataIn.close();
-	         data.close();
+	    	FileInputStream data = new FileInputStream(StaticResources.DATABASE_FILE_NAME);
+	        ObjectInputStream dataIn = new ObjectInputStream(data);
+	        this.entityTable = (EntityTable)dataIn.readObject();
+	        dataIn.close();
+	        data.close();
 	        
-	         FileInputStream ref = new FileInputStream(StaticResources.REFERENCE_TABLE_FILE_NAME);
-	         ObjectInputStream refIn = new ObjectInputStream(ref);
-	         this.baseStationReferences = (Map<String, InetSocketAddress>) refIn.readObject();
-	         refIn.close();
-	         ref.close();
+	        FileInputStream ref = new FileInputStream(StaticResources.REFERENCE_TABLE_FILE_NAME);
+	        ObjectInputStream refIn = new ObjectInputStream(ref);
+	        this.baseStationReferences = (Map<String, InetSocketAddress>) refIn.readObject();
+	        refIn.close();
+	        ref.close();
 	         
-	         saveFileRoutine= new Thread((Runnable)(new SaveFileRoutine()));
-	         saveFileRoutine.start();
+	        saveFileRoutine= new Thread((Runnable)(new SaveFileRoutine()));
+	        saveFileRoutine.start();
 	         
 	      } catch (IOException i) {
 	         i.printStackTrace();
@@ -82,10 +83,12 @@ public class DataStorageService implements Runnable {
 	/**
 	 * 
 	 * @param _data
-	 * @throws UnsupportedEncodingException
+	 * @throws IOException 
 	 */
-	public void addEntry (DatagramPacket _data) throws UnsupportedEncodingException {
-		ArrayList<Entity> entities = TranslationService.decodeSensorJson(new String(_data.getData(),"utf8"));
+	public void addEntry (DatagramPacket _data) throws IOException {
+		
+		if(this.saveInProcessFlag) addEntry(_data); //call recursively untill save process complete
+		ArrayList<Entity> entities = TranslationService.decodeSensorJson(Gzip.decompress(_data.getData()));
 		String contextUUID = null;
 		for (Entity entity : entities) {
 			RowEntry entry = new RowEntry(StaticResources.getTimeStamp());
@@ -137,7 +140,7 @@ public class DataStorageService implements Runnable {
 		case StaticResources.QUERY_SPATIA_SHAPE:
 			break;
 		case StaticResources.QUERY_SPATIAL_CIRCLE:
-			entities = this.entityTable.getEntitiesBySpatialCircle(_query.points[0], _query.points[1],_query.radius); 
+			entities = this.getEntitiesBySpatialCircle(_query.points[0], _query.points[1],_query.radius); 
 			break;
 		case StaticResources.QUERY_TYPE:
 			break;
@@ -147,6 +150,50 @@ public class DataStorageService implements Runnable {
 		else return TranslationService.encodeJson(entities,_query.maxResults);
 		
 	}
+	
+	@SuppressWarnings("unused")
+	private EntityTable loadData() {
+		
+		if (this.saveInProcessFlag) loadData(); // if save in process call recursively untill complete to avoid concurrency problems
+		try {
+			FileInputStream data = new FileInputStream(StaticResources.DATABASE_FILE_NAME);
+			ObjectInputStream dataIn = new ObjectInputStream(data);
+			EntityTable entitytable= (EntityTable)dataIn.readObject();
+			dataIn.close();
+			data.close();
+			} catch (IOException | ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        
+        return entityTable; 
+	}
+	
+	/**
+	 * 
+	 * @param _lat
+	 * @param _lon
+	 * @param _radius
+	 * @return Return a list of entities within a circle of _radius from point (_lat,_lon) 
+	 */
+	public ArrayList<Entity> getEntitiesBySpatialCircle(Float _lat, Float _lon, int _radius) {
+		
+		ArrayList<Entity> includedEntities = new ArrayList<Entity>();
+		EntityTable entityTable = this.loadData();
+		Iterator<RowEntry> rows = entityTable.entities.keySet().iterator();
+		while (rows.hasNext()) {
+			RowEntry row = rows.next();
+			if (row.location != null) {
+				double x = row.location[0] - _lat;
+				double y = row.location[1] - _lon;
+				if ((Math.sqrt(Math.pow(x, 2)+Math.pow(y, 2))/ 0.000008998719243599958) < _radius) {
+					includedEntities.add(entityTable.entities.get(row));
+				}
+			}
+		}
+		return includedEntities;
+	}
+	
 	/**
 	 * 
 	 * @param _uuids
@@ -234,7 +281,7 @@ public class DataStorageService implements Runnable {
 				try {
 					this.addEntry(this.eventBuffer.get(key));
 					this.eventBuffer.remove(key);
-				} catch (UnsupportedEncodingException e) {
+				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
@@ -254,10 +301,12 @@ public class DataStorageService implements Runnable {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				EntityTable e = entityTable;
-				Map<String, InetSocketAddress> b = baseStationReferences;
-				saveData(e,StaticResources.DATABASE_FILE_NAME);
-				saveData(b, StaticResources.REFERENCE_TABLE_FILE_NAME);
+				saveInProcessFlag = true;
+				saveData(entityTable,StaticResources.DATABASE_FILE_NAME);
+				entityTable.clearAll();
+				saveData(baseStationReferences, StaticResources.REFERENCE_TABLE_FILE_NAME);
+				baseStationReferences.clear();
+				saveInProcessFlag = false;
 			}
 			
 		}

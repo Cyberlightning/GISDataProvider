@@ -12,7 +12,7 @@ public class EntityTable implements java.io.Serializable {
 	
 	
 	private static final long serialVersionUID = -8536303237731902808L;
-	private Map<RowEntry, Entity> entities = new ConcurrentHashMap<RowEntry, Entity>(); 
+	public Map<RowEntry, Entity> entities = new ConcurrentHashMap<RowEntry, Entity>(); 
 	
 	
 	/**
@@ -79,6 +79,9 @@ public class EntityTable implements java.io.Serializable {
 		this.entities.remove(_entity.uuid);
 	}
 	
+	public void clearAll (){
+		this.entities.clear();
+	}
 	/**
 	 * 
 	 * @param _uuid
@@ -95,30 +98,7 @@ public class EntityTable implements java.io.Serializable {
 		}
 		return entity;
 	}
-	/**
-	 * 
-	 * @param _lat
-	 * @param _lon
-	 * @param _radius
-	 * @return Return a list of entities within a circle of _radius from point (_lat,_lon) 
-	 */
-	public ArrayList<Entity> getEntitiesBySpatialCircle(Float _lat, Float _lon, int _radius) {
-		
-		ArrayList<Entity> includedEntities = new ArrayList<Entity>();
-		Iterator<RowEntry> rows = this.entities.keySet().iterator();
-		while (rows.hasNext()) {
-			RowEntry row = rows.next();
-			if (row.location != null) {
-				double x = row.location[0] - _lat;
-				double y = row.location[1] - _lon;
-				int cal = (int) (Math.sqrt(Math.pow(x, 2)+Math.pow(y, 2))/ 0.000008998719243599958); //for debugging
-				if ((Math.sqrt(Math.pow(x, 2)+Math.pow(y, 2))/ 0.000008998719243599958) < _radius) {
-					includedEntities.add(this.entities.get(row));
-				}
-			}
-		}
-		return includedEntities;
-	}
+	
 	
 
 }

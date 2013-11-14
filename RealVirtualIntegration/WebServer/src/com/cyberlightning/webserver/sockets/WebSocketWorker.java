@@ -20,6 +20,7 @@ import org.apache.commons.codec.binary.Base64;
 import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.services.DataStorageService;
+import com.cyberlightning.webserver.services.Gzip;
 import com.cyberlightning.webserver.services.MessageService;
 
 public class WebSocketWorker implements Runnable {
@@ -418,7 +419,8 @@ public class WebSocketWorker implements Runnable {
 		     			MessageObject msg = i.next();
 		     			
 		     			if (msg.payload instanceof DatagramPacket) {
-		     					String _content = new String(((DatagramPacket)msg.payload).getData(), "utf8");
+		     					//String _content = new String(((DatagramPacket)msg.payload).getData(), "utf8");
+		     					String _content = Gzip.decompress(((DatagramPacket)msg.payload).getData());
 		     					send(_content);
 		     			} else if (msg.payload instanceof String) {
 		     						send((String)msg.payload);

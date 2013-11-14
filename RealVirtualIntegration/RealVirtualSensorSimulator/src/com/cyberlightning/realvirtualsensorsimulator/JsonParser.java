@@ -3,6 +3,8 @@ package com.cyberlightning.realvirtualsensorsimulator;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -77,7 +79,7 @@ public abstract class JsonParser {
 	}*/
 	
 	
-	public static String createFromSensorEvent(ArrayList<SensorEvent> _sensorEvents, Location _location) {
+	public static String createFromSensorEvent(HashMap<String,SensorEvent> _sensorEvents, Location _location) {
 		
 		JSONObject wrapper = new JSONObject();
 		JSONObject device = new JSONObject();
@@ -102,10 +104,12 @@ public abstract class JsonParser {
 			attributes.put("gps", location);
 			attributes.put("name", MainActivity.deviceName);
 			
-			for (SensorEvent event : _sensorEvents) {
+			Iterator<String> keys = _sensorEvents.keySet().iterator();
+			while (keys.hasNext()) {
+				SensorEvent event = _sensorEvents.get(keys.next());
 				JSONObject sensorAttrs = new JSONObject();
 				JSONObject sensor = new JSONObject();
-				JSONArray values = new JSONArray();
+				
 				JSONObject sensorParams = new JSONObject();
 				JSONObject value = new JSONObject();
 				
@@ -119,13 +123,9 @@ public abstract class JsonParser {
 				sensorParams.put("interval", "ms");
 				sensor.put("parameters", sensorParams);
 				
-				for(int i = 0; i < event.values.length; i++) {
-					values.put(event.values[i]);
-				}
-				
-				value.put("values", values);
-				value.put("time", getTimeStamp(event.timestamp));
-				value.put("primitive",resolvePrimitive(event.values));
+				value.put("values", resolveValues(event.values,event.sensor.getType()));
+				value.put("time", getTimeStamp());
+				value.put("primitive",resolvePrimitive(event.sensor.getType()));
 				value.put("unit", resolveSensorUnitById(event.sensor.getType())); //TODO implement a more accurate and dynamic way
 				
 				sensor.put("value", value);
@@ -145,21 +145,66 @@ public abstract class JsonParser {
 		return wrapper.toString();
 	}
 	
-	private static String resolvePrimitive(float[] values) {
-		String primitive = "";
-		if(values.length ==1) primitive = "double";
-		if(values.length ==2) primitive = "2DPoint";
-		if(values.length ==3) primitive = "3DPoint";
+	private static Object resolveValues (float[] _values, int _id) {
 		
+		if (!resolvePrimitive(_id).contentEquals("3DPoint")){
+			return _values[0];
+		} else {
+			JSONArray values = new JSONArray();
+			for(int i = 0; i < _values.length; i++) {
+				try {
+					values.put(_values[i]);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			return values;
+		}
+	}
+	
+	private static String resolvePrimitive(int _id) {
+		String primitive = null;
+		
+		switch(_id){
+			case Sensor.TYPE_ACCELEROMETER: primitive = "3DPoint";
+				break;
+			case Sensor.TYPE_AMBIENT_TEMPERATURE:primitive = "double";
+				break;
+			case Sensor.TYPE_GAME_ROTATION_VECTOR:primitive = "3DPoint";
+				break;
+			case Sensor.TYPE_GRAVITY:primitive = "3DPoint";
+				break;
+			case Sensor.TYPE_GYROSCOPE:primitive = "3DPoint";
+				break;
+			case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:primitive = "array";
+				break;
+			case Sensor.TYPE_LIGHT:primitive = "double";
+				break;
+			case Sensor.TYPE_LINEAR_ACCELERATION:primitive = "3DPoint";
+				break;
+			case Sensor.TYPE_MAGNETIC_FIELD:primitive = "3DPoint";
+				break;
+			case Sensor.TYPE_PRESSURE:primitive = "double";
+				break;
+			case Sensor.TYPE_PROXIMITY:primitive = "double";
+				break;
+			case Sensor.TYPE_SIGNIFICANT_MOTION:primitive = "3DPoint";
+				break;
+			case Sensor.TYPE_ORIENTATION:primitive = "3DPoint";
+				break;
+			case Sensor.TYPE_RELATIVE_HUMIDITY: primitive = "double";
+				break;
+			
+			}
 		return primitive;
-		
 	}
 	
 	@SuppressLint("SimpleDateFormat")
-	public static String getTimeStamp(Long timeInMillis) {
-		return  new SimpleDateFormat(DATE_FORMAT).format(new Date(timeInMillis));
+	public static String getTimeStamp() {
+		return  new SimpleDateFormat(DATE_FORMAT).format(new Date(System.currentTimeMillis()));
 	}
-	private static String resolveSensorUnitById(int _id) {
+	public static String resolveSensorUnitById(int _id) {
 		String unit = null;
 		switch(_id){
 			case Sensor.TYPE_ACCELEROMETER: unit = "m/s2";
@@ -178,7 +223,7 @@ public abstract class JsonParser {
 				break;
 			case Sensor.TYPE_LINEAR_ACCELERATION:unit = "m/s2";
 				break;
-			case Sensor.TYPE_MAGNETIC_FIELD:unit = "micro Tesla";
+			case Sensor.TYPE_MAGNETIC_FIELD:unit = "uT";
 				break;
 			case Sensor.TYPE_PRESSURE:unit = "hPa";
 				break;
@@ -195,7 +240,7 @@ public abstract class JsonParser {
 			
 			return unit;
 		}
-	private static String resolveSensorTypeById(int _id) {
+	public static String resolveSensorTypeById(int _id) {
 		String name = null;
 		switch(_id){
 			case Sensor.TYPE_ACCELEROMETER: name = "accelerometer";
