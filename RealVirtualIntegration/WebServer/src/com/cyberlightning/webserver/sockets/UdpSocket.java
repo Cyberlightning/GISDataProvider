@@ -176,8 +176,10 @@ public class UdpSocket implements Runnable  {
 				     				for (InetSocketAddress target : msg.targetAddresses) {
 				     					DatagramPacket packet = new DatagramPacket(b,b.length,target.getAddress(),target.getPort());
 				     					serverSocket.send(packet);
+				     					System.out.print("Send To Client: " + target.getAddress().getCanonicalHostName() + " ," +msg.payload);
 				     				}
 				     			}
+				     			System.out.print("message removed");
 				     			sendBuffer.remove(msg);
 				     		}
 				     		this.suspendThread();
