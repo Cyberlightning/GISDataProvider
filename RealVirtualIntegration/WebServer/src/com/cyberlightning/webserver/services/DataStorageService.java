@@ -160,11 +160,11 @@ public class DataStorageService implements Runnable {
 	private EntityTable loadData(Boolean _isQuery) {
 		
 		if (this.saveInProcessFlag && _isQuery) loadData(_isQuery); // if save in process call recursively untill complete to avoid concurrency problems
-		
+		EntityTable dbFile = null;
 		try {
 			FileInputStream data = new FileInputStream(StaticResources.DATABASE_FILE_NAME);
 			ObjectInputStream dataIn = new ObjectInputStream(data);
-			EntityTable entitytable= (EntityTable)dataIn.readObject();
+			dbFile= (EntityTable)dataIn.readObject();
 			dataIn.close();
 			data.close();
 			} catch (IOException | ClassNotFoundException e) {
@@ -172,7 +172,7 @@ public class DataStorageService implements Runnable {
 				e.printStackTrace();
 			}
         
-        return entityTable; 
+        return dbFile; 
 	}
 	
 	/**
