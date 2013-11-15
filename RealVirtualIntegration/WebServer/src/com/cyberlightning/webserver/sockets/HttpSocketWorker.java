@@ -253,7 +253,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 						if (queries[j].contains("device_id")) {
 							String[] s = queries.clone()[j].trim().split("=");
 							targetUUIDs = s[1].split(","); //check correct regex
-						} 
+						}
 					}
 
 				}else if (action[1].contentEquals("upload")) {

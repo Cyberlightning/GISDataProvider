@@ -8,20 +8,30 @@
 <input type="hidden" name="action" value="loadBySpatial">
 Latitude: <input type="text" name="lat"><br>
 Longitude: <input type="text" name="lon"><br>
-Radius <input type="text" name="radius"><br>
+Radius: <input type="text" name="radius"><br>
+Maxresults: <input type="text" name="maxResults"><br>
 <input type="submit" value="Submit">
 </form>
 
 <br>
 <p>2. Get all data from a specific device. Please form 1 to get IDs first and place that uuid to this form to get response,
  will return only last sensor event recorded"</p>
-<form action="http://dev.cyberlightning.com:44446/" method="get">
+<form action="http://127.0.0.1:44446/" method="get">
 <input type="hidden" name="action" value="loadById">
 Device id: <input type="text" name="device_id"><br>
+Maxresults: <input type="text" name="maxResults"><br>
 <input type="submit" value="Submit">
 </form>
 
-
+<p>3. POST command tester</p>
+<form action="http://127.0.0.1:44446/" method="post">
+<input type="hidden" name="action" value="update">
+Device id: <input type="text" name="device_id"><br>
+Sensor id: <input type="text" name="sensor_id"><br>
+Parameter: <input type="text" name="parameter"><br>
+New value: <input type="text" name="value"><br>
+<input type="submit" value="Submit">
+</form>
 
 </body>
 </html>

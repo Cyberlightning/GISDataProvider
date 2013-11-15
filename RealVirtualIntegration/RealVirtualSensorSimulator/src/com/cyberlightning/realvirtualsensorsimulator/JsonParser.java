@@ -3,7 +3,7 @@ package com.cyberlightning.realvirtualsensorsimulator;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
+
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -17,6 +17,7 @@ import android.location.Location;
 public abstract class JsonParser {
 	
 	public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm";
+	public static final int SENSOR_TYPE_ROTATION_VECTOR = 11;
 	
 	/*{
 	    "9627f38e-51a1-4d87-9d1f-9790e01ecfef": {
@@ -97,13 +98,11 @@ public abstract class JsonParser {
 			
 			attributes.put("gps", location);
 			attributes.put("name", MainActivity.deviceName);
-			
-			Iterator<String> keys = _sensorEvents.keySet().iterator();
-			while (keys.hasNext()) {
-				SensorEvent event = _sensorEvents.get(keys.next());
+			Object[] vals = _sensorEvents.values().toArray();
+			for(int o = 0; o < vals.length; o++) {
+				SensorEvent event = (SensorEvent)vals[o];
 				JSONObject sensorAttrs = new JSONObject();
 				JSONObject sensor = new JSONObject();
-				
 				JSONObject sensorParams = new JSONObject();
 				JSONObject value = new JSONObject();
 				
@@ -140,8 +139,8 @@ public abstract class JsonParser {
 	}
 	
 	private static Object resolveValues (float[] _values, int _id) {
-		
-		if (!resolvePrimitive(_id).contentEquals("3DPoint")){
+		String prim = resolvePrimitive(_id);
+		if (prim.equals("double")){
 			return _values[0];
 		} else {
 			JSONArray values = new JSONArray();
@@ -190,7 +189,8 @@ public abstract class JsonParser {
 				break;
 			case Sensor.TYPE_RELATIVE_HUMIDITY: primitive = "double";
 				break;
-			
+			case SENSOR_TYPE_ROTATION_VECTOR: primitive = "array"; //values[3], originally optional, will always be present from SDK Level 18 onwards. values[4] is a new value that has been added in SDK Level 18. 
+				break;
 			}
 		return primitive;
 	}
@@ -231,6 +231,8 @@ public abstract class JsonParser {
 				break;
 			case Sensor.TYPE_RELATIVE_HUMIDITY: unit = "%";
 				break;
+			case SENSOR_TYPE_ROTATION_VECTOR: unit = "quaternion"; 
+			break;
 			
 			}
 			
@@ -269,7 +271,9 @@ public abstract class JsonParser {
 				break;
 			case Sensor.TYPE_RELATIVE_HUMIDITY: name = "relativehumidity";
 				break;
-			
+			case SENSOR_TYPE_ROTATION_VECTOR: name = "rotationvector";
+				break;
+					
 			}
 			return name;
 		}

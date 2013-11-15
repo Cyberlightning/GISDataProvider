@@ -13,12 +13,15 @@ import java.util.Observable;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 
 public class ClientSocket extends Observable implements Runnable, IClientSocket {
 	
 	private ConcurrentLinkedQueue <Message> outboundBuffer = new ConcurrentLinkedQueue <Message>();
 	private DatagramSocket serverSocket;
+	private IMainActivity application;
 	private InetAddress serverAddress;
 	private SocketSender senderWorker;
 	private Thread thread;
@@ -34,21 +37,23 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 	public static final int MESSAGE_TYPE_UNKNOWNHOST_ERROR= 3;
 	
 	public static final String SERVER_DEFAULT_ADDRESS = "dev.cyberlightning.com";
-	public static final int SERVER_DEFAULT_PORT =61616;
+	public static final int SERVER_DEFAULT_PORT = 61616;
+
 	
-	public ClientSocket() {
-		this(DEFAULT_INBOUND_SOCKET);
+	public  ClientSocket(MainActivity _activity) {
+		this(DEFAULT_INBOUND_SOCKET, _activity);
 	}
 	
-	public ClientSocket(int _port) {
+	public  ClientSocket(int _port, MainActivity _activity) {
 		this.port = _port;
 		this.thread = new Thread(this);
 		this.thread.start();
-		
+		this.application = _activity;
 	}
 	
 	@Override
 	public void run() {
+		
 		
 		try {
 			
@@ -84,9 +89,11 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 			e.printStackTrace();
 		}
 		
-    	MessageObject msg = new MessageObject(_packet.getAddress(), _packet.getPort(), payload);
+		Message msg = Message.obtain(null, MainActivity.MESSAGE_FROM_SERVER, payload);
 		setChanged();
-		notifyObservers(Message.obtain(null, MESSAGE_TYPE_INBOUND, msg));
+		notifyObservers(msg);
+		msg.setTarget(this.application.getTarget());
+		msg.sendToTarget();
 	}
     
 	public class SocketSender implements Runnable {

@@ -1,12 +1,10 @@
 package com.cyberlightning.realvirtualsensorsimulator;
 
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Observable;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -25,7 +23,8 @@ import android.os.Message;
 public class SensorListener extends Observable implements SensorEventListener,ISensorListener,Runnable  {
 
 
-	private HashMap<String,SensorEvent> sensorEventTable = new HashMap<String,SensorEvent>();
+	private HashMap<String,SensorEvent> copy = new HashMap<String,SensorEvent>();
+	private ConcurrentLinkedQueue<SensorEvent> eventBuffer = new ConcurrentLinkedQueue<SensorEvent>();
 	private IMainActivity application;
 	private List<Sensor> deviceSensors;
 	private Location location;
@@ -33,16 +32,15 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	
 	private boolean suspendFlag = true;
 	private boolean destroyFlag = false;
-	private volatile boolean isRunning = false;
+	private volatile boolean isBusy = false;
 
-	public static final long SENSOR_EVENT_INTERVAL = 5000;
-	
+	public static final long SENSOR_EVENT_INTERVAL = 10000;
+    
 	public SensorListener(MainActivity _activity) {
 		this.application = _activity;
 		this.registerSensorListeners();
 		this.thread = new Thread(this);
 		this.thread.start();
-		
 	}
 	
 	@Override
@@ -55,7 +53,6 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	            while(suspendFlag && !destroyFlag) {
 					try {
 						wait();
-						Thread.sleep(SENSOR_EVENT_INTERVAL);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -64,10 +61,21 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	            }
 	            if (destroyFlag) break; 
 	        }
-			this.isRunning = true;
-			this.sendMessage(JsonParser.createFromSensorEvent(this.sensorEventTable, location));
+			
+			isBusy = true;
+			
+			while(!this.eventBuffer.isEmpty()) {
+				String key = JsonParser.resolveSensorTypeById(this.eventBuffer.peek().sensor.getType());
+				if (key != null){
+					copy.put(key, this.eventBuffer.poll());
+				}else {
+					this.eventBuffer.poll();
+				}
+			}
+			this.sendMessage(JsonParser.createFromSensorEvent(copy, location));
 			this.suspendThread();
-			this.isRunning = false;
+			isBusy = false;
+			
 		}
 		return;
 	}
@@ -117,9 +125,12 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		((SensorManager) this.application.getContext().getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).unregisterListener(this);
 	}
 	
-	private void sendMessage(String _payload) { //TODO just a stub
+	private void sendMessage(String _payload) {
+		Message msg = Message.obtain(null, MainActivity.MESSAGE_FROM_SENSOR_LISTENER, _payload.toString());
 		setChanged();
-		notifyObservers(Message.obtain(null, ClientSocket.MESSAGE_TYPE_OUTBOUND, _payload.toString()));
+		notifyObservers(Message.obtain(null,  MainActivity.MESSAGE_FROM_SENSOR_LISTENER, _payload.toString()));
+		msg.setTarget(this.application.getTarget());
+		msg.sendToTarget();
 	}
 		
 	@Override
@@ -130,13 +141,14 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	
 	@Override
 	public void onSensorChanged(SensorEvent _event) { 
-		String key = JsonParser.resolveSensorTypeById(_event.sensor.getType()) ;
-		if(key != null && !this.isRunning) {
-			this.sensorEventTable.put(key, _event);
-			this.wakeThread();
+		if(!isBusy) {
+			this.eventBuffer.offer(_event);
+			if(this.eventBuffer.size() > 200) {
+				this.wakeThread();
+			}
+			
 		}
 	}
-	
 	
 	@Override
 	public void pause() {

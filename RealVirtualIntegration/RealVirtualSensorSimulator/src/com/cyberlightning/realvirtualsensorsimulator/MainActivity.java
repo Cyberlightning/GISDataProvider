@@ -9,6 +9,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import com.example.realvirtualsensorsimulator.R;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.provider.Settings.Secure;
 import android.app.Activity;
@@ -25,11 +27,9 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity implements Observer,IMainActivity {
 	
-	private Button showButton;
-	private ConcurrentLinkedQueue <Message> inboundBuffer = new ConcurrentLinkedQueue<Message>();
 	private IClientSocket clientSocket;
 	private ISensorListener sensorListener;
-	private InboundMessageHandler inboundMessageHandler;
+
 	private TextView receivedMessages;
 	private TextView sendMessages;
 	
@@ -40,7 +40,28 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
 	
 	// Tags to store saved instance state of this activity
 	private static final String STATE_RECEIVED_MESSAGES = "StateReceivedMessages";
-	private static final String STATE_SEND_MESSAGES = "StateSendMessages"; 
+	private static final String STATE_SEND_MESSAGES = "StateSendMessages";
+	
+	public static final int MESSAGE_FROM_SENSOR_LISTENER = 1;
+	public static final int MESSAGE_FROM_SERVER = 2;
+	
+	Handler messageHandler = new Handler(Looper.getMainLooper()) {
+        
+		@Override
+        public void handleMessage(Message _msg) {
+            switch (_msg.what) {
+            case MESSAGE_FROM_SENSOR_LISTENER: 
+            	sendMessages.setText(_msg.obj.toString());
+            	break;
+            case MESSAGE_FROM_SERVER: //TODO draw to UI
+            	receivedMessages.append(_msg.obj.toString());
+            	break;
+      
+            }
+       
+        }
+      
+    };
 	
 
     @Override
@@ -84,7 +105,7 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
   
     @Override
     public void onBackPressed() {
-    	
+    	//TODO onBackPressed()
     }
   
     @Override
@@ -92,21 +113,21 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
     	super.onDestroy(); 
     }
     
-    private void showToast(String _message) {
-    	
-	    LayoutInflater inflater = getLayoutInflater();
-	    View layout = inflater.inflate(R.layout.toast_layout,(ViewGroup) findViewById(R.id.toast_layout_root));
-
-	    TextView text = (TextView) layout.findViewById(R.id.text);
-	    text.setText(_message);
-
-	    Toast toast = new Toast(getApplicationContext());
-	    toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
-	    toast.setDuration(Toast.LENGTH_LONG);
-	    toast.setView(layout);
-	    toast.show();
-	    	
-	}
+//    private void showToast(String _message) {
+//    	
+//	    LayoutInflater inflater = getLayoutInflater();
+//	    View layout = inflater.inflate(R.layout.toast_layout,(ViewGroup) findViewById(R.id.toast_layout_root));
+//
+//	    TextView text = (TextView) layout.findViewById(R.id.text);
+//	    text.setText(_message);
+//
+//	    Toast toast = new Toast(getApplicationContext());
+//	    toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+//	    toast.setDuration(Toast.LENGTH_LONG);
+//	    toast.setView(layout);
+//	    toast.show();
+//	    	
+//	}
     
    
     private void StartApplication() {
@@ -115,9 +136,10 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
 		this.receivedMessages.setMovementMethod(new ScrollingMovementMethod());
 		this.sendMessages.setMovementMethod(new ScrollingMovementMethod());
 		
-		this.inboundMessageHandler = new InboundMessageHandler();
 		
-		ClientSocket clientSocket= new ClientSocket();
+
+		
+		ClientSocket clientSocket= new ClientSocket(this);
 		clientSocket.addObserver(this);
 		this.clientSocket = clientSocket;
 		
@@ -125,76 +147,30 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
 		sensorListener.addObserver(this);
 		this.sensorListener = sensorListener;
 		
-		
 	
-		
     }
     
-    public class InboundMessageHandler implements Runnable {
-
-    	private boolean suspendFlag = true;
-		private boolean destroyFlag = false;
-		private Thread thread;
-		
-		public InboundMessageHandler() {
-			this.thread = new Thread(this);
-			this.thread.start();
-		}
-		
-    	@Override
-		public void run() {
-			while (true) {
-				synchronized(this) {
-		            while(suspendFlag && !destroyFlag) {
-						try {
-							wait();
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-							return;
-						}
-		            }
-		            if (destroyFlag) break; 
-		        }
-				if(inboundBuffer.isEmpty()) continue;
-				Message msg = inboundBuffer.poll();
-				
-			}
-			
-		}
-    	
-    	public void suspendThread() {
-		      suspendFlag = true;
-		}
-
-		private synchronized void wakeThread() {
-		      suspendFlag = false;
-		      notify();
-		}
-		
-		private synchronized void destroy() {
-		      this.destroyFlag = true;
-		      notify();
-		}
-    	
-    }
-    
-   
-	@Override
-	public void update(Observable observable, Object data) {
-		if (observable instanceof ClientSocket) {
-			this.inboundBuffer.offer((Message) data);
-			
-		} else if (observable instanceof SensorListener) {
-			this.clientSocket.sendMessage((Message)data); 
-		}
-		
-	}
 
 	@Override
 	public Context getContext() {
 		// TODO Auto-generated method stub
 		return this.getApplicationContext();
 	}
-    
+
+
+	@Override
+	public Handler getTarget() {
+		return this.messageHandler;
+	}
+
+	@Override
+    public void update(Observable observable, Object data) {
+            if (observable instanceof ClientSocket) {
+                   //TODO handle input commands
+                    
+            } else if (observable instanceof SensorListener) {
+                    this.clientSocket.sendMessage((Message)data);
+            }
+            
+    }
 }
