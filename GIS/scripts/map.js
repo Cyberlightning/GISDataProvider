@@ -148,14 +148,14 @@ var xmlDoc;
     function createGISRequest(baseUrl, layer, boundingbox, layerCRS) {
         var requestUrl;
         // var workspace = "fiware";
-        var workspace = "mml";
+        // var workspace = "mml";
         var service = "w3ds?version=0.4&service=w3ds";
         var format = "&format=model/xml3d+xml";
         // var crs = "&crs=EPSG:3047";
         var crs = "&crs="+layerCRS;
         var request = "&request=GetScene";
 
-        requestUrl = baseUrl + service + request + crs + format+"&layers="+workspace+":"+layer+"&boundingbox="+boundingbox;
+        requestUrl = baseUrl + service + request + crs + format+"&layers="+layer+"&boundingbox="+boundingbox;
         console.log(requestUrl);
         return requestUrl;
     }
@@ -183,7 +183,7 @@ var xmlDoc;
         var x = xmlDoc.getElementsByTagName("Layer");
         console.log(x);
         for (i=0;i<x.length;i++) { 
-            if (layername == x[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue) {
+            if (layername == x[i].getElementsByTagName("Identifier")[0].childNodes[0].nodeValue) {
                 console.log("succes nimi löyty");
                 console.log(x[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue);
                 console.log(x[i].getElementsByTagName("Identifier")[0].childNodes[0].nodeValue);
@@ -191,7 +191,7 @@ var xmlDoc;
                 console.log(x[i].getElementsByTagName("UpperCorner")[0].childNodes[0].nodeValue);
                 console.log(x[i].getElementsByTagName("OutputFormat")[0].childNodes[0].nodeValue);
                 console.log(x[i].getElementsByTagName("DefaultCRS")[0].childNodes[0].nodeValue);
-                getElements(x[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue,
+                getElements(x[i].getElementsByTagName("Identifier")[0].childNodes[0].nodeValue,
                             x[i].getElementsByTagName("LowerCorner")[0].childNodes[0].nodeValue,
                             x[i].getElementsByTagName("UpperCorner")[0].childNodes[0].nodeValue,
                             x[i].getElementsByTagName("DefaultCRS")[0].childNodes[0].nodeValue
@@ -221,8 +221,8 @@ var xmlDoc;
                 { 
                     var combo = document.getElementById("selector");
                     var option = document.createElement("option");
-                    option.text = x[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue;
-                    option.value = x[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue;
+                    option.text = x[i].getElementsByTagName("Identifier")[0].childNodes[0].nodeValue;
+                    option.value = x[i].getElementsByTagName("Identifier")[0].childNodes[0].nodeValue;
                     option.onchange = console.log("clicked");
                     try {
                         combo.add(option, null); //Standard 
