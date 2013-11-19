@@ -36,7 +36,7 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 	public static final int MESSAGE_TYPE_OUTBOUND = 2;
 	public static final int MESSAGE_TYPE_UNKNOWNHOST_ERROR= 3;
 	
-	public static final String SERVER_DEFAULT_ADDRESS = "dev.cyberlightning.com";
+	public static final String SERVER_DEFAULT_ADDRESS = "10.0.2.2";
 	public static final int SERVER_DEFAULT_PORT = 61616;
 
 	

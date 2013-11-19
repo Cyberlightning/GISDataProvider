@@ -268,6 +268,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 			sendResponse(StaticResources.ERROR_CODE_BAD_REQUEST);
 		} else {
 			MessageService.getInstance().addToMessageBuffer(new MessageObject(this.uuid,StaticResources.HTTP_CLIENT,DataStorageService.getInstance().resolveBaseStationAddresses(targetUUIDs),_content));
+			MessageService.getInstance().wakeThread();
 		}
 	}
 }

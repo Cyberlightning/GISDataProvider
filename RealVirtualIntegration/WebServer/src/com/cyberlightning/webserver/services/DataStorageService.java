@@ -207,10 +207,10 @@ public class DataStorageService implements Runnable {
 	 */
 	public ArrayList<InetSocketAddress> resolveBaseStationAddresses(String[] _uuids) {
 		ArrayList<InetSocketAddress> addresses = new ArrayList<InetSocketAddress>();
-		
+		EntityTable persistentEntityTable = this.loadData(true);
 		for(String uuid : _uuids) {
 			
-			Entity e = entityTable.getEntity(uuid);
+			Entity e = persistentEntityTable.getEntity(uuid);
 			if (e != null) {
 				if (this.baseStationReferences.containsKey(e.contextUUID) && !addresses.contains(this.baseStationReferences.get(e.contextUUID))) {
 					addresses.add(this.baseStationReferences.get(e.contextUUID));
@@ -315,7 +315,6 @@ public class DataStorageService implements Runnable {
 				saveData(entityTable,StaticResources.DATABASE_FILE_NAME);
 				entityTable.clearAll();
 				saveData(baseStationReferences, StaticResources.REFERENCE_TABLE_FILE_NAME);
-				baseStationReferences.clear();
 				saveInProcessFlag = false;
 			}
 			
