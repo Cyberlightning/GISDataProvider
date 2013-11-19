@@ -87,7 +87,6 @@ public class DataStorageService implements Runnable {
 	 */
 	public void addEntry (DatagramPacket _data) throws IOException {
 		
-		if(this.saveInProcessFlag) addEntry(_data); //call recursively untill save process complete
 		String data;
 		if(Gzip.isCompressed(_data.getData())) data = Gzip.decompress(_data.getData());
 		else data = new String(_data.getData(),"utf8");
@@ -211,12 +210,16 @@ public class DataStorageService implements Runnable {
 		for(String uuid : _uuids) {
 			
 			Entity e = persistentEntityTable.getEntity(uuid);
+			System.out.println("UUIDs: " + _uuids.toString());
+			System.out.println("entity context uuid: " + e.contextUUID);
 			if (e != null) {
 				if (this.baseStationReferences.containsKey(e.contextUUID) && !addresses.contains(this.baseStationReferences.get(e.contextUUID))) {
 					addresses.add(this.baseStationReferences.get(e.contextUUID));
+					System.out.println("baseStationReferences " + this.baseStationReferences.toString());
 				} 
 			}
 		}
+		System.out.println("returned addresses " + addresses);
 		return addresses;
 	}
 	
@@ -285,8 +288,13 @@ public class DataStorageService implements Runnable {
 			while (i.hasNext()) {
 				String key = i.next();
 				try {
-					this.addEntry(this.eventBuffer.get(key));
-					this.eventBuffer.remove(key);
+					if (this.saveInProcessFlag) {
+						break;
+					} else {
+						this.addEntry(this.eventBuffer.get(key));
+						this.eventBuffer.remove(key);
+					}
+		
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -308,7 +316,7 @@ public class DataStorageService implements Runnable {
 					e.printStackTrace();
 				}
 				if (entityTable.entities.isEmpty()) continue;
-				
+				if (!suspendFlag) continue;
 				saveInProcessFlag = true;
 				EntityTable oldEntities = loadData(false);
 				entityTable.appendOldEntities(oldEntities.entities);
@@ -316,6 +324,7 @@ public class DataStorageService implements Runnable {
 				entityTable.clearAll();
 				saveData(baseStationReferences, StaticResources.REFERENCE_TABLE_FILE_NAME);
 				saveInProcessFlag = false;
+				if (!eventBuffer.isEmpty()) wakeThread();
 			}
 			
 		}
