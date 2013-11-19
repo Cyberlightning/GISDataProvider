@@ -116,7 +116,7 @@ public class DataStorageService implements Runnable {
 		
 		String jsonString = null;
 		ArrayList<Entity> entities = new ArrayList<Entity>();
-		EntityTable persistentEntityTable = this.loadData(true);
+		EntityTable persistentEntityTable = this.loadData();
 		Entity e = persistentEntityTable.getEntity(_uuid);
 		if (e != null) {
 			entities.add(e);
@@ -156,9 +156,8 @@ public class DataStorageService implements Runnable {
 	}
 	
 	@SuppressWarnings("unused")
-	private EntityTable loadData(Boolean _isQuery) {
+	private EntityTable loadData() {
 		
-		if (this.saveInProcessFlag && _isQuery) loadData(_isQuery); // if save in process call recursively untill complete to avoid concurrency problems
 		EntityTable dbFile = null;
 		try {
 			FileInputStream data = new FileInputStream(StaticResources.DATABASE_FILE_NAME);
@@ -184,7 +183,7 @@ public class DataStorageService implements Runnable {
 	public ArrayList<Entity> getEntitiesBySpatialCircle(Float _lat, Float _lon, int _radius) {
 		
 		ArrayList<Entity> includedEntities = new ArrayList<Entity>();
-		EntityTable persistentEntityTable = this.loadData(true);
+		EntityTable persistentEntityTable = this.loadData();
 		Iterator<RowEntry> rows = persistentEntityTable.entities.keySet().iterator();
 		while (rows.hasNext()) {
 			RowEntry row = rows.next();
@@ -206,16 +205,15 @@ public class DataStorageService implements Runnable {
 	 */
 	public ArrayList<InetSocketAddress> resolveBaseStationAddresses(String[] _uuids) {
 		ArrayList<InetSocketAddress> addresses = new ArrayList<InetSocketAddress>();
-		EntityTable persistentEntityTable = this.loadData(true);
+		EntityTable persistentEntityTable = this.loadData();
 		for(String uuid : _uuids) {
 			
 			Entity e = persistentEntityTable.getEntity(uuid);
-			System.out.println("UUIDs: " + _uuids.toString());
-			System.out.println("entity context uuid: " + e.contextUUID);
+			
 			if (e != null) {
 				if (this.baseStationReferences.containsKey(e.contextUUID) && !addresses.contains(this.baseStationReferences.get(e.contextUUID))) {
 					addresses.add(this.baseStationReferences.get(e.contextUUID));
-					System.out.println("baseStationReferences " + this.baseStationReferences.toString());
+					
 				} 
 			}
 		}
@@ -318,7 +316,7 @@ public class DataStorageService implements Runnable {
 				if (entityTable.entities.isEmpty()) continue;
 				if (!suspendFlag) continue;
 				saveInProcessFlag = true;
-				EntityTable oldEntities = loadData(false);
+				EntityTable oldEntities = loadData();
 				entityTable.appendOldEntities(oldEntities.entities);
 				saveData(entityTable,StaticResources.DATABASE_FILE_NAME);
 				entityTable.clearAll();
