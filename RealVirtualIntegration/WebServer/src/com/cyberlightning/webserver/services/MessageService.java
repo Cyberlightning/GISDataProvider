@@ -153,13 +153,14 @@ public class MessageService implements Runnable  {
 						break;
 					case StaticResources.UDP_RESPONSE: 
 						this.registeredReceivers.get(msg.originUUID).onMessageReceived(msg);
+						this.messageBuffer.remove(msg);
 						break;	
 					case StaticResources.TCP_CLIENT:
 						this.registeredReceivers.get(UdpSocket.uuid).onMessageReceived(msg); //TODO implement a better way for this, what if there are multiple sockets? 
 						this.messageBuffer.remove(msg);
 						break;
 					case StaticResources.HTTP_CLIENT:
-						this.registeredReceivers.get(UdpSocket.uuid).onMessageReceived(msg); //TODO implement a better way for this, what if there are multiple sockets? 
+						this.registeredReceivers.get(UdpSocket.uuid).onMessageReceived(msg); 
 						this.messageBuffer.remove(msg);
 						break;
 						
