@@ -176,18 +176,24 @@ public class UdpSocket implements Runnable  {
 				     				for (InetSocketAddress target : msg.targetAddresses) {
 				     					DatagramPacket packet = new DatagramPacket(b,b.length,InetAddress.getByAddress(target.getAddress().getAddress()),target.getPort());
 				     					serverSocket.send(packet);
-				     					System.out.println("Send To Client: " + target.getAddress().getHostAddress()+ " ," +packet.getLength());
 				     				}
+				     				
 				     			}
-				     			System.out.println("message removed");
+				     			MessageObject response;
+				     			if (msg.targetAddresses.size() == 0) {
+				     				response = new MessageObject(msg.originUUID,StaticResources.UDP_RESPONSE,StaticResources.ERROR_CODE_NOT_FOUND);
+					     			
+				     			} else {
+				     				response = new MessageObject(msg.originUUID,StaticResources.UDP_RESPONSE,StaticResources.HTTP_CODE_OK);
+				     			}
+				     			MessageService.getInstance().addToMessageBuffer(response);
 				     			sendBuffer.remove(msg);
 				     		}
 				     		this.suspendThread();
 
 		   				} catch (IOException e) {
-		   					// TODO Auto-generated catch block
-		   					e.printStackTrace();
-		   					break;
+		   					System.out.println(e.getMessage());
+		   					if (serverSocket.isClosed()) break;
 		   				} 
 		       }
 			}

@@ -8,8 +8,18 @@ public class MessageObject  {
 	public Object payload ;
 	public int port;
 	public int originType;
+	public String responseCode;
 	public String originUUID;
+	public String targetUUID;
 	public ArrayList<InetSocketAddress> targetAddresses;
+	
+	
+	
+	public MessageObject(String _origin, int _originType, String _statusCode){
+		this.responseCode = _statusCode;
+		this.originUUID = _origin;
+		this.originType = _originType;
+	}
 	
 	public MessageObject(String _uuid, int _originType, Object _payload){
 		this.payload = _payload;
@@ -23,4 +33,6 @@ public class MessageObject  {
 		this.targetAddresses = _targetAddresses;
 		this.originType = _originType;
 	}
+	
+	
 }

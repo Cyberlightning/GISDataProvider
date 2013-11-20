@@ -151,6 +151,13 @@ public class MessageService implements Runnable  {
 						}
 						this.messageBuffer.remove(msg);
 						break;
+					case StaticResources.UDP_RESPONSE: 
+						ArrayList<String> responseReceivers = this.resolveReceivers(msg.targetUUID);
+						for (String receiver: responseReceivers) {
+							this.registeredReceivers.get(receiver).onMessageReceived(msg);
+						}
+						break;
+						
 					case StaticResources.TCP_CLIENT:
 						this.registeredReceivers.get(UdpSocket.uuid).onMessageReceived(msg); //TODO implement a better way for this, what if there are multiple sockets? 
 						this.messageBuffer.remove(msg);
