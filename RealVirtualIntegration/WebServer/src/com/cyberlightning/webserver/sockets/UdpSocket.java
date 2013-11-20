@@ -61,8 +61,8 @@ public class UdpSocket implements Runnable  {
         	
 			if (!MessageService.isStarted()) continue;
 			
-			Thread testRoutine = new Thread((Runnable)(new TestRoutine()));
-			testRoutine.start();
+			//Thread testRoutine = new Thread((Runnable)(new TestRoutine()));
+			//testRoutine.start();
 			
         	byte[] receivedData = new byte[StaticResources.UDP_PACKET_SIZE];
     		DatagramPacket receivedPacket = new DatagramPacket(receivedData, receivedData.length);
@@ -187,6 +187,7 @@ public class UdpSocket implements Runnable  {
 				     				response = new MessageObject(msg.originUUID,StaticResources.UDP_RESPONSE,StaticResources.HTTP_CODE_OK);
 				     			}
 				     			MessageService.getInstance().addToMessageBuffer(response);
+				     			MessageService.getInstance().wakeThread();
 				     			sendBuffer.remove(msg);
 				     		}
 				     		this.suspendThread();

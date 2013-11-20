@@ -16,6 +16,7 @@ import com.cyberlightning.webserver.services.MessageService;
 public class HttpSocketWorker implements Runnable,IMessageEvent {
 
 	private DataOutputStream output;
+	private InputStream input;
 	private Socket clientSocket;
 	
 	private volatile boolean isConnected = true;
@@ -34,19 +35,31 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 	@Override
 	public void run() {
 		
-		while(isConnected) {
+	
+		try {
+			input = clientSocket.getInputStream();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		try {
+			this.output = new DataOutputStream(clientSocket.getOutputStream());
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		String request = "";
+		while(true) {
 			
 			try {
-				
-				InputStream in = clientSocket.getInputStream();
-				ByteArrayOutputStream bos = new ByteArrayOutputStream();
-				this.output = new DataOutputStream(clientSocket.getOutputStream());
-				String request = "";
-				
 				byte[] buffer = new byte[4096];
-				int len = in.read(buffer);
-				bos.write(buffer, 0, len);
-				request = new String(bos.toByteArray(),"utf8");
+				int len = input.read(buffer);
+				this.input.close();
+				//bos.write(buffer, 0, len);
+				request = new String(buffer,"utf8");
+				
 				System.out.print(request);
 				
 				String[] result = request.split("\n");
@@ -79,7 +92,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 		
 			} catch (Exception e) {
 				e.printStackTrace();
-				sendResponse(StaticResources.ERROR_CODE_BAD_REQUEST);
+				break;
 			} 	
 		}
 		return; //Exit thread
@@ -92,19 +105,19 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 	private void sendResponse(String _content) {
 		
 		String statusLine = "HTTP/1.1 200 OK" + "\r\n";
-		String contentTypeLine = "Content-Type: application/json; charset=utf-8" + "\r\n";
+		String contentTypeLine = "Content-Type: text/plain; charset=utf-8" + "\r\n";
 		String connectionLine = "Connection: close\r\n";
 		String allowAllConnection = " Access-Control-Allow-Origin: * "+ "\r\n";
-		String contentLengthLine = "Content-Length: " + _content.length() + "\r\n";
+		String contentLengthLine = "Content-Length: " + _content.length() + "\r\n" + "\r\n";
 		String contentLine = _content;
 		
 		try {	
 			this.output.writeBytes(statusLine);;
+			this.output.writeBytes(connectionLine);
 			this.output.writeBytes(allowAllConnection);
 			this.output.writeBytes(contentTypeLine);
 			this.output.writeBytes(contentLengthLine);
-			this.output.writeBytes(connectionLine);
-			this.output.writeBytes("\r\n");
+			//this.output.writeBytes("\r\n");
 			this.output.writeBytes(contentLine);
 			System.out.print(statusLine);
 			System.out.print(allowAllConnection);
@@ -115,7 +128,6 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 			System.out.print(contentLine);
 			this.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			this.close();
 		}
@@ -127,6 +139,8 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 		this.isConnected = false;
 		try {
 			this.output.close();
+			this.input.close();
+			this.clientSocket.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

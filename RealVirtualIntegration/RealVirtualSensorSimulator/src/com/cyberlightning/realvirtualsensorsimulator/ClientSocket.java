@@ -7,14 +7,8 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Observable;
-
-
-
-
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 
 public class ClientSocket extends Observable implements Runnable, IClientSocket {
@@ -26,9 +20,7 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 	private SocketSender senderWorker;
 	private Thread thread;
 	private int port;
-	
-	
-	private volatile boolean isConnected;
+
 	
 	public static final int DEFAULT_BUFFER_SIZE = 1024;
 	public static final int DEFAULT_INBOUND_SOCKET = 55555;
@@ -36,7 +28,7 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 	public static final int MESSAGE_TYPE_OUTBOUND = 2;
 	public static final int MESSAGE_TYPE_UNKNOWNHOST_ERROR= 3;
 	
-	public static final String SERVER_DEFAULT_ADDRESS = "10.0.2.2";
+	public static final String SERVER_DEFAULT_ADDRESS = "dev.cyberlightning.com";
 	public static final int SERVER_DEFAULT_PORT = 61616;
 
 	
@@ -66,7 +58,7 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 			this.senderWorker = new SocketSender();
 			
 			
-			while(this.isConnected) {
+			while(true) {
 				serverSocket.receive(receivedPacket);
 				handleInboundMessage(receivedPacket);
 			}
@@ -81,20 +73,93 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 
     private void handleInboundMessage(DatagramPacket _packet) {
     	
-    	String payload = null;
+    	String request = null;
 		try {
-			payload = new String (_packet.getData(), "utf8");
+			request = new String (_packet.getData(), "utf8");
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		Message msg = Message.obtain(null, MainActivity.MESSAGE_FROM_SERVER, payload);
-		setChanged();
-		notifyObservers(msg);
-		msg.setTarget(this.application.getTarget());
-		msg.sendToTarget();
+
+		String[] result = request.split("\n");
+		int fromIndex =  result[0].indexOf("?");
+		int toIndex = result[0].indexOf("HTTP");
+		
+		/* Passes the urlencoded query string to appropriate http method handlers*/
+		if (result[0].trim().toUpperCase().contains("POST")) {
+			
+			fromIndex =  result[0].indexOf("/");
+			String content = result[0].substring(fromIndex, toIndex);
+			if (content.trim().contentEquals("/")) {
+				this.handlePOSTMethod(result[result.length-1].toString(), false);
+			} else {
+				this.handlePOSTMethod(content, true);
+			}
+			
+		}
+		else if (result[0].trim().toUpperCase().contains("PUT")) {
+			//this.handlePUTMethod(result[result.length-1].toString());
+		}
+		else if (result[0].trim().toUpperCase().contains("DELETE")) {
+			//this.handleDELETEMethod(result[result.length-1].toString());
+		} 
+		
+		
+		
 	}
+    
+    private void propagateMessage(String _msg, Boolean _sendToUi) {
+    	
+    	Message msg = Message.obtain(null, MainActivity.MESSAGE_FROM_SERVER, _msg);
+    	setChanged();
+    	notifyObservers(msg);
+    	
+    	if (_sendToUi) {
+    		msg.setTarget(this.application.getTarget());
+        	msg.sendToTarget();
+    	}
+	}
+    
+	/**
+	 * 
+	 * @param _content
+	 * @param _isFile
+	 */
+	private void handlePOSTMethod(String _content, boolean _isFile) {
+		
+		String[] queries = _content.split("&");
+		String[] targetUUIDs = null;
+	
+		for (int i = 0; i < queries.length; i++) {
+			
+			if(queries[i].contains("action")) {
+				String[] action = queries[i].split("=");
+				
+				if (action[1].contentEquals("update")) {
+				
+					for (int j = 0; j < queries.length; j++) {
+						
+						if (queries[j].contains("device_id")) {
+							String[] s = queries.clone()[j].trim().split("=");
+							targetUUIDs = s[1].split(","); //check correct regex
+						}
+					}
+
+				}else if (action[1].contentEquals("upload")) {
+					//TODO
+				} 
+			}
+			
+		}
+		if (targetUUIDs == null) {
+			//TODO
+		}
+		
+		this.propagateMessage(_content, true); //TODO check this
+	}
+    
+    
     
 	public class SocketSender implements Runnable {
 		private boolean suspendFlag = true;
@@ -205,10 +270,6 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 	@Override
 	public void end() {
 		this.senderWorker.destroy();
-		this.isConnected = false;
-		
 	}
 	
-	
-
 }
