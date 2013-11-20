@@ -3,7 +3,7 @@ var xmlDoc;
     // Define global parameters
     var crs, boundingbox, layer; // What happens if there are several layers with different bb's?
     // View radius which is used for defining how big area of the layer is fetched from the server
-    var viewAreaRadius = 500000;
+    var viewAreaRadius = 10000;
     
     // Map some id to each layer and use that same id for all options in that layer (crs, bb and so on..)?
 
@@ -70,6 +70,7 @@ var xmlDoc;
 
     function getElements(layerName, lowerCorner, higherCorner, layerCRS ){
         var baseUrl = "http://localhost:9090/geoserver/";
+        var texture_layer = "fiware:pallas_maastokartta";
         var service = "w3ds";
         var version = "0.4.0";
 
@@ -111,6 +112,17 @@ var xmlDoc;
                                         layerCRS);
 
         httpRequest(terrain, addXml3DContent);
+
+
+        var texture = baseUrl + "fiware/wms?service=WMS&amp;version=1.1.0&amp;request=GetMap&amp;layers=" +
+                                        texture_layer + 
+                                        "&amp;styles=&amp;bbox=" + 
+                                        (layerCenterX-viewAreaRadius)+","+
+                                        (layerCenterY-viewAreaRadius)+","+
+                                        (layerCenterX+viewAreaRadius)+","+
+                                        (layerCenterY+viewAreaRadius) + 
+                                        "&amp;width=4096&amp;height=4096&amp;srs=EPSG:404000&amp;format=image%2Fpng"        
+        addTextureToShader(texture);
 
         // Move camera to correct debugging position
         var camera_node = document.getElementById("t_node-camera_player");
@@ -258,6 +270,14 @@ var xmlDoc;
 
     }
 
+    function addTextureToShader(textureUrl) {
+        var shader = document.getElementById("orangePhong");
+        var str = "<texture name=\"diffuseTexture\">\n";
+        str += "<img src=\"" + textureUrl + "\"/>\n" + "</texture>";
+
+        $("#orangePhong").append(str);
+    }
+
     function getTerrainElevationRefPoint(){
         var elevRefpoint = document.getElementsByTagName("mesh")[0].childNodes[1].value[10];
         console.log(elevRefpoint);
@@ -265,8 +285,7 @@ var xmlDoc;
 
     
     window.onload = getGeoserverCapabilities();
-    // window.onload = initApp(); 
-
+    // window.onload = initApp();
 
     // $("#camera_player-camera").bind("DOMAttrModified", function() {
     //     var coordinates = document.getElementById("camera_player-camera");
