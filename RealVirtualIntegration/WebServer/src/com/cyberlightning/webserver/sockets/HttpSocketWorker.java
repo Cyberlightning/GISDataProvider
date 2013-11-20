@@ -1,6 +1,5 @@
 package com.cyberlightning.webserver.sockets;
 
-import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,11 +14,15 @@ import com.cyberlightning.webserver.services.MessageService;
 
 public class HttpSocketWorker implements Runnable,IMessageEvent {
 
+	
 	private DataOutputStream output;
 	private InputStream input;
+	private MessageObject messageObject;
 	private Socket clientSocket;
 	
-	private volatile boolean isConnected = true;
+	private boolean suspendFlag = true;
+	private boolean destroyFlag = false;
+	
 	public final String uuid = UUID.randomUUID().toString();
 	public final int type = StaticResources.HTTP_CLIENT;
 	
@@ -35,67 +38,73 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 	@Override
 	public void run() {
 		
-	
 		try {
-			input = clientSocket.getInputStream();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		try {
+			this.input = clientSocket.getInputStream();
 			this.output = new DataOutputStream(clientSocket.getOutputStream());
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		
-		String request = "";
-		while(true) {
+			byte[] buffer = new byte[4096]; //TODO dynamic size?
+			int len = input.read(buffer);
 			
-			try {
-				byte[] buffer = new byte[4096];
-				int len = input.read(buffer);
-				this.input.close();
-				//bos.write(buffer, 0, len);
-				request = new String(buffer,"utf8");
+			if (len <= 0) {
+				//TODO error check
+			}
+			
+			String request = new String(buffer,"utf8");
+			System.out.print(request);
+			String[] result = request.split("\n");
+			int fromIndex =  result[0].indexOf("?");
+			int toIndex = result[0].indexOf("HTTP");
 				
-				System.out.print(request);
-				
-				String[] result = request.split("\n");
-				int fromIndex =  result[0].indexOf("?");
-				int toIndex = result[0].indexOf("HTTP");
-				
-				/* Passes the urlencoded query string to appropriate http method handlers*/
-				if (result[0].trim().toUpperCase().contains("GET")) {
-					this.handleGETMethod(result[0].substring(fromIndex + 1, toIndex).trim());
-				
+			/* Passes the urlencoded query string to appropriate http method handlers*/
+			if (result[0].trim().toUpperCase().contains("GET")) {
+				this.handleGETMethod(result[0].substring(fromIndex + 1, toIndex).trim());	
+			} else if (result[0].trim().toUpperCase().contains("POST")) {
+				fromIndex =  result[0].indexOf("/");
+				String content = result[0].substring(fromIndex, toIndex);
+				if (content.trim().contentEquals("/")) {
+					this.handlePOSTMethod(result[result.length-1].toString(), false);
+				} else {
+					this.handlePOSTMethod(content, true);
 				}
-				else if (result[0].trim().toUpperCase().contains("POST")) {
 					
-					fromIndex =  result[0].indexOf("/");
-					String content = result[0].substring(fromIndex, toIndex);
-					if (content.trim().contentEquals("/")) {
-						this.handlePOSTMethod(result[result.length-1].toString(), false);
-					} else {
-						this.handlePOSTMethod(content, true);
+			} else if (result[0].trim().toUpperCase().contains("PUT")) {
+				this.handlePUTMethod(result[result.length-1].toString());
+			} else if (result[0].trim().toUpperCase().contains("DELETE")) {
+				this.handleDELETEMethod(result[result.length-1].toString());
+			} else System.out.println(result[0].trim().toUpperCase());
+				
+			synchronized(this) {
+		        while(suspendFlag && !destroyFlag) {
+					try {
+						wait();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						break;
 					}
-					
-				}
-				else if (result[0].trim().toUpperCase().contains("PUT")) {
-					this.handlePUTMethod(result[result.length-1].toString());
-				}
-				else if (result[0].trim().toUpperCase().contains("DELETE")) {
-					this.handleDELETEMethod(result[result.length-1].toString());
-				}
-				else System.out.println(result[0].trim().toUpperCase());
-		
+		        }
+		    }
+			
+			this.sendResponse(this.messageObject.payload.toString().trim());
+			
 			} catch (Exception e) {
-				e.printStackTrace();
-				break;
+				// TODO Auto-generated catch block
+				e.printStackTrace();	
 			} 	
-		}
+		
 		return; //Exit thread
+	}
+	public void suspendThread() {
+	      suspendFlag = true;
+	}
+
+	private synchronized void wakeThread() {
+	      suspendFlag = false;
+	      notify();
+	}
+	
+	private synchronized void destroy() {
+	      this.destroyFlag = true;
+	      notify();
 	}
 	
 	/**
@@ -117,8 +126,8 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 			this.output.writeBytes(allowAllConnection);
 			this.output.writeBytes(contentTypeLine);
 			this.output.writeBytes(contentLengthLine);
-			//this.output.writeBytes("\r\n");
 			this.output.writeBytes(contentLine);
+			
 			System.out.print(statusLine);
 			System.out.print(allowAllConnection);
 			System.out.print(contentTypeLine);
@@ -126,6 +135,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 			System.out.print(connectionLine);
 			System.out.print("\r\n");
 			System.out.print(contentLine);
+			
 			this.close();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -135,8 +145,8 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 	}
 	private void close() {
 		
+		this.destroy();
 		MessageService.getInstance().unregisterReceiver(this.uuid);
-		this.isConnected = false;
 		try {
 			this.output.close();
 			this.input.close();
@@ -161,11 +171,6 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 	 */
 	private void handleDELETEMethod(String _request) {
 		//TODO handDELETEMethod
-	}
-	
-	@Override
-	public void onMessageReceived(MessageObject msg) {
-		this.sendResponse(msg.payload.toString()); 
 	}
 	
 	/**
@@ -284,6 +289,12 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 			MessageService.getInstance().addToMessageBuffer(new MessageObject(this.uuid,StaticResources.HTTP_CLIENT,DataStorageService.getInstance().resolveBaseStationAddresses(targetUUIDs),_content));
 			MessageService.getInstance().wakeThread();
 		}
+	}
+	
+	@Override
+	public void onMessageReceived(MessageObject msg) {
+		this.messageObject = msg;
+		this.wakeThread();
 	}
 }
 
