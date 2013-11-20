@@ -259,7 +259,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 		
 		String[] queries = _content.split("&");
 		String[] targetUUIDs = null;
-	
+		
 		for (int i = 0; i < queries.length; i++) {
 			
 			if(queries[i].contains("action")) {

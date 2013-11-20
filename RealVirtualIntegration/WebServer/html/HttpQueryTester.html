@@ -16,7 +16,7 @@ Maxresults: <input type="text" name="maxResults"><br>
 <br>
 <p>2. Get all data from a specific device. Please form 1 to get IDs first and place that uuid to this form to get response,
  will return only last sensor event recorded"</p>
-<form action="http://dev.cyberlightning.com/" method="get">
+<form action="http://127.0.0.1:44446/" method="get">
 <input type="hidden" name="action" value="loadById">
 Device id: <input type="text" name="device_id"><br>
 Maxresults: <input type="text" name="maxResults"><br>
@@ -24,13 +24,27 @@ Maxresults: <input type="text" name="maxResults"><br>
 </form>
 
 <p>3. POST command tester</p>
-<form action="http://dev.cyberlightning.com/" method="post">
+<form action="http://127.0.0.1:44446/" method="post">
 <input type="hidden" name="action" value="update">
 Device id: <input type="text" name="device_id"><br>
 Sensor id: <input type="text" name="sensor_id"><br>
 Parameter: <input type="text" name="parameter"><br>
 New value: <input type="text" name="value"><br>
 <input type="submit" value="Submit">
+</form>
+
+<form action="http://127.0.0.1:44446" enctype="multipart/form-data" method="post">
+<p>
+Type some text (if you like):<br>
+<input type="text" name="textline" size="30">
+</p>
+<p>
+Please specify a file, or a set of files:<br>
+<input type="file" name="datafile" size="40">
+</p>
+<div>
+<input type="submit" value="Send">
+</div>
 </form>
 
 </body>
