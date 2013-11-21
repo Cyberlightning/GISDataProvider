@@ -47,6 +47,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 			
 			if (len <= 0) {
 				//TODO error check
+				System.out.println("len: " +len);
 			}
 			
 			String request = new String(buffer,"utf8");
@@ -163,7 +164,8 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 	 * @param _request
 	 */
 	private void handlePUTMethod(String _request) {
-		//TODO handPUTMethod
+		this.messageObject = new MessageObject(StaticResources.ERROR_CODE_METHOD_NOT_ALLOWED);
+		this.wakeThread();
 	}
 	
 	/**
@@ -171,7 +173,8 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 	 * @param _request
 	 */
 	private void handleDELETEMethod(String _request) {
-		//TODO handDELETEMethod
+		this.messageObject = new MessageObject(StaticResources.ERROR_CODE_METHOD_NOT_ALLOWED);
+		this.wakeThread();
 	}
 	
 	/**
@@ -185,10 +188,13 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 		int max = 0;
 		
 		for (int i = 0; i < queries.length; i++) {
+			
 			if(queries[i].contains("action")) {
 				String[] action = queries[i].split("=");
+				
 				if (action[1].contentEquals("loadById")) {
 					String[] device = null;
+					
 					for (int j = 0; j < queries.length;j++) {
 						if (queries[j].contains("device_id")) {
 							device = queries[j].split("=");
@@ -202,10 +208,13 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 							}
 						}
 					}
+					
 					if (device[1] == null || max < 0) {
-						sendResponse(StaticResources.ERROR_CODE_BAD_REQUEST);
+						this.messageObject = new MessageObject(StaticResources.ERROR_CODE_BAD_REQUEST);
+						this.wakeThread();
 					} else {
-						sendResponse(DataStorageService.getInstance().getEntryById(device[1], max));
+						this.messageObject = new MessageObject(DataStorageService.getInstance().getEntryById(device[1], max));
+						this.wakeThread();
 					}
 					
 				} else if (action[1].contentEquals("loadBySpatial")) {
@@ -241,12 +250,15 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 						}
 					}
 					if (lat == null || lon == null || radius < 1 || max < 0) {
-						sendResponse(StaticResources.ERROR_CODE_BAD_REQUEST);
+						this.messageObject = new MessageObject(StaticResources.ERROR_CODE_BAD_REQUEST);
+						this.wakeThread();
 					} else {
-						sendResponse(DataStorageService.getInstance().getEntriesByParameter(new SpatialQuery(Float.parseFloat(lat),Float.parseFloat(lon),radius,max)));
+						this.messageObject = new MessageObject(DataStorageService.getInstance().getEntriesByParameter(new SpatialQuery(Float.parseFloat(lat),Float.parseFloat(lon),radius,max)));
+						this.wakeThread();	
 					}
 					
-				} 
+				}
+				break;
 			}
 		}
 	}

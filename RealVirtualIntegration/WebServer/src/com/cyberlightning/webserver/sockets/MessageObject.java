@@ -12,6 +12,9 @@ public class MessageObject  {
 	public String originUUID;
 	public ArrayList<InetSocketAddress> targetAddresses;
 	
+	public MessageObject (Object _payload) {
+		this.payload = _payload;
+	}
 	public MessageObject(String _origin, int _originType, Object _payload){
 		this.payload = _payload;
 		this.originUUID = _origin;
