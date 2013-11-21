@@ -76,6 +76,7 @@ public abstract class StaticResources {
 	public static final int HTTP_CLIENT = 0;
 	public static final int TCP_CLIENT = 1;
 	public static final int UDP_RECEIVER = 2;
+	public static final int UDP_RESPONSE = 3;
 	
 	public static final int QUERY_SPATIAL_CIRCLE = 0;
 	public static final int QUERY_SPATIA_BOUNDING_BOX = 1;
@@ -86,6 +87,7 @@ public abstract class StaticResources {
 	public static final int HTTP_POST_FILE = 1;
 	public static final int HTTP_POST_NON_FILE = 2;
 	
+	public static final String HTTP_CODE_OK = "200 OK";
 	public static final String ERROR_CODE_BAD_REQUEST = "ERROR 400 BAD REQUEST";
 	public static final String ERROR_CODE_METHOD_NOT_ALLOWED = "ERROR 405 METHOD NOT ALLOWED";
 	public static final String ERROR_CODE_NOT_FOUND = "ERROR 404 NOT FOUND";

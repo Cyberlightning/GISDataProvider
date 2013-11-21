@@ -6,6 +6,7 @@ var xmlDoc;
     var camHeightOffset = 1000;
     var currentTerrainElevRefPoint = 0;
 
+
     var screenHeight = $(document).height()-100;
     var screenWidth = $(document).width();
 
@@ -41,6 +42,7 @@ var xmlDoc;
     // layerCRS = Layer CRS
     function getElements(layerName, lowerCornerX, lowerCornerY, higherCornerX, higherCornerY, layerCRS ){
         var baseUrl = "http://localhost:9090/geoserver/";
+        var texture_layer = "fiware:pallas_maastokartta";
         var service = "w3ds";
         var version = "0.4.0";
 
@@ -60,7 +62,23 @@ var xmlDoc;
 
         httpRequest(terrain, layerName, addXml3DContent);
 
+
+        var texture = baseUrl + "fiware/wms?service=WMS&amp;version=1.1.0&amp;request=GetMap&amp;layers=" +
+                                        texture_layer + 
+                                        "&amp;styles=&amp;bbox=" + 
+                                        lowerCornerX+","+
+                                        lowerCornerY+","+
+                                        higherCornerX+","+
+                                        higherCornerY + 
+                                        "&amp;width=4096&amp;height=4096&amp;srs=EPSG:404000&amp;format=image%2Fpng"        
+        addTextureToShader(texture);
+
+//         // Move camera to correct debugging position
+//         var camera_node = document.getElementById("t_node-camera_player");
+
+
     }
+
 
 
     // Used only when new layer is request
@@ -263,6 +281,15 @@ var xmlDoc;
         }
     }
 
+
+    function addTextureToShader(textureUrl) {
+        var shader = document.getElementById("orangePhong");
+        var str = "<texture name=\"diffuseTexture\">\n";
+        str += "<img src=\"" + textureUrl + "\"/>\n" + "</texture>";
+
+        $("#orangePhong").append(str);
+    }
+
     // parse XML3D object and fetch first elevation point to be used as reference elevation for camera
     function getTerrainElevationRefPoint(){
         var meshObjects = document.getElementsByTagName("mesh");
@@ -279,10 +306,8 @@ var xmlDoc;
         
     }
 
-    
     window.onload = getGeoserverCapabilities();
-    // window.onload = initApp(); 
-
+    
     function calculateCurrentPosLayerBlock(currentX, currentY){
         // console.log("calculateCurrentPosLayerBlock:currentX, currentY "+currentX, currentY);    
         var MinX, MinY, MaxX, MaxY, blocklengthX, blocklengthY;
@@ -360,6 +385,8 @@ var xmlDoc;
             calculateCurrentPosLayerBlock(currentX, currentY);    
         }
     })
+
+    
     
 
 }());

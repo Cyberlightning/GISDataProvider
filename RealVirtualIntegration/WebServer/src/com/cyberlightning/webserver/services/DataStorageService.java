@@ -87,7 +87,6 @@ public class DataStorageService implements Runnable {
 	 */
 	public void addEntry (DatagramPacket _data) throws IOException {
 		
-		if(this.saveInProcessFlag) addEntry(_data); //call recursively untill save process complete
 		String data;
 		if(Gzip.isCompressed(_data.getData())) data = Gzip.decompress(_data.getData());
 		else data = new String(_data.getData(),"utf8");
@@ -117,7 +116,7 @@ public class DataStorageService implements Runnable {
 		
 		String jsonString = null;
 		ArrayList<Entity> entities = new ArrayList<Entity>();
-		EntityTable persistentEntityTable = this.loadData(true);
+		EntityTable persistentEntityTable = this.loadData();
 		Entity e = persistentEntityTable.getEntity(_uuid);
 		if (e != null) {
 			entities.add(e);
@@ -157,9 +156,8 @@ public class DataStorageService implements Runnable {
 	}
 	
 	@SuppressWarnings("unused")
-	private EntityTable loadData(Boolean _isQuery) {
+	private EntityTable loadData() {
 		
-		if (this.saveInProcessFlag && _isQuery) loadData(_isQuery); // if save in process call recursively untill complete to avoid concurrency problems
 		EntityTable dbFile = null;
 		try {
 			FileInputStream data = new FileInputStream(StaticResources.DATABASE_FILE_NAME);
@@ -185,7 +183,7 @@ public class DataStorageService implements Runnable {
 	public ArrayList<Entity> getEntitiesBySpatialCircle(Float _lat, Float _lon, int _radius) {
 		
 		ArrayList<Entity> includedEntities = new ArrayList<Entity>();
-		EntityTable persistentEntityTable = this.loadData(true);
+		EntityTable persistentEntityTable = this.loadData();
 		Iterator<RowEntry> rows = persistentEntityTable.entities.keySet().iterator();
 		while (rows.hasNext()) {
 			RowEntry row = rows.next();
@@ -207,16 +205,19 @@ public class DataStorageService implements Runnable {
 	 */
 	public ArrayList<InetSocketAddress> resolveBaseStationAddresses(String[] _uuids) {
 		ArrayList<InetSocketAddress> addresses = new ArrayList<InetSocketAddress>();
-		
+		EntityTable persistentEntityTable = this.loadData();
 		for(String uuid : _uuids) {
 			
-			Entity e = entityTable.getEntity(uuid);
+			Entity e = persistentEntityTable.getEntity(uuid);
+			
 			if (e != null) {
 				if (this.baseStationReferences.containsKey(e.contextUUID) && !addresses.contains(this.baseStationReferences.get(e.contextUUID))) {
 					addresses.add(this.baseStationReferences.get(e.contextUUID));
+					
 				} 
 			}
 		}
+		System.out.println("returned addresses " + addresses);
 		return addresses;
 	}
 	
@@ -285,8 +286,13 @@ public class DataStorageService implements Runnable {
 			while (i.hasNext()) {
 				String key = i.next();
 				try {
-					this.addEntry(this.eventBuffer.get(key));
-					this.eventBuffer.remove(key);
+					if (this.saveInProcessFlag) {
+						break;
+					} else {
+						this.addEntry(this.eventBuffer.get(key));
+						this.eventBuffer.remove(key);
+					}
+		
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -308,15 +314,15 @@ public class DataStorageService implements Runnable {
 					e.printStackTrace();
 				}
 				if (entityTable.entities.isEmpty()) continue;
-				
+				if (!suspendFlag) continue;
 				saveInProcessFlag = true;
-				EntityTable oldEntities = loadData(false);
+				EntityTable oldEntities = loadData();
 				entityTable.appendOldEntities(oldEntities.entities);
 				saveData(entityTable,StaticResources.DATABASE_FILE_NAME);
 				entityTable.clearAll();
 				saveData(baseStationReferences, StaticResources.REFERENCE_TABLE_FILE_NAME);
-				baseStationReferences.clear();
 				saveInProcessFlag = false;
+				if (!eventBuffer.isEmpty()) wakeThread();
 			}
 			
 		}
