@@ -34,7 +34,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	private boolean destroyFlag = false;
 	private volatile boolean isBusy = false;
 
-	public static final long SENSOR_EVENT_INTERVAL = 10000;
+	public static final long SENSOR_EVENT_INTERVAL = 2000;
     
 	public SensorListener(MainActivity _activity) {
 		this.application = _activity;
@@ -53,6 +53,9 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	            while(suspendFlag && !destroyFlag) {
 					try {
 						wait();
+						isBusy = true;
+						Thread.sleep(SENSOR_EVENT_INTERVAL); //TODO check whether can be done better
+						
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -62,7 +65,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	            if (destroyFlag) break; 
 	        }
 			
-			isBusy = true;
+		
 			
 			while(!this.eventBuffer.isEmpty()) {
 				String key = JsonParser.resolveSensorTypeById(this.eventBuffer.peek().sensor.getType());

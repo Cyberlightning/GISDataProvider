@@ -4,7 +4,6 @@ package com.cyberlightning.realvirtualsensorsimulator;
 
 import java.util.Observable;
 import java.util.Observer;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.example.realvirtualsensorsimulator.R;
 
@@ -14,24 +13,22 @@ import android.os.Looper;
 import android.os.Message;
 import android.provider.Settings.Secure;
 import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Context;
-import android.text.method.ScrollingMovementMethod;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
+import android.view.MenuItem;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class MainActivity extends Activity implements Observer,IMainActivity {
 	
 	private IClientSocket clientSocket;
-	private ISensorListener sensorListener;
+	public ISensorListener sensorListener;
 
 	private TextView receivedMessages;
 	private TextView sendMessages;
+	private MainViewFragment mainViewFragment;
 	
 	public static String deviceId;
 	public static String deviceName = "Android device";
@@ -51,24 +48,33 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
         public void handleMessage(Message _msg) {
             switch (_msg.what) {
             case MESSAGE_FROM_SENSOR_LISTENER: 
-            	sendMessages.setText(_msg.obj.toString());
+            	//((TextView)mainViewFragment.getView().findViewById(R.id.outboundMessagesDisplay)).setText(_msg.obj.toString());
             	break;
             case MESSAGE_FROM_SERVER: //TODO draw to UI
-            	receivedMessages.append(_msg.obj.toString());
+            	((TextView)mainViewFragment.getView().findViewById(R.id.inboundMessagesDisplay)).setText(_msg.obj.toString());
             	break;
-      
             }
-       
         }
-      
     };
 	
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-     
+
+        setContentView(R.layout.main);
+        FragmentManager fm = getFragmentManager();
+        Fragment fragment = fm.findFragmentById(R.id.fragment_content); 
+        if (fragment == null ){
+            FragmentTransaction ft = fm.beginTransaction();
+            this.mainViewFragment = new MainViewFragment();
+            ft.add(R.id.fragment_content,  this.mainViewFragment);
+            ft.commit();
+        }
+        
+        
+        this.sendMessages = (TextView)findViewById(R.id.outboundMessagesDisplay);
+        
         if (savedInstanceState != null) {
 			this.sendMessages.setText(savedInstanceState.getString(STATE_SEND_MESSAGES));
 			this.receivedMessages.setText(savedInstanceState.getString(STATE_RECEIVED_MESSAGES));
@@ -90,9 +96,10 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+        getMenuInflater().inflate(R.menu.menu, menu);
         return true;
     }
+    
     @Override
 	public void onResume() {
 		super.onResume();
@@ -113,6 +120,26 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
     	super.onDestroy(); 
     }
     
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+       
+        switch (item.getItemId()) {
+            case R.id.action_settings: this.onSettingsItemClicked();
+            	return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+    
+    private void onSettingsItemClicked() {
+    	FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+        fragmentTransaction.replace(R.id.fragment_content, new SettingsFragment());
+        fragmentTransaction.commit();
+      
+
+    }
+  
+    
 //    private void showToast(String _message) {
 //    	
 //	    LayoutInflater inflater = getLayoutInflater();
@@ -131,23 +158,13 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
     
    
     private void StartApplication() {
-    	this.receivedMessages = (TextView)findViewById(R.id.inboundMessagesDisplay);
-		this.sendMessages = (TextView)findViewById(R.id.outboundMessagesDisplay);
-		this.receivedMessages.setMovementMethod(new ScrollingMovementMethod());
-		this.sendMessages.setMovementMethod(new ScrollingMovementMethod());
-		
-		
-
-		
-		ClientSocket clientSocket= new ClientSocket(this);
+    	ClientSocket clientSocket= new ClientSocket(this);
 		clientSocket.addObserver(this);
 		this.clientSocket = clientSocket;
 		
 		SensorListener sensorListener = new SensorListener(this);
 		sensorListener.addObserver(this);
 		this.sensorListener = sensorListener;
-		
-	
     }
     
 
@@ -166,7 +183,9 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
 	@Override
     public void update(Observable observable, Object data) {
             if (observable instanceof ClientSocket) {
-                   //TODO handle input commands
+            		
+                   this.sensorListener.toggleSensor(1); //TODO implement
+                   
                     
             } else if (observable instanceof SensorListener) {
                     this.clientSocket.sendMessage((Message)data);
