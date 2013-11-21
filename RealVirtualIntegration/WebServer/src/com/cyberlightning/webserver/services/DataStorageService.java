@@ -20,7 +20,7 @@ import com.cyberlightning.webserver.entities.SpatialQuery;
 
 /**
  * 
- * @author Tomi
+ * @author Cyberlightning Ltd. (tomi.sarni@cyberlightning.com)
  *
  */
 public class DataStorageService implements Runnable {

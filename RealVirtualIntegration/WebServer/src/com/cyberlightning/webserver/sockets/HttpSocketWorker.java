@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.util.UUID;
 
+
 import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.entities.SpatialQuery;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
@@ -60,10 +61,10 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 			} else if (result[0].trim().toUpperCase().contains("POST")) {
 				fromIndex =  result[0].indexOf("/");
 				String content = result[0].substring(fromIndex, toIndex);
-				if (content.trim().contentEquals("/")) {
-					this.handlePOSTMethod(result[result.length-1].toString(), false);
-				} else {
+				if (content.trim().contentEquals("/upload")) {
 					this.handlePOSTMethod(content, true);
+				} else {
+					this.handlePOSTMethod(result[result.length-1].toString(), false);
 				}
 					
 			} else if (result[0].trim().toUpperCase().contains("PUT")) {
@@ -259,30 +260,29 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 		
 		String[] queries = _content.split("&");
 		String[] targetUUIDs = null;
-		
-		for (int i = 0; i < queries.length; i++) {
+		if (_isFile) {
 			
-			if(queries[i].contains("action")) {
-				String[] action = queries[i].split("=");
+		} else {
+			
+			for (int i = 0; i < queries.length; i++) {
 				
-				if (action[1].contentEquals("update")) {
-				
-					for (int j = 0; j < queries.length; j++) {
-						
-						if (queries[j].contains("device_id")) {
-							String[] s = queries.clone()[j].trim().split("=");
-							targetUUIDs = s[1].split(","); //check correct regex
+				if(queries[i].contains("action")) {
+					String[] action = queries[i].split("=");
+					
+					if (action[1].contentEquals("update")) {
+					
+						for (int j = 0; j < queries.length; j++) {
+							
+							if (queries[j].contains("device_id")) {
+								String[] s = queries.clone()[j].trim().split("=");
+								targetUUIDs = s[1].split(","); //check correct regex
+							}
 						}
 					}
-
-				}else if (action[1].contentEquals("upload")) {
-					
-					//File file = new File("marker.bmp");
-					//sendResponse(SimulateSensorResponse.uploadFile(file));
-				} 
+				}	
 			}
-			
 		}
+		
 		if (targetUUIDs == null) {
 			sendResponse(StaticResources.ERROR_CODE_BAD_REQUEST);
 		} else {
