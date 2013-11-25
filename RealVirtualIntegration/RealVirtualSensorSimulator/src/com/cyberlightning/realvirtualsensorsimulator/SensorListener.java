@@ -2,11 +2,14 @@ package com.cyberlightning.realvirtualsensorsimulator;
 
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Observable;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -96,13 +99,27 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	      this.destroyFlag = true;
 	      notify();
 	}
+	private Set<String> loadSettings() {
+		Set<String> defaultValues =  new HashSet<String>( this.deviceSensors.size());
+		for (Sensor sensor: this.deviceSensors) {
+			defaultValues.add(Integer.toString(sensor.getType()));
+		}
+		SharedPreferences settings = this.application.getContext().getSharedPreferences(SettingsFragment.PREFS_NAME, 0);
+		Set<String> sensors = settings.getStringSet(SettingsFragment.SHARED_SENSORS, defaultValues);
+		
+		return sensors;
+	}
 	
 	private void registerSensorListeners(){
 			
 		this.deviceSensors = ((SensorManager) this.application.getContext().getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).getSensorList(Sensor.TYPE_ALL);
-
+		Set<String> selectedSensors = this.loadSettings();
+		
 		for (Sensor sensor : this.deviceSensors) {
-			((SensorManager) this.application.getContext().getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+			if (selectedSensors.contains(JsonParser.resolveSensorTypeById(sensor.getType()))) {
+				((SensorManager) this.application.getContext().getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+				
+			}
 		}
 		
 		LocationManager locationManager = (LocationManager)this.application.getContext().getSystemService(Context.LOCATION_SERVICE);

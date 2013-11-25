@@ -17,9 +17,14 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity implements Observer,IMainActivity {
 	
@@ -29,6 +34,7 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
 	private TextView receivedMessages;
 	private TextView sendMessages;
 	private MainViewFragment mainViewFragment;
+	private SettingsFragment settingsFragment;
 	
 	public static String deviceId;
 	public static String deviceName = "Android device";
@@ -112,7 +118,10 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
   
     @Override
     public void onBackPressed() {
-    	//TODO onBackPressed()
+    	if (this.settingsFragment != null){
+    		this.settingsFragment.onBackPressed();
+    		this.onMainItemClicked();
+    	}
     }
   
     @Override
@@ -124,8 +133,12 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
        
         switch (item.getItemId()) {
-            case R.id.action_settings: this.onSettingsItemClicked();
+            case R.id.menu_settings: this.onSettingsItemClicked();
             	return true;
+            case R.id.menu_main: 
+            		this.onMainItemClicked();
+            		if (this.settingsFragment.isVisible() && this.settingsFragment != null) this.settingsFragment.onBackPressed();
+        		return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -133,28 +146,34 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
     
     private void onSettingsItemClicked() {
     	FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-        fragmentTransaction.replace(R.id.fragment_content, new SettingsFragment());
+    	this.settingsFragment = new SettingsFragment();
+        fragmentTransaction.replace(R.id.fragment_content, this.settingsFragment);
         fragmentTransaction.commit();
-      
-
+    }
+    
+    private void onMainItemClicked() {
+    	
+    	FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+        fragmentTransaction.replace(R.id.fragment_content,this.mainViewFragment);
+        fragmentTransaction.commit();
     }
   
     
-//    private void showToast(String _message) {
-//    	
-//	    LayoutInflater inflater = getLayoutInflater();
-//	    View layout = inflater.inflate(R.layout.toast_layout,(ViewGroup) findViewById(R.id.toast_layout_root));
-//
-//	    TextView text = (TextView) layout.findViewById(R.id.text);
-//	    text.setText(_message);
-//
-//	    Toast toast = new Toast(getApplicationContext());
-//	    toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
-//	    toast.setDuration(Toast.LENGTH_LONG);
-//	    toast.setView(layout);
-//	    toast.show();
-//	    	
-//	}
+    public void showToast(String _message) {
+    	
+	    LayoutInflater inflater = getLayoutInflater();
+	    View layout = inflater.inflate(R.layout.custom_toast,(ViewGroup) findViewById(R.id.toast_layout_root));
+
+	    TextView text = (TextView) layout.findViewById(R.id.text);
+	    text.setText(_message);
+
+	    Toast toast = new Toast(getApplicationContext());
+	    toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+	    toast.setDuration(Toast.LENGTH_LONG);
+	    toast.setView(layout);
+	    toast.show();
+	    	
+	}
     
    
     private void StartApplication() {
