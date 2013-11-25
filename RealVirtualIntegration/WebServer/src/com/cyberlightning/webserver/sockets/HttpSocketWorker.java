@@ -45,7 +45,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 			byte[] buffer = new byte[4096]; //TODO dynamic size?
 			int len = input.read(buffer);
 			
-			if (len <= 0) {
+			if (len <= 0 || len > 4097) {
 				//TODO error check
 				System.out.println("len: " +len);
 			}
@@ -268,7 +268,7 @@ public class HttpSocketWorker implements Runnable,IMessageEvent {
 	 * @param _content
 	 * @param _isFile
 	 */
-	private void handlePOSTMethod(String _content, boolean _isFile) {
+	public void handlePOSTMethod(String _content, boolean _isFile) {
 		
 		String[] queries = _content.split("&");
 		String[] targetUUIDs = null;
