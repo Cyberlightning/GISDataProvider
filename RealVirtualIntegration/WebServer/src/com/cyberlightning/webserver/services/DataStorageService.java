@@ -154,8 +154,7 @@ public class DataStorageService implements Runnable {
 		else return TranslationService.encodeJson(entities,_query.maxResults);
 		
 	}
-	
-	@SuppressWarnings("unused")
+
 	private EntityTable loadData() {
 		
 		EntityTable dbFile = null;

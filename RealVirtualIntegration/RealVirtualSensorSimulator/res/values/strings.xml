@@ -4,6 +4,7 @@
     <string name="app_name">RealVirtualSensorSimulator</string>
     <string name="menu_settings">Settings</string>
     <string name="menu_main">Main</string>
+    <string name="menu_quit">Quit</string>
     <string name="view_inbound_messages">Received Transmissions:</string>
     <string name="view_status_title">Send Transmissions:</string>
     <string name="settings_address_hint">Type in server address</string>

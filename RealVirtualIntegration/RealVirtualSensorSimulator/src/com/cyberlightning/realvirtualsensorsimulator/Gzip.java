@@ -2,13 +2,10 @@ package com.cyberlightning.realvirtualsensorsimulator;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import android.util.Log;
 
 public class Gzip {
 

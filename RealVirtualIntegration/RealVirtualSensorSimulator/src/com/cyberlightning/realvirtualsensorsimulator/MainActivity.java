@@ -126,6 +126,9 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
   
     @Override
     protected void onDestroy() {
+    	this.sensorListener.end();
+    	this.clientSocket.end();
+    	this.finish();
     	super.onDestroy(); 
     }
     
@@ -141,6 +144,7 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
             			if (this.settingsFragment.isVisible())this.settingsFragment.onBackPressed();
             		}
         		return true;
+            case R.id.menu_quit: this.onDestroy();
             default:
                 return super.onOptionsItemSelected(item);
         }

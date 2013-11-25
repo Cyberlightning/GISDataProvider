@@ -7,7 +7,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Observable;
-import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.content.SharedPreferences;
