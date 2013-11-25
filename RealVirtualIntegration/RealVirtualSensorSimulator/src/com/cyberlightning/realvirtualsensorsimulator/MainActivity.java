@@ -137,7 +137,9 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
             	return true;
             case R.id.menu_main: 
             		this.onMainItemClicked();
-            		if (this.settingsFragment.isVisible() && this.settingsFragment != null) this.settingsFragment.onBackPressed();
+            		if (this.settingsFragment != null) {
+            			if (this.settingsFragment.isVisible())this.settingsFragment.onBackPressed();
+            		}
         		return true;
             default:
                 return super.onOptionsItemSelected(item);

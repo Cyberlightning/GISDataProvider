@@ -24,22 +24,22 @@
         </LinearLayout>
         
          <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/view_inbound_messages"
-        android:textColor="#FFF"/>
+        	android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+        	android:text="@string/view_inbound_messages"
+        	android:textColor="#FFF"/>
         <LinearLayout android:id="@+id/inboundMessagesDisplayHolder"
-         android:layout_width="fill_parent"
-         android:layout_height="0dp"
-         android:layout_weight="1"
-         android:padding="8dp"
-         android:background="@drawable/border">
+         	android:layout_width="fill_parent"
+         	android:layout_height="0dp"
+         	android:layout_weight="1"
+         	android:padding="8dp"
+         	android:background="@drawable/border">
         <TextView
-        android:id="@+id/inboundMessagesDisplay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="#66CCFF"
-                 android:textSize="12sp"/>
+        	android:id="@+id/inboundMessagesDisplay"
+       	 	android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+        	android:textColor="#66CCFF"
+            android:textSize="12sp"/>
         </LinearLayout>
 
 </LinearLayout>

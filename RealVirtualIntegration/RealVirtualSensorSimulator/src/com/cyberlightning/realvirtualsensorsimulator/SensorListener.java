@@ -33,6 +33,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	private Location location;
 	private Thread thread;
 	
+	private long sensorEventInterval;
 	private boolean suspendFlag = true;
 	private boolean destroyFlag = false;
 	private volatile boolean isBusy = false;
@@ -57,7 +58,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 					try {
 						wait();
 						isBusy = true;
-						Thread.sleep(SENSOR_EVENT_INTERVAL); //TODO check whether can be done better
+						Thread.sleep(this.sensorEventInterval); //TODO check whether can be done better
 						
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
@@ -106,7 +107,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		}
 		SharedPreferences settings = this.application.getContext().getSharedPreferences(SettingsFragment.PREFS_NAME, 0);
 		Set<String> sensors = settings.getStringSet(SettingsFragment.SHARED_SENSORS, defaultValues);
-		
+		this.sensorEventInterval = settings.getLong(SettingsFragment.SHARED_INTERVAL,SENSOR_EVENT_INTERVAL);
 		return sensors;
 	}
 	
@@ -203,7 +204,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		
 	/**
 	 * 
-	 * @author tomi
+	 * @author Cyberlightning Ltd. <tomi.sarni@cyberlightning.com>
 	 *
 	 */
 	private class GpsListener implements LocationListener {

@@ -7,8 +7,10 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Observable;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import android.content.SharedPreferences;
 import android.os.Message;
 
 public class ClientSocket extends Observable implements Runnable, IClientSocket {
@@ -20,6 +22,7 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 	private SocketSender senderWorker;
 	private Thread thread;
 	private int port;
+	private int serverPort;
 
 	
 	public static final int DEFAULT_BUFFER_SIZE = 1024;
@@ -203,7 +206,7 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 					e1.printStackTrace();
 				}
 				
-				DatagramPacket packet = new DatagramPacket(payloadBuffer, payloadBuffer.length,serverAddress,SERVER_DEFAULT_PORT);
+				DatagramPacket packet = new DatagramPacket(payloadBuffer, payloadBuffer.length,serverAddress,serverPort);
 				try {
 					serverSocket.send(packet);
 				} catch (IOException e) {
@@ -218,9 +221,11 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 		}
 		
 		private boolean resolveServerAddress() {
-	    	
+			SharedPreferences settings = application.getContext().getSharedPreferences(SettingsFragment.PREFS_NAME, 0);
 			try {
-				serverAddress = InetAddress.getByName(SERVER_DEFAULT_ADDRESS);
+				String address = settings.getString(SettingsFragment.SHARED_ADDRESS, SERVER_DEFAULT_ADDRESS);
+				serverAddress = InetAddress.getByName(address);
+				serverPort = settings.getInt(SettingsFragment.SHARED_PORT, SERVER_DEFAULT_PORT);
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

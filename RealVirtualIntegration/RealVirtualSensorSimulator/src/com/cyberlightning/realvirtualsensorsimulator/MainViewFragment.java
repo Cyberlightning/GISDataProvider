@@ -18,7 +18,7 @@ public class MainViewFragment extends Fragment {
 	@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		
-        View view = inflater.inflate(R.layout.events_fragment, container, false);
+        View view = inflater.inflate(R.layout.events, container, false);
 
         this.receivedMessages = (TextView)getActivity().findViewById(R.id.inboundMessagesDisplay);
 		this.sendMessages = (TextView)getActivity().findViewById(R.id.outboundMessagesDisplay);
