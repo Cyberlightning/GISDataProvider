@@ -38,11 +38,10 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	private boolean destroyFlag = false;
 	private volatile boolean isBusy = false;
 
-	public static final long SENSOR_EVENT_INTERVAL = 2000;
+	public static final long SENSOR_EVENT_INTERVAL = 4000;
     
 	public SensorListener(MainActivity _activity) {
 		this.application = _activity;
-		this.registerSensorListeners();
 		this.thread = new Thread(this);
 		this.thread.start();
 	}
@@ -73,13 +72,21 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 			
 			while(!this.eventBuffer.isEmpty()) {
 				String key = JsonParser.resolveSensorTypeById(this.eventBuffer.peek().sensor.getType());
+				
 				if (key != null){
 					copy.put(key, this.eventBuffer.poll());
+					
+					
 				}else {
 					this.eventBuffer.poll();
 				}
 			}
-			this.sendMessage(JsonParser.createFromSensorEvent(copy, location));
+			this.sendMessageToServer(JsonParser.createFromSensorEvent(copy, location));
+			Set<String> keys = copy.keySet();
+			for (String key : keys) {
+				this.sendMessageToUI(key + ": " + JsonParser.getTimeStamp());
+			}
+			
 			this.suspendThread();
 			isBusy = false;
 			
@@ -146,10 +153,13 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		((SensorManager) this.application.getContext().getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).unregisterListener(this);
 	}
 	
-	private void sendMessage(String _payload) {
-		Message msg = Message.obtain(null, MainActivity.MESSAGE_FROM_SENSOR_LISTENER, _payload.toString());
+	private void sendMessageToServer(String _payload) {
 		setChanged();
-		notifyObservers(Message.obtain(null,  MainActivity.MESSAGE_FROM_SENSOR_LISTENER, _payload.toString()));
+		notifyObservers(Message.obtain(null,  MainActivity.MESSAGE_FROM_SENSOR_LISTENER, _payload));	
+	}
+	
+	private void sendMessageToUI(String _payload) {
+		Message msg = Message.obtain(null, MainActivity.MESSAGE_FROM_SENSOR_LISTENER, _payload);
 		msg.setTarget(this.application.getTarget());
 		msg.sendToTarget();
 	}
@@ -173,8 +183,9 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	
 	@Override
 	public void pause() {
-		this.unregisterAllSensors();
 		this.suspendThread();
+		this.unregisterAllSensors();
+		
 	}
 
 

@@ -29,21 +29,13 @@ import android.widget.Toast;
 public class MainActivity extends Activity implements Observer,IMainActivity {
 	
 	private IClientSocket clientSocket;
-	public ISensorListener sensorListener;
-
-	private TextView receivedMessages;
-	private TextView sendMessages;
 	private MainViewFragment mainViewFragment;
 	private SettingsFragment settingsFragment;
 	
+	public ISensorListener sensorListener;
+	
 	public static String deviceId;
 	public static String deviceName = "Android device";
-	
-	
-	
-	// Tags to store saved instance state of this activity
-	private static final String STATE_RECEIVED_MESSAGES = "StateReceivedMessages";
-	private static final String STATE_SEND_MESSAGES = "StateSendMessages";
 	
 	public static final int MESSAGE_FROM_SENSOR_LISTENER = 1;
 	public static final int MESSAGE_FROM_SERVER = 2;
@@ -53,11 +45,9 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
 		@Override
         public void handleMessage(Message _msg) {
             switch (_msg.what) {
-            case MESSAGE_FROM_SENSOR_LISTENER: 
-            	//((TextView)mainViewFragment.getView().findViewById(R.id.outboundMessagesDisplay)).setText(_msg.obj.toString());
+            case MESSAGE_FROM_SENSOR_LISTENER: 	mainViewFragment.addNewMessage(_msg.obj.toString(), false);
             	break;
-            case MESSAGE_FROM_SERVER: //TODO draw to UI
-            	((TextView)mainViewFragment.getView().findViewById(R.id.inboundMessagesDisplay)).setText(_msg.obj.toString());
+            case MESSAGE_FROM_SERVER: 			mainViewFragment.addNewMessage(_msg.obj.toString(), true);
             	break;
             }
         }
@@ -78,26 +68,12 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
             ft.commit();
         }
         
-        
-        this.sendMessages = (TextView)findViewById(R.id.outboundMessagesDisplay);
-        
-        if (savedInstanceState != null) {
-			this.sendMessages.setText(savedInstanceState.getString(STATE_SEND_MESSAGES));
-			this.receivedMessages.setText(savedInstanceState.getString(STATE_RECEIVED_MESSAGES));
-		}
         deviceId = Secure.getString((getApplicationContext().getContentResolver()), Secure.ANDROID_ID);
         this.StartApplication();
 	
     }
     
-    @Override
-	public void onSaveInstanceState(Bundle saveState) {
-		// TODO save states of relevant objects here
-		saveState.putString(STATE_RECEIVED_MESSAGES, this.receivedMessages.getText().toString());
-		saveState.putString(STATE_SEND_MESSAGES, this.sendMessages.getText().toString());
-		
-		super.onSaveInstanceState(saveState);
-	}
+   
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

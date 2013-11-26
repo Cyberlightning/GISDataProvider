@@ -16,5 +16,8 @@
     <string name="settings_button_exit_title">Exit</string>
     <string name="settings_button_save_title">Save</string>
     <string name="settings_button_reset_title">Reset</string>
+    <string name="event_button_reset_title">Clear</string>
+    <string name="event_button_toggle_start_title">Start</string>
+    <string name="event_button_toggle_pause_title">Pause</string>
 
 </resources>

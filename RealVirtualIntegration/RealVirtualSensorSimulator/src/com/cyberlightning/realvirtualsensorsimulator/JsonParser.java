@@ -16,7 +16,7 @@ import android.location.Location;
 
 public abstract class JsonParser {
 	
-	public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm";
+	public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 	public static final int SENSOR_TYPE_ROTATION_VECTOR = 11;
 	
 	/*{
