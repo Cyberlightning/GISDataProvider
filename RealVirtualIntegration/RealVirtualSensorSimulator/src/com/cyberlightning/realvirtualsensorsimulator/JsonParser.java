@@ -77,7 +77,7 @@ public abstract class JsonParser {
 	}*/
 	
 	
-	public static String createFromSensorEvent(HashMap<String,SensorEvent> _sensorEvents, Location _location) {
+	public static String createFromSensorEvent(HashMap<String,SensorEvent> _sensorEvents, Location _location, String _contextualLocation) {
 		
 		JSONObject wrapper = new JSONObject();
 		JSONObject device = new JSONObject();
@@ -93,7 +93,9 @@ public abstract class JsonParser {
 				location.put(_location.getLatitude());
 				location.put(_location.getLongitude());
 				attributes.put("gps", location);
-			} 
+			} if (_contextualLocation != null) {
+				attributes.put("location", _contextualLocation);
+			}
 			
 			attributes.put("name", MainActivity.deviceName);
 			Object[] vals = _sensorEvents.values().toArray();

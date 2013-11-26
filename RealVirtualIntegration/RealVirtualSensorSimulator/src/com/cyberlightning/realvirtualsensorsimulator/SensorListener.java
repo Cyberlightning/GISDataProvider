@@ -32,6 +32,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	private IMainActivity application;
 	private List<Sensor> deviceSensors;
 	private Location location;
+	private String contextualLocation;
 	private Thread thread;
 	
 	private long sensorEventInterval;
@@ -78,7 +79,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 			}
 			
 			if (!this.copy.isEmpty()) {
-				this.sendMessageToServer(JsonParser.createFromSensorEvent(copy, location));
+				this.sendMessageToServer(JsonParser.createFromSensorEvent(copy, location, contextualLocation));
 				Set<String> keys = copy.keySet();
 				for (String key : keys) {
 					this.sendMessageToUI( JsonParser.getTimeStamp() + ": " + key);
@@ -125,6 +126,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 			LocationListener locationListener = new GpsListener();  
 			locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, locationListener);	
 		}
+		this.contextualLocation = settings.getString(SettingsFragment.SHARED_LOCATION, null);
 		
 //		if (this.application.getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS)) {
 //			
@@ -141,10 +143,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		
 		return sensors;
 	}
-	
-	private void loadOtherSettings() {
-		
-	}
+
 	
 	private Integer registerSensorListeners(){
 			
