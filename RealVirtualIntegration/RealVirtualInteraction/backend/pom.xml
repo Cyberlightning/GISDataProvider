@@ -16,10 +16,19 @@
 
   <dependencies>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
+      	<groupId>junit</groupId>
+     	 <artifactId>junit</artifactId>
+      	<version>4.11</version>
+      	<name>JUnit</name>
+      	<url>http://junit.org</url>
+      	<description>
+        	JUnit is a regression testing framework written by Erich Gamma and Kent Beck.
+        	It is used by the developer who implements unit tests in Java.
+    	</description>
+    	<organization>
+        	<name>JUnit</name>
+        	<url>http://www.junit.org</url>
+        </organization>
     </dependency>
     <dependency>
 		<groupId>com.googlecode.json-simple</groupId>
