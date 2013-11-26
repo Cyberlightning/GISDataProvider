@@ -10,13 +10,19 @@
         android:text="@string/view_status_title"
         android:textColor="#FFF"/>
     
-    <LinearLayout android:id="@+id/event_status_message_holder"
-        android:orientation="vertical"
-        android:layout_width="fill_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:padding="8dp"
-        android:background="@drawable/border"/>
+    <ScrollView 
+			android:layout_width="fill_parent"
+        	android:layout_height="fill_parent"
+        	android:layout_weight="1">
+    	
+    	<LinearLayout android:id="@+id/event_status_message_holder"
+        	android:orientation="vertical"
+        	android:layout_width="fill_parent"
+        	android:layout_height="fill_parent"
+        	android:layout_weight="1"
+        	android:padding="8dp"
+        	android:background="@drawable/border"/>
+    </ScrollView>
     
      <LinearLayout 
         android:orientation="horizontal"
@@ -26,11 +32,13 @@
         	<Button android:id="@+id/event_reset_button"
         		android:layout_width="wrap_content"
         		android:layout_height="wrap_content"
-        		android:text="@string/event_button_reset_title"/>
+        		android:text="@string/event_button_reset_title"
+        		android:textColor="#ffffff"/>
         	<Button android:id="@+id/event_toggle_button"
         		android:layout_width="wrap_content"
         		android:layout_height="wrap_content"
-        		android:text="@string/event_button_toggle_start_title"/>
+        		android:text="@string/event_button_toggle_start_title"
+        		android:textColor="#ffffff"/>
      </LinearLayout>
 
 </LinearLayout>

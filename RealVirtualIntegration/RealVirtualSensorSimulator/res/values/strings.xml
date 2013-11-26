@@ -5,8 +5,7 @@
     <string name="menu_settings">Settings</string>
     <string name="menu_main">Main</string>
     <string name="menu_quit">Quit</string>
-    <string name="view_inbound_messages">Received Transmissions:</string>
-    <string name="view_status_title">Send Transmissions:</string>
+    <string name="view_status_title">Status Messages:</string>
     <string name="settings_address_hint">Type in server address</string>
     <string name="settings_address_title">Server address and port:</string>
     <string name="settings_port_hint">Server port:</string>
@@ -19,5 +18,7 @@
     <string name="event_button_reset_title">Clear</string>
     <string name="event_button_toggle_start_title">Start</string>
     <string name="event_button_toggle_pause_title">Pause</string>
+    
+    <string name="toast_sensorlistener_stopped">Sensor events listening paused</string>
 
 </resources>

@@ -17,6 +17,7 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -28,6 +29,7 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity implements Observer,IMainActivity {
 	
+	public Bundle savedStateBundle;
 	private IClientSocket clientSocket;
 	private MainViewFragment mainViewFragment;
 	private SettingsFragment settingsFragment;
@@ -39,6 +41,8 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
 	
 	public static final int MESSAGE_FROM_SENSOR_LISTENER = 1;
 	public static final int MESSAGE_FROM_SERVER = 2;
+	
+	public static final String MAIN_VIEW_FRAGMENT = "MainViewFragment";
 	
 	Handler messageHandler = new Handler(Looper.getMainLooper()) {
         
@@ -62,18 +66,26 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
         FragmentManager fm = getFragmentManager();
         Fragment fragment = fm.findFragmentById(R.id.fragment_content); 
         if (fragment == null ){
-            FragmentTransaction ft = fm.beginTransaction();
+        	FragmentTransaction ft = fm.beginTransaction();
             this.mainViewFragment = new MainViewFragment();
             ft.add(R.id.fragment_content,  this.mainViewFragment);
             ft.commit();
         }
-        
+             
         deviceId = Secure.getString((getApplicationContext().getContentResolver()), Secure.ANDROID_ID);
         this.StartApplication();
-	
     }
     
-   
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig); 
+
+        if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+        	 //TODO setContentView(Custom Portrait view)
+        } else if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            //TODO setContentView(Custom Landscape view)
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -127,20 +139,23 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
     }
     
     private void onSettingsItemClicked() {
+    	this.savedStateBundle = this.mainViewFragment.getSavedState();
+    	this.sensorListener.pause();
+    	
     	FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
     	this.settingsFragment = new SettingsFragment();
         fragmentTransaction.replace(R.id.fragment_content, this.settingsFragment);
         fragmentTransaction.commit();
+        
+        this.showToast(getString(R.string.toast_sensorlistener_stopped));
     }
     
     private void onMainItemClicked() {
-    	
     	FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-        fragmentTransaction.replace(R.id.fragment_content,this.mainViewFragment);
+    	fragmentTransaction.replace(R.id.fragment_content,this.mainViewFragment);
         fragmentTransaction.commit();
     }
   
-    
     public void showToast(String _message) {
     	
 	    LayoutInflater inflater = getLayoutInflater();
@@ -153,11 +168,9 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
 	    toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
 	    toast.setDuration(Toast.LENGTH_LONG);
 	    toast.setView(layout);
-	    toast.show();
-	    	
+	    toast.show();  	
 	}
     
-   
     private void StartApplication() {
     	ClientSocket clientSocket= new ClientSocket(this);
 		clientSocket.addObserver(this);
@@ -183,14 +196,11 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
 
 	@Override
     public void update(Observable observable, Object data) {
-            if (observable instanceof ClientSocket) {
-            		
-                   this.sensorListener.toggleSensor(1); //TODO implement
-                   
-                    
-            } else if (observable instanceof SensorListener) {
-                    this.clientSocket.sendMessage((Message)data);
-            }
-            
+		
+		if (observable instanceof ClientSocket) {
+			this.sensorListener.toggleSensor(1); //TODO implement     
+        } else if (observable instanceof SensorListener) {
+            this.clientSocket.sendMessage((Message)data);
+        }    
     }
 }

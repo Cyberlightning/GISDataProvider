@@ -30,8 +30,6 @@ public class MainViewFragment extends Fragment implements OnClickListener{
 	private static final String STATE_STATUS_MESSAGES = "StateStatusMessages";
 	private static final String STATE_TOGGLE_BUTTON = "StateToggleButton";
 
-	
-	@SuppressWarnings("unchecked")
 	@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		
@@ -42,30 +40,28 @@ public class MainViewFragment extends Fragment implements OnClickListener{
         this.resetButton.setOnClickListener(this);
         this.toggleButton = (Button) view.findViewById(R.id.event_toggle_button);
         this.toggleButton.setOnClickListener(this);
-        
- 
-        if (savedInstanceState != null) {
-				this.messages = (HashMap<String, Boolean>) savedInstanceState.getSerializable(STATE_STATUS_MESSAGES);
-        		Set<String>messages = this.messages.keySet();
-        		for (String message : messages) {
-        			this.addNewMessage(message, this.messages.get(message));
-        			this.view.invalidate();
-        		}
-        		this.isPause = savedInstanceState.getBoolean(STATE_TOGGLE_BUTTON);
-		}
+       
+        if (((MainActivity)getActivity()).savedStateBundle != null) this.setSavedState(((MainActivity)getActivity()).savedStateBundle); //load contents from saved state in MainActivity
+     
 
         return view;
     }
 	
-	@Override
-	public void onSaveInstanceState(Bundle saveState) {
-		
-		// TODO save states of relevant objects here
-		if(this.statusMessageHolder != null) {
-			saveState.putSerializable(STATE_STATUS_MESSAGES, this.messages);
-		} 
-		saveState.putBoolean(STATE_TOGGLE_BUTTON, this.isPause);
-		super.onSaveInstanceState(saveState);
+	public Bundle getSavedState() {
+		Bundle bundle = new Bundle();
+		bundle.putSerializable(STATE_STATUS_MESSAGES, this.messages);
+		return bundle;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void setSavedState(Bundle _savedState) {
+		this.messages = (HashMap<String, Boolean>) _savedState.getSerializable(STATE_STATUS_MESSAGES);
+		Set<String>messages = this.messages.keySet();
+		for (String message : messages) {
+			this.addNewMessage(message, this.messages.get(message));
+			this.view.invalidate();
+		}
+		this.isPause = _savedState.getBoolean(STATE_TOGGLE_BUTTON);
 	}
 	
 	public void addNewMessage(String _msg, Boolean _isInbound) {
@@ -85,7 +81,6 @@ public class MainViewFragment extends Fragment implements OnClickListener{
 			this.messages.put(_msg, _isInbound);
 			this.view.invalidate();
 		}
-
 	}
 	
 	private void clearAll() {
@@ -98,11 +93,11 @@ public class MainViewFragment extends Fragment implements OnClickListener{
 		if (this.isPause) {
 			this.isPause = false;
 			this.toggleButton.setText(R.string.event_button_toggle_start_title);
-			if (getActivity() instanceof MainActivity)((MainActivity)getActivity()).sensorListener.resume();
+			if (getActivity() instanceof MainActivity)((MainActivity)getActivity()).sensorListener.pause();
 		} else {
 			this.isPause = true;
 			this.toggleButton.setText(R.string.event_button_toggle_pause_title);
-			if (getActivity() instanceof MainActivity)((MainActivity)getActivity()).sensorListener.pause();
+			if (getActivity() instanceof MainActivity)((MainActivity)getActivity()).sensorListener.resume();
 		}
 	}
 
