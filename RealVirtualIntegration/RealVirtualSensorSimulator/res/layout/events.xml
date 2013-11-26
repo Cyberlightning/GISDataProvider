@@ -23,6 +23,8 @@
         	android:paddingBottom="8dp"
         	android:background="@drawable/border"/>
     </ScrollView>
+    
+    <!-- Footer starts here -->
     <View
     		android:layout_width="match_parent"
     		android:layout_height="2dp"

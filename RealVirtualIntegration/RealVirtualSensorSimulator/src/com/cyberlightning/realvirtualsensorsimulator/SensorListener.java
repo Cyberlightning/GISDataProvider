@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -113,7 +114,36 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		SharedPreferences settings = this.application.getContext().getSharedPreferences(SettingsFragment.PREFS_NAME, 0);
 		Set<String> sensors = settings.getStringSet(SettingsFragment.SHARED_SENSORS, defaultValues);
 		this.sensorEventInterval = settings.getLong(SettingsFragment.SHARED_INTERVAL,SENSOR_EVENT_INTERVAL);
+		
+		boolean useGPS = settings.getBoolean(SettingsFragment.SHARED_GPS, false);
+		
+		if (useGPS) {
+			LocationManager locationManager = (LocationManager)this.application.getContext().getSystemService(Context.LOCATION_SERVICE);
+			Intent intent=new Intent("android.location.GPS_ENABLED_CHANGE");
+			intent.putExtra("enabled", useGPS);
+			this.application.getContext().sendBroadcast(intent);
+			LocationListener locationListener = new GpsListener();  
+			locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, locationListener);	
+		}
+		
+//		if (this.application.getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS)) {
+//			
+//		} else {
+//			LocationListener locationListener = new GpsListener();  
+//			locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+//			Criteria criteria = new Criteria();
+//			criteria.setAccuracy(0);
+//			String bestProvider = locationManager.getBestProvider(criteria, true);
+//			this.location= locationManager.getLastKnownLocation(bestProvider); 
+//			//TODO handle location if gotten
+//		}
+		
+		
 		return sensors;
+	}
+	
+	private void loadOtherSettings() {
+		
 	}
 	
 	private Integer registerSensorListeners(){
@@ -126,20 +156,6 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 				((SensorManager) this.application.getContext().getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
 				
 			}
-		}
-		
-		LocationManager locationManager = (LocationManager)this.application.getContext().getSystemService(Context.LOCATION_SERVICE);
-		if (this.application.getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS)) {
-			LocationListener locationListener = new GpsListener();  
-			locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, locationListener);	
-		} else {
-			LocationListener locationListener = new GpsListener();  
-			locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-			Criteria criteria = new Criteria();
-			criteria.setAccuracy(0);
-			String bestProvider = locationManager.getBestProvider(criteria, true);
-			this.location= locationManager.getLastKnownLocation(bestProvider); 
-			//TODO handle location if gotten
 		}
 		return selectedSensors.size();
 	}
@@ -209,7 +225,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	}
 
 	@Override
-	public void changeBroadCastInterval(int _duration) {
+	public void changeEventInterval(int _duration) {
 		  //TODO Auto-generated text block
 	}
 

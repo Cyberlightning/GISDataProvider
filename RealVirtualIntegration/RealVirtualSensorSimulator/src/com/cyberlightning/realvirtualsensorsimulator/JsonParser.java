@@ -84,19 +84,17 @@ public abstract class JsonParser {
 		JSONObject sensorWraper = new JSONObject();
 		JSONObject attributes = new JSONObject();
 		JSONArray sensors = new JSONArray();
-		JSONArray location = new JSONArray();
+		
 		
 		try {
 			
 			if (_location != null) {
+				JSONArray location = new JSONArray();
 				location.put(_location.getLatitude());
 				location.put(_location.getLongitude());
-			} else {
-				location.put(65.5);
-				location.put(25.3);
-			}
+				attributes.put("gps", location);
+			} 
 			
-			attributes.put("gps", location);
 			attributes.put("name", MainActivity.deviceName);
 			Object[] vals = _sensorEvents.values().toArray();
 			for(int o = 0; o < vals.length; o++) {

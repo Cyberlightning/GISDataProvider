@@ -8,7 +8,9 @@ import com.example.realvirtualsensorsimulator.R;
 
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
@@ -30,15 +32,18 @@ public class SettingsFragment extends Fragment implements OnClickListener {
 	private Button saveButton;
 	private Button exitButton;
 	private Button resetButton;
+	private CheckBox gpsCheckBox;
 	private EditText addressTextField;
 	private EditText intervalTextField;
 	private EditText portTextField;
+	private EditText locationTextField;
 	private LinearLayout sensorListLeft;
 	private LinearLayout sensorListRight;
 	private LinearLayout settingsFragmentView;
 	private Set<String> defaultValues;
 	
 	private String address;
+	private String location;
 	private int port;
 	private long interval;
 	public static final String PREFS_NAME = "RealVirtualInteraction";
@@ -46,6 +51,9 @@ public class SettingsFragment extends Fragment implements OnClickListener {
 	public static final String SHARED_ADDRESS = "ServerAddress";
 	public static final String SHARED_PORT = "ServerPort";
 	public static final String SHARED_INTERVAL = "EventInterval";
+	public static final String SHARED_LOCATION = "ContextualLocation";
+	public static final String SHARED_GPS = "GpsLocation";
+
 
     
 	@Override
@@ -62,6 +70,9 @@ public class SettingsFragment extends Fragment implements OnClickListener {
 		this.exitButton.setOnClickListener(this);
 		this.saveButton = (Button) this.settingsFragmentView.findViewById(R.id.settings_button_save);
 		this.saveButton.setOnClickListener(this);
+		this.gpsCheckBox = (CheckBox) this.settingsFragmentView.findViewById(R.id.settings_gps_location);
+		this.gpsCheckBox.setOnClickListener(this);
+		this.locationTextField = (EditText) this.settingsFragmentView.findViewById(R.id.settings_contextual_locations);
 		setHasOptionsMenu(true);
         this.loadSettings();
         return this.settingsFragmentView;
@@ -105,6 +116,15 @@ public class SettingsFragment extends Fragment implements OnClickListener {
 	    this.interval = settings.getLong(SHARED_INTERVAL, SensorListener.SENSOR_EVENT_INTERVAL);
 	    this.intervalTextField.setText(Long.toString(this.interval));
 	    
+	    this.location = settings.getString(SHARED_LOCATION, "");
+	    if (this.location.length() > 0) this.locationTextField.setText(this.location);
+	    
+	   
+	    if (!getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS)){
+	    	this.gpsCheckBox.setEnabled(false);
+	    } else {
+	    	this.gpsCheckBox.setChecked(settings.getBoolean(SHARED_GPS, false));
+	    }
 	}
 
 
@@ -146,24 +166,32 @@ public class SettingsFragment extends Fragment implements OnClickListener {
 	    if (!this.addressTextField.getText().toString().contentEquals(this.address)) {
 	    	editor.putString(SHARED_ADDRESS, this.addressTextField.getText().toString());
 	    	editor.commit();
-	    }
-	    
-	    if (Integer.parseInt(this.portTextField.getText().toString()) != this.port) {
+	    } if (Integer.parseInt(this.portTextField.getText().toString()) != this.port) {
 	    	editor.putInt(SHARED_PORT, Integer.parseInt(this.portTextField.getText().toString()));
 	    	editor.commit();
-	    }
-	    
-	    if (Long.parseLong(this.intervalTextField.getText().toString()) != this.interval) {
+	    } if (Long.parseLong(this.intervalTextField.getText().toString()) != this.interval) {
 	    	editor.putLong(SHARED_INTERVAL, Long.parseLong(this.intervalTextField.getText().toString()));
 	    	editor.commit();
+	    } if (!this.locationTextField.getText().toString().contentEquals(this.location)) {
+	    	editor.putString(SHARED_LOCATION, this.locationTextField.getText().toString());
+	    	editor.commit();
+	    }if (this.gpsCheckBox.isEnabled()) {
+	    	editor.putBoolean(SHARED_GPS, this.gpsCheckBox.isChecked());
+	    	editor.commit();
 	    }
-
+	    
 		if (getActivity() instanceof MainActivity) ((MainActivity)getActivity()).showToast("Settings saved!");
 		
 	}
 	
 	public void onBackPressed() {
 		this.saveState();
+	}
+	
+	private void toggleGPS(Boolean _turnOn) {
+		Intent intent=new Intent("android.location.GPS_ENABLED_CHANGE");
+		intent.putExtra("enabled", _turnOn);
+		getActivity().sendBroadcast(intent);
 	}
 
 	@Override
@@ -179,10 +207,7 @@ public class SettingsFragment extends Fragment implements OnClickListener {
 				break;
 			case R.id.settings_button_save: this.saveState();
 				break;
-		}
-		
+			case R.id.settings_gps_location: if (this.gpsCheckBox.isEnabled()) this.toggleGPS(this.gpsCheckBox.isChecked());
+		}		
 	}
-	
-
-
 }

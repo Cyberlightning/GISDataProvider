@@ -5,5 +5,5 @@ public interface ISensorListener {
 	public Integer resume();
 	public void end();
 	public void toggleSensor (int _sensorType);
-	public void changeBroadCastInterval(int _duration);
+	public void changeEventInterval(int _duration);
 }
