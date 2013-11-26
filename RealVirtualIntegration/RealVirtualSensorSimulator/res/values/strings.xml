@@ -6,9 +6,10 @@
     <string name="menu_main">Main</string>
     <string name="menu_quit">Quit</string>
     <string name="view_status_title">Status Messages:</string>
-    <string name="settings_address_hint">Type in server address</string>
-    <string name="settings_address_title">Server address and port:</string>
-    <string name="settings_port_hint">Server port:</string>
+    <string name="settings_address_hint">address</string>
+    <string name="settings_address_title">Server address:</string>
+    <string name="settings_port_title">Port number:</string>
+    <string name="settings_port_hint">port</string>
     <string name="settings_sensors_title">Available sensors:</string>
     <string name="settings_interval_title">Sensor event interval:</string>
     <string name="settings_interval_unit">ms</string>

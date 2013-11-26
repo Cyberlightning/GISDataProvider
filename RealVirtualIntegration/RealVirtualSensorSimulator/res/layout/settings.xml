@@ -2,26 +2,32 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:orientation="vertical"
    android:layout_width="fill_parent"
-   android:layout_height="fill_parent"
-   android:background="#ffffff">
+   android:layout_height="fill_parent">
+   <LinearLayout android:orientation="vertical"
+       android:layout_width="fill_parent"
+  	   android:layout_height="wrap_content"
+  	   android:padding="3dp"
+       android:background="#ffffff">
    		<TextView android:text="@string/settings_address_title" 
    		    android:layout_width="wrap_content"
    		    android:layout_height="wrap_content"
    		    android:textSize="16dp"/>
-   		<LinearLayout android:orientation="horizontal"
-   			android:layout_width="fill_parent"
-   			android:layout_height="wrap_content">
-   			<EditText android:id="@+id/settings_address"
+   		
+   		<EditText android:id="@+id/settings_address"
       		android:hint="@string/settings_address_hint"
       		android:layout_width="wrap_content"
       		android:layout_height="wrap_content"
       		android:textColor="#000000"/>
-   			<EditText android:id="@+id/settings_port"
+   			 
+   		<TextView android:text="@string/settings_port_title" 
+   		    android:layout_width="wrap_content"
+   		    android:layout_height="wrap_content"
+   		    android:textSize="16dp"/>
+   		<EditText android:id="@+id/settings_port"
       		android:hint="@string/settings_port_hint"
       		android:layout_width="wrap_content"
       		android:layout_height="wrap_content"
-      		android:textColor="#000000"/>    
-   		</LinearLayout>
+      		android:textColor="#000000"/>   
    		<View
     		android:layout_width="match_parent"
     		android:layout_height="2dp"
@@ -76,7 +82,12 @@
    		    	android:layout_height="wrap_content"
    		    	 android:textSize="12dp"/>    
    		</LinearLayout>
-   		
+   		</LinearLayout>
+   		<LinearLayout 
+   		    android:orientation="vertical"
+   		    android:layout_width="fill_parent"
+   		    android:layout_height="fill_parent"
+   		    android:gravity="bottom">
    		<View
     		android:layout_width="match_parent"
     		android:layout_height="2dp"
@@ -88,19 +99,30 @@
    		<LinearLayout 
    		    android:orientation="horizontal"
    		    android:layout_width="fill_parent"
-   		    android:layout_height="fill_parent"
-   		    android:layout_gravity="right">
+   		    android:layout_height="wrap_content"
+   		    android:layout_gravity="center"
+   		    android:gravity="center">
    		    <Button android:id="@+id/settings_button_save"
    		        android:text="@string/settings_button_save_title"
    		        android:layout_width="wrap_content"
-   		        android:layout_height="wrap_content"/>
+   		        android:layout_height="wrap_content"
+   		       style="?android:attr/buttonBarButtonStyle"
+   		        android:textColor="#ffffff"
+   		        android:textSize="20dp" />
    		    <Button android:id="@+id/settings_button_reset"
    		        android:text="@string/settings_button_reset_title"
    		        android:layout_width="wrap_content"
-   		        android:layout_height="wrap_content"/>
+   		        android:layout_height="wrap_content"
+   		        style="?android:attr/buttonBarButtonStyle"
+   		        android:textColor="#ffffff"
+   		        android:textSize="20dp" />
    		    <Button android:id="@+id/settings_button_exit"
    		        android:text="@string/settings_button_exit_title"
    		        android:layout_width="wrap_content"
-   		        android:layout_height="wrap_content"/>
+   		        android:layout_height="wrap_content"
+   		        style="?android:attr/buttonBarButtonStyle"
+   		        android:textColor="#ffffff"
+   		        android:textSize="20dp" />
+   		</LinearLayout>
    		</LinearLayout>		
 </LinearLayout>

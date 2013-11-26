@@ -80,7 +80,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 				this.sendMessageToServer(JsonParser.createFromSensorEvent(copy, location));
 				Set<String> keys = copy.keySet();
 				for (String key : keys) {
-					this.sendMessageToUI(key + ": " + JsonParser.getTimeStamp());
+					this.sendMessageToUI( JsonParser.getTimeStamp() + ": " + key);
 				}
 			}
 			

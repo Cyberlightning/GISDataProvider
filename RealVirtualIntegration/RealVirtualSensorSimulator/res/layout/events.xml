@@ -12,33 +12,45 @@
     
     <ScrollView 
 			android:layout_width="fill_parent"
-        	android:layout_height="fill_parent"
+        	android:layout_height="0dp"
         	android:layout_weight="1">
     	
     	<LinearLayout android:id="@+id/event_status_message_holder"
         	android:orientation="vertical"
         	android:layout_width="fill_parent"
-        	android:layout_height="fill_parent"
-        	android:layout_weight="1"
-        	android:padding="8dp"
+        	android:layout_height="0dp"
+        	android:paddingTop="8dp"
+        	android:paddingBottom="8dp"
         	android:background="@drawable/border"/>
     </ScrollView>
-    
+    <View
+    		android:layout_width="match_parent"
+    		android:layout_height="2dp"
+    		android:layout_marginLeft="15dp"
+    		android:layout_marginRight="15dp"
+    		android:layout_marginTop="5dp"
+    		android:layout_marginBottom="3dp"
+   	 		android:background="#CC99FF" />
      <LinearLayout 
         android:orientation="horizontal"
-        android:layout_gravity="right"
+        android:layout_gravity="center"
+        android:gravity="center"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content">
         	<Button android:id="@+id/event_reset_button"
         		android:layout_width="wrap_content"
         		android:layout_height="wrap_content"
+        		style="?android:attr/buttonBarButtonStyle" 
         		android:text="@string/event_button_reset_title"
-        		android:textColor="#ffffff"/>
+        		android:textColor="#ffffff"
+        		android:textSize="20dp" />
         	<Button android:id="@+id/event_toggle_button"
         		android:layout_width="wrap_content"
         		android:layout_height="wrap_content"
+        		style="?android:attr/buttonBarButtonStyle" 
         		android:text="@string/event_button_toggle_start_title"
-        		android:textColor="#ffffff"/>
+        		android:textColor="#ffffff"
+        		android:textSize="20dp" />
      </LinearLayout>
 
 </LinearLayout>
