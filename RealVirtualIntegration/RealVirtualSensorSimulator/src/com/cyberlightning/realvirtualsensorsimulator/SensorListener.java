@@ -58,7 +58,6 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 						wait();
 						isBusy = true;
 						Thread.sleep(this.sensorEventInterval); //TODO check whether can be done better
-						
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -68,24 +67,23 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	            if (destroyFlag) break; 
 	        }
 			
-		
-			
 			while(!this.eventBuffer.isEmpty()) {
 				String key = JsonParser.resolveSensorTypeById(this.eventBuffer.peek().sensor.getType());
-				
 				if (key != null){
-					copy.put(key, this.eventBuffer.poll());
-					
-					
+					copy.put(key, this.eventBuffer.poll());	
 				}else {
 					this.eventBuffer.poll();
 				}
 			}
-			this.sendMessageToServer(JsonParser.createFromSensorEvent(copy, location));
-			Set<String> keys = copy.keySet();
-			for (String key : keys) {
-				this.sendMessageToUI(key + ": " + JsonParser.getTimeStamp());
+			
+			if (!this.copy.isEmpty()) {
+				this.sendMessageToServer(JsonParser.createFromSensorEvent(copy, location));
+				Set<String> keys = copy.keySet();
+				for (String key : keys) {
+					this.sendMessageToUI(key + ": " + JsonParser.getTimeStamp());
+				}
 			}
+			
 			
 			this.suspendThread();
 			isBusy = false;
@@ -118,7 +116,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		return sensors;
 	}
 	
-	private void registerSensorListeners(){
+	private Integer registerSensorListeners(){
 			
 		this.deviceSensors = ((SensorManager) this.application.getContext().getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).getSensorList(Sensor.TYPE_ALL);
 		Set<String> selectedSensors = this.loadSettings();
@@ -143,7 +141,9 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 			this.location= locationManager.getLastKnownLocation(bestProvider); 
 			//TODO handle location if gotten
 		}
+		return selectedSensors.size();
 	}
+		
 	private void unregisterSpecificSensor(int _type) {
 		for (Sensor sensor : this.deviceSensors) {
 			if (sensor.getType() ==_type) ((SensorManager) this.application.getContext().getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).unregisterListener(this, sensor);
@@ -190,9 +190,10 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 
 
 	@Override
-	public void resume() {
-		this.registerSensorListeners();
-		this.wakeThread();
+	public Integer resume() {
+		int numOfSensors = this.registerSensorListeners();
+		if ( numOfSensors > 0) this.wakeThread();
+		return numOfSensors;
 	}
 	
 	@Override

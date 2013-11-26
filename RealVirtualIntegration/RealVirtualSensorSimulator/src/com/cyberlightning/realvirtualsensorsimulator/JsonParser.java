@@ -17,7 +17,7 @@ import android.location.Location;
 public abstract class JsonParser {
 	
 	public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
-	public static final int SENSOR_TYPE_ROTATION_VECTOR = 11;
+	
 	
 	/*{
 	    "9627f38e-51a1-4d87-9d1f-9790e01ecfef": {
@@ -156,22 +156,20 @@ public abstract class JsonParser {
 		}
 	}
 	
-	@SuppressWarnings("deprecation")
+	
 	private static String resolvePrimitive(int _id) {
 		String primitive = null;
 		
 		switch(_id){
 			case Sensor.TYPE_ACCELEROMETER: primitive = "3DPoint";
 				break;
-			case Sensor.TYPE_AMBIENT_TEMPERATURE:primitive = "double";
+			case Sensor.TYPE_TEMPERATURE:primitive = "double";
 				break;
-			case Sensor.TYPE_GAME_ROTATION_VECTOR:primitive = "3DPoint";
+			case Sensor.TYPE_ROTATION_VECTOR:primitive = "array";
 				break;
 			case Sensor.TYPE_GRAVITY:primitive = "3DPoint";
 				break;
 			case Sensor.TYPE_GYROSCOPE:primitive = "3DPoint";
-				break;
-			case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:primitive = "array";
 				break;
 			case Sensor.TYPE_LIGHT:primitive = "double";
 				break;
@@ -183,14 +181,11 @@ public abstract class JsonParser {
 				break;
 			case Sensor.TYPE_PROXIMITY:primitive = "double";
 				break;
-			case Sensor.TYPE_SIGNIFICANT_MOTION:primitive = "3DPoint";
-				break;
+			
 			case Sensor.TYPE_ORIENTATION:primitive = "3DPoint";
 				break;
-			case Sensor.TYPE_RELATIVE_HUMIDITY: primitive = "double";
-				break;
-			case SENSOR_TYPE_ROTATION_VECTOR: primitive = "array"; //values[3], originally optional, will always be present from SDK Level 18 onwards. values[4] is a new value that has been added in SDK Level 18. 
-				break;
+			
+			
 			}
 		return primitive;
 	}
@@ -199,21 +194,19 @@ public abstract class JsonParser {
 	public static String getTimeStamp() {
 		return  new SimpleDateFormat(DATE_FORMAT).format(new Date(System.currentTimeMillis()));
 	}
-	@SuppressWarnings("deprecation")
+	
 	public static String resolveSensorUnitById(int _id) {
 		String unit = null;
 		switch(_id){
 			case Sensor.TYPE_ACCELEROMETER: unit = "m/s2";
 				break;
-			case Sensor.TYPE_AMBIENT_TEMPERATURE:unit = "celcius";
+			case Sensor.TYPE_TEMPERATURE:unit = "celcius";
 				break;
-			case Sensor.TYPE_GAME_ROTATION_VECTOR:unit = "rad/s";
+			case Sensor.TYPE_ROTATION_VECTOR:unit = "array";
 				break;
 			case Sensor.TYPE_GRAVITY:unit = "m/s2";
 				break;
 			case Sensor.TYPE_GYROSCOPE:unit = "rad/s";
-				break;
-			case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:unit = "rad/s";
 				break;
 			case Sensor.TYPE_LIGHT:unit = "lx";
 				break;
@@ -224,36 +217,26 @@ public abstract class JsonParser {
 			case Sensor.TYPE_PRESSURE:unit = "hPa";
 				break;
 			case Sensor.TYPE_PROXIMITY:unit = "cm";
-				break;
-			case Sensor.TYPE_SIGNIFICANT_MOTION:unit = "significantmotion";
-				break;
+				break;	
 			case Sensor.TYPE_ORIENTATION:unit = "orientation";
 				break;
-			case Sensor.TYPE_RELATIVE_HUMIDITY: unit = "%";
-				break;
-			case SENSOR_TYPE_ROTATION_VECTOR: unit = "quaternion"; 
-			break;
-			
 			}
 			
 			return unit;
 		}
 	
-	@SuppressWarnings("deprecation")
 	public static String resolveSensorTypeById(int _id) {
 		String name = null;
 		switch(_id){
 			case Sensor.TYPE_ACCELEROMETER: name = "accelerometer";
 				break;
-			case Sensor.TYPE_AMBIENT_TEMPERATURE:name = "temperature";
+			case Sensor.TYPE_TEMPERATURE:name = "temperature";
 				break;
-			case Sensor.TYPE_GAME_ROTATION_VECTOR:name = "gamerotationvector";
+			case Sensor.TYPE_ROTATION_VECTOR:name = "rotationvector";
 				break;
 			case Sensor.TYPE_GRAVITY:name = "gravity";
 				break;
 			case Sensor.TYPE_GYROSCOPE:name = "gyroscope";
-				break;
-			case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:name = "gyroscopeuncalibrated";
 				break;
 			case Sensor.TYPE_LIGHT:name = "light";
 				break;
@@ -265,15 +248,8 @@ public abstract class JsonParser {
 				break;
 			case Sensor.TYPE_PROXIMITY:name = "proximity";
 				break;
-			case Sensor.TYPE_SIGNIFICANT_MOTION:name = "significantmotion";
-				break;
 			case Sensor.TYPE_ORIENTATION:name = "orientation";
-				break;
-			case Sensor.TYPE_RELATIVE_HUMIDITY: name = "relativehumidity";
-				break;
-			case SENSOR_TYPE_ROTATION_VECTOR: name = "rotationvector";
-				break;
-					
+				break;		
 			}
 			return name;
 		}

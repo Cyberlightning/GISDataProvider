@@ -20,5 +20,6 @@
     <string name="event_button_toggle_pause_title">Pause</string>
     
     <string name="toast_sensorlistener_stopped">Sensor events listening paused</string>
+     <string name="toast_sensorlistener_no_sensors_selected">No sensors selected for listening, please select at least one sensor</string>
 
 </resources>

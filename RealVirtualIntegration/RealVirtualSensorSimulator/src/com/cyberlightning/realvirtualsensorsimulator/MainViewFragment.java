@@ -18,7 +18,7 @@ import com.example.realvirtualsensorsimulator.R;
 
 public class MainViewFragment extends Fragment implements OnClickListener{
 	
-	private boolean isPause = false;
+	public boolean isPause = false;
 	private Button resetButton;
 	private Button toggleButton;
 	private LinearLayout statusMessageHolder;
@@ -95,9 +95,15 @@ public class MainViewFragment extends Fragment implements OnClickListener{
 			this.toggleButton.setText(R.string.event_button_toggle_start_title);
 			if (getActivity() instanceof MainActivity)((MainActivity)getActivity()).sensorListener.pause();
 		} else {
-			this.isPause = true;
-			this.toggleButton.setText(R.string.event_button_toggle_pause_title);
-			if (getActivity() instanceof MainActivity)((MainActivity)getActivity()).sensorListener.resume();
+			
+			if (getActivity() instanceof MainActivity){
+				if (((MainActivity)getActivity()).sensorListener.resume() < 1) {
+					((MainActivity)getActivity()).showToast(getActivity().getString(R.string.toast_sensorlistener_no_sensors_selected));
+				} else {
+					this.isPause = true;
+					this.toggleButton.setText(R.string.event_button_toggle_pause_title);
+				}
+			}
 		}
 	}
 

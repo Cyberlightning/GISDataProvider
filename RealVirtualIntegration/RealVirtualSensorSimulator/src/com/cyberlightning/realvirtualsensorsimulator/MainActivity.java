@@ -89,7 +89,6 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu, menu);
         return true;
     }
@@ -138,7 +137,7 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
         }
     }
     
-    private void onSettingsItemClicked() {
+    public void onSettingsItemClicked() {
     	this.savedStateBundle = this.mainViewFragment.getSavedState();
     	this.sensorListener.pause();
     	
@@ -147,7 +146,7 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
         fragmentTransaction.replace(R.id.fragment_content, this.settingsFragment);
         fragmentTransaction.commit();
         
-        this.showToast(getString(R.string.toast_sensorlistener_stopped));
+        if(this.mainViewFragment.isPause) this.showToast(getString(R.string.toast_sensorlistener_stopped));
     }
     
     private void onMainItemClicked() {
