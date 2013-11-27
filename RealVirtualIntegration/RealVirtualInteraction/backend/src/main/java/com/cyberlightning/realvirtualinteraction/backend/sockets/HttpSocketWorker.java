@@ -1,4 +1,4 @@
-package com.cyberlightning.webserver.sockets;
+package com.cyberlightning.realvirtualinteraction.backend.sockets;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -6,12 +6,12 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.util.UUID;
 
+import com.cyberlightning.realvirtualinteraction.backend.StaticResources;
+import com.cyberlightning.realvirtualinteraction.backend.entities.SpatialQuery;
+import com.cyberlightning.realvirtualinteraction.backend.interfaces.IMessageEvent;
+import com.cyberlightning.realvirtualinteraction.backend.services.DataStorageService;
+import com.cyberlightning.realvirtualinteraction.backend.services.MessageService;
 
-import com.cyberlightning.webserver.StaticResources;
-import com.cyberlightning.webserver.entities.SpatialQuery;
-import com.cyberlightning.webserver.interfaces.IMessageEvent;
-import com.cyberlightning.webserver.services.DataStorageService;
-import com.cyberlightning.webserver.services.MessageService;
 
 public class HttpSocketWorker implements Runnable,IMessageEvent {
 

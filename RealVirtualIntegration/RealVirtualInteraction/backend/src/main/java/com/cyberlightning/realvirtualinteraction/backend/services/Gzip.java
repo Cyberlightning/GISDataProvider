@@ -1,11 +1,10 @@
-package com.cyberlightning.realvirtualsensorsimulator;
+package com.cyberlightning.realvirtualinteraction.backend.services;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-
 
 public class Gzip {
 
@@ -33,6 +32,13 @@ public class Gzip {
 	    is.close();
 	    return string.toString();
 	}
-	 
 	
+	public static boolean isCompressed(byte[] bytes) throws IOException {
+	      if ((bytes == null) || (bytes.length < 2)) {
+	          return false;
+	      } else {
+	    	  return ((bytes[0] == (byte) (GZIPInputStream.GZIP_MAGIC)) && (bytes[1] == (byte) (GZIPInputStream.GZIP_MAGIC >> 8)));
+	      }
+	 }
+
 }

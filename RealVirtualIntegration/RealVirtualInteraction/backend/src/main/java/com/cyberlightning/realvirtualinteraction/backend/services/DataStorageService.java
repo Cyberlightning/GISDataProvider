@@ -1,4 +1,4 @@
-package com.cyberlightning.webserver.services;
+package com.cyberlightning.realvirtualinteraction.backend.services;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -12,11 +12,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.cyberlightning.webserver.StaticResources;
-import com.cyberlightning.webserver.entities.Entity;
-import com.cyberlightning.webserver.entities.EntityTable;
-import com.cyberlightning.webserver.entities.RowEntry;
-import com.cyberlightning.webserver.entities.SpatialQuery;
+import com.cyberlightning.realvirtualinteraction.backend.StaticResources;
+import com.cyberlightning.realvirtualinteraction.backend.entities.Entity;
+import com.cyberlightning.realvirtualinteraction.backend.entities.EntityTable;
+import com.cyberlightning.realvirtualinteraction.backend.entities.RowEntry;
+import com.cyberlightning.realvirtualinteraction.backend.entities.SpatialQuery;
+
 
 /**
  * 

@@ -1,4 +1,4 @@
-package com.cyberlightning.webserver.sockets;
+package com.cyberlightning.realvirtualinteraction.backend.sockets;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -12,10 +12,12 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import com.cyberlightning.webserver.StaticResources;
-import com.cyberlightning.webserver.interfaces.IMessageEvent;
-import com.cyberlightning.webserver.services.Gzip;
-import com.cyberlightning.webserver.services.MessageService;
+import com.cyberlightning.realvirtualinteraction.backend.StaticResources;
+import com.cyberlightning.realvirtualinteraction.backend.interfaces.IMessageEvent;
+import com.cyberlightning.realvirtualinteraction.backend.services.Gzip;
+import com.cyberlightning.realvirtualinteraction.backend.services.MessageService;
+
+
 
 public class UdpSocket implements Runnable  {
 	

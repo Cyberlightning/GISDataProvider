@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -31,17 +32,18 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	private IMainActivity application;
 	private List<Sensor> deviceSensors;
 	private Location location;
+	private String contextualLocation;
 	private Thread thread;
 	
+	private long sensorEventInterval;
 	private boolean suspendFlag = true;
 	private boolean destroyFlag = false;
 	private volatile boolean isBusy = false;
 
-	public static final long SENSOR_EVENT_INTERVAL = 2000;
+	public static final long SENSOR_EVENT_INTERVAL = 4000;
     
 	public SensorListener(MainActivity _activity) {
 		this.application = _activity;
-		this.registerSensorListeners();
 		this.thread = new Thread(this);
 		this.thread.start();
 	}
@@ -57,8 +59,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 					try {
 						wait();
 						isBusy = true;
-						Thread.sleep(SENSOR_EVENT_INTERVAL); //TODO check whether can be done better
-						
+						Thread.sleep(this.sensorEventInterval); //TODO check whether can be done better
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -68,17 +69,24 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	            if (destroyFlag) break; 
 	        }
 			
-		
-			
 			while(!this.eventBuffer.isEmpty()) {
 				String key = JsonParser.resolveSensorTypeById(this.eventBuffer.peek().sensor.getType());
 				if (key != null){
-					copy.put(key, this.eventBuffer.poll());
+					copy.put(key, this.eventBuffer.poll());	
 				}else {
 					this.eventBuffer.poll();
 				}
 			}
-			this.sendMessage(JsonParser.createFromSensorEvent(copy, location));
+			
+			if (!this.copy.isEmpty()) {
+				this.sendMessageToServer(JsonParser.createFromSensorEvent(copy, location, contextualLocation));
+				Set<String> keys = copy.keySet();
+				for (String key : keys) {
+					this.sendMessageToUI( JsonParser.getTimeStamp() + ": " + key);
+				}
+			}
+			
+			
 			this.suspendThread();
 			isBusy = false;
 			
@@ -106,11 +114,38 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		}
 		SharedPreferences settings = this.application.getContext().getSharedPreferences(SettingsFragment.PREFS_NAME, 0);
 		Set<String> sensors = settings.getStringSet(SettingsFragment.SHARED_SENSORS, defaultValues);
+		this.sensorEventInterval = settings.getLong(SettingsFragment.SHARED_INTERVAL,SENSOR_EVENT_INTERVAL);
+		
+		boolean useGPS = settings.getBoolean(SettingsFragment.SHARED_GPS, false);
+		
+		if (useGPS) {
+			LocationManager locationManager = (LocationManager)this.application.getContext().getSystemService(Context.LOCATION_SERVICE);
+			Intent intent=new Intent("android.location.GPS_ENABLED_CHANGE");
+			intent.putExtra("enabled", useGPS);
+			this.application.getContext().sendBroadcast(intent);
+			LocationListener locationListener = new GpsListener();  
+			locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, locationListener);	
+		}
+		this.contextualLocation = settings.getString(SettingsFragment.SHARED_LOCATION, null);
+		
+//		if (this.application.getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS)) {
+//			
+//		} else {
+//			LocationListener locationListener = new GpsListener();  
+//			locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+//			Criteria criteria = new Criteria();
+//			criteria.setAccuracy(0);
+//			String bestProvider = locationManager.getBestProvider(criteria, true);
+//			this.location= locationManager.getLastKnownLocation(bestProvider); 
+//			//TODO handle location if gotten
+//		}
+		
 		
 		return sensors;
 	}
+
 	
-	private void registerSensorListeners(){
+	private Integer registerSensorListeners(){
 			
 		this.deviceSensors = ((SensorManager) this.application.getContext().getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).getSensorList(Sensor.TYPE_ALL);
 		Set<String> selectedSensors = this.loadSettings();
@@ -121,21 +156,9 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 				
 			}
 		}
-		
-		LocationManager locationManager = (LocationManager)this.application.getContext().getSystemService(Context.LOCATION_SERVICE);
-		if (this.application.getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS)) {
-			LocationListener locationListener = new GpsListener();  
-			locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, locationListener);	
-		} else {
-			LocationListener locationListener = new GpsListener();  
-			locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-			Criteria criteria = new Criteria();
-			criteria.setAccuracy(0);
-			String bestProvider = locationManager.getBestProvider(criteria, true);
-			this.location= locationManager.getLastKnownLocation(bestProvider); 
-			//TODO handle location if gotten
-		}
+		return selectedSensors.size();
 	}
+		
 	private void unregisterSpecificSensor(int _type) {
 		for (Sensor sensor : this.deviceSensors) {
 			if (sensor.getType() ==_type) ((SensorManager) this.application.getContext().getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).unregisterListener(this, sensor);
@@ -145,10 +168,13 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		((SensorManager) this.application.getContext().getApplicationContext().getSystemService(Context.SENSOR_SERVICE)).unregisterListener(this);
 	}
 	
-	private void sendMessage(String _payload) {
-		Message msg = Message.obtain(null, MainActivity.MESSAGE_FROM_SENSOR_LISTENER, _payload.toString());
+	private void sendMessageToServer(String _payload) {
 		setChanged();
-		notifyObservers(Message.obtain(null,  MainActivity.MESSAGE_FROM_SENSOR_LISTENER, _payload.toString()));
+		notifyObservers(Message.obtain(null,  MainActivity.MESSAGE_FROM_SENSOR_LISTENER, _payload));	
+	}
+	
+	private void sendMessageToUI(String _payload) {
+		Message msg = Message.obtain(null, MainActivity.MESSAGE_FROM_SENSOR_LISTENER, _payload);
 		msg.setTarget(this.application.getTarget());
 		msg.sendToTarget();
 	}
@@ -172,15 +198,17 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	
 	@Override
 	public void pause() {
-		this.unregisterAllSensors();
 		this.suspendThread();
+		this.unregisterAllSensors();
+		
 	}
 
 
 	@Override
-	public void resume() {
-		this.registerSensorListeners();
-		this.wakeThread();
+	public Integer resume() {
+		int numOfSensors = this.registerSensorListeners();
+		if ( numOfSensors > 0) this.wakeThread();
+		return numOfSensors;
 	}
 	
 	@Override
@@ -196,14 +224,14 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	}
 
 	@Override
-	public void changeBroadCastInterval(int _duration) {
+	public void changeEventInterval(int _duration) {
 		  //TODO Auto-generated text block
 	}
 
 		
 	/**
 	 * 
-	 * @author tomi
+	 * @author Cyberlightning Ltd. <tomi.sarni@cyberlightning.com>
 	 *
 	 */
 	private class GpsListener implements LocationListener {
