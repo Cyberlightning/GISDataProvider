@@ -27,12 +27,16 @@ public class Application  {
 		Thread httpThread = new Thread(httpSocket);
 		httpThread.start();
 
-		Runnable coapSocket = new UdpSocket();
-		Thread coapThread = new Thread(coapSocket);
-		coapThread.start();
+		Runnable udpSocket = new UdpSocket();
+		Thread udpThread = new Thread(udpSocket);
+		udpThread.start();
 		
 		MessageService.getInstance().startThread();
 
+	}
+	
+	public void TestInterface() {
+		
 	}
 	
 	

@@ -86,7 +86,7 @@ public class DataStorageService implements Runnable {
 	 * @param _data
 	 * @throws IOException 
 	 */
-	public void addEntry (DatagramPacket _data) throws IOException {
+	public void addEntry (DatagramPacket _data) throws IOException{
 		
 		String data;
 		if(Gzip.isCompressed(_data.getData())) data = Gzip.decompress(_data.getData());

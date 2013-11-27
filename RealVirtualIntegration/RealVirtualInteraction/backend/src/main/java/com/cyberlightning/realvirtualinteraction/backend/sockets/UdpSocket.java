@@ -25,7 +25,7 @@ public class UdpSocket implements Runnable  {
 	private int port;
 	public static final String uuid = UUID.randomUUID().toString();
 	public  final int type = StaticResources.UDP_RECEIVER;
-	private SendWorker sendWorker;
+	public SendWorker sendWorker;
 	/**
 	 * 
 	 */
@@ -120,8 +120,9 @@ public class UdpSocket implements Runnable  {
 		}
 		
 	}
+
 	
-	private class SendWorker implements Runnable,IMessageEvent {
+	public class SendWorker implements Runnable,IMessageEvent {
 		
 		public CopyOnWriteArrayList<MessageObject> sendBuffer = new CopyOnWriteArrayList<MessageObject>();
 		public String uuid;
@@ -213,6 +214,7 @@ public class UdpSocket implements Runnable  {
 		      this.destroyFlag = true;
 		      notify();
 		}
+		
 		@Override
 		public void onMessageReceived(MessageObject _msg) {
 			this.sendBuffer.add(_msg);
