@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:orientation="vertical"
+   android:layout_width="fill_parent"
+   android:layout_height="fill_parent">
+   		<LinearLayout android:orientation="horizontal"
+       			android:layout_width="fill_parent"
+  	   			android:layout_height="wrap_content"
+  	   			android:background="#ffffff"
+  	   			android:weightSum="1.0">
+   				<LinearLayout android:orientation="vertical"
+       				android:layout_width="fill_parent"
+  	   				android:layout_height="fill_parent"
+  	   				android:layout_weight=".55">
+   					<TextView android:text="@string/settings_address_title" 
+   		    			android:layout_width="wrap_content"
+   		    			android:layout_height="wrap_content"
+   		    			android:textSize="16dp"/>
+   					<EditText android:id="@+id/settings_address"
+      						android:hint="@string/settings_address_hint"
+      						android:layout_width="wrap_content"
+      						android:layout_height="wrap_content"
+      						android:singleLine="true"/>
+      				<EditText android:id="@+id/settings_port"
+      						android:hint="@string/settings_port_hint"
+      						android:layout_width="wrap_content"
+      						android:layout_height="wrap_content"
+      						android:singleLine="true"
+      						android:textColor="#000000"/>  
+      				 
+   					<LinearLayout 
+   		    			android:orientation="horizontal"
+   						android:layout_width="fill_parent"
+   						android:layout_height="wrap_content">
+   						<TextView android:text="@string/settings_interval_title" 
+   		    				android:layout_width="wrap_content"
+   		    				android:layout_height="wrap_content"
+   		    	 			android:textSize="16dp"/>
+   		    			<EditText android:id="@+id/settings_interval"
+      						android:layout_width="wrap_content"
+      						android:layout_height="wrap_content"
+      						android:singleLine="true"
+      						android:textColor="#000000"/>
+   		    			<TextView android:text="@string/settings_interval_unit" 
+   		    				android:layout_width="wrap_content"
+   		    				android:layout_height="wrap_content"
+   		    	 			android:textSize="12dp"/>    
+   					</LinearLayout>
+   					<LinearLayout 
+   		    			android:orientation="horizontal"
+   						android:layout_width="fill_parent"
+   						android:layout_height="wrap_content">
+   						<TextView android:text="@string/settings_location_title" 
+   		    				android:layout_width="wrap_content"
+   		    				android:layout_height="wrap_content"
+   		    	 			android:textSize="16dp"/>
+   						<EditText android:id="@+id/settings_contextual_locations"
+   			    			android:hint="@string/settings_location_hint"
+      						android:layout_width="wrap_content"
+      						android:layout_height="wrap_content"
+      						android:singleLine="true"
+      						android:textColor="#000000"/>
+   						<CheckBox  android:id="@+id/settings_gps_location"
+   			    				android:text="@string/settings_gps_location_title" 
+   		    					android:layout_width="wrap_content"
+   		    					android:layout_height="wrap_content"
+   		    	 				android:textSize="16dp"/>
+   					</LinearLayout>
+   				</LinearLayout>
+   		
+   				<View
+    				android:layout_width="2dp"
+    				android:layout_height="match_parent"
+    				android:layout_marginTop="5dp"
+    				android:layout_marginBottom="5dp"
+   	 				android:background="#CC99FF" />
+   				<LinearLayout 
+   					android:orientation="horizontal"
+   					android:layout_width="fill_parent"
+   					android:layout_height="wrap_content"
+   					android:layout_weight=".45"
+   					android:weightSum="1.0">
+   					<LinearLayout android:id="@+id/settings_sensorlist_left" 
+   			    		android:orientation="vertical"
+   						android:layout_weight=".5"
+   						android:layout_width="0dip"
+   						android:layout_height="wrap_content"/>
+   					<LinearLayout android:id="@+id/settings_sensorlist_right" 
+   			    		android:orientation="vertical"
+   						android:layout_weight=".5"
+   						android:layout_width="0dip"
+   						android:layout_height="wrap_content"/>
+   				</LinearLayout>
+   			
+   		</LinearLayout>
+		<!-- Footer starts here -->
+   		<LinearLayout 
+   		    android:orientation="vertical"
+   		    android:layout_width="fill_parent"
+   		    android:layout_height="fill_parent"
+   		    android:gravity="bottom">
+   			<View
+    		android:layout_width="match_parent"
+    		android:layout_height="2dp"
+    		android:layout_marginLeft="15dp"
+    		android:layout_marginRight="15dp"
+    		android:layout_marginTop="5dp"
+    		android:layout_marginBottom="3dp"
+   	 		android:background="#CC99FF" />
+   			<LinearLayout 
+   		    android:orientation="horizontal"
+   		    android:layout_width="fill_parent"
+   		    android:layout_height="wrap_content"
+   		    android:layout_gravity="center"
+   		    android:gravity="center">
+   		    <Button android:id="@+id/settings_button_save"
+   		        android:text="@string/settings_button_save_title"
+   		        android:layout_width="wrap_content"
+   		        android:layout_height="wrap_content"
+   		       style="?android:attr/buttonBarButtonStyle"
+   		        android:textColor="#ffffff"
+   		        android:textSize="20dp" />
+   		    <Button android:id="@+id/settings_button_reset"
+   		        android:text="@string/settings_button_reset_title"
+   		        android:layout_width="wrap_content"
+   		        android:layout_height="wrap_content"
+   		        style="?android:attr/buttonBarButtonStyle"
+   		        android:textColor="#ffffff"
+   		        android:textSize="20dp" />
+   		    <Button android:id="@+id/settings_button_exit"
+   		        android:text="@string/settings_button_exit_title"
+   		        android:layout_width="wrap_content"
+   		        android:layout_height="wrap_content"
+   		        style="?android:attr/buttonBarButtonStyle"
+   		        android:textColor="#ffffff"
+   		        android:textSize="20dp" />
+   			</LinearLayout>
+   		</LinearLayout>		
+</LinearLayout>

@@ -29,12 +29,15 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity implements Observer,IMainActivity {
 	
-	public Bundle savedStateBundle;
+	
 	private IClientSocket clientSocket;
 	private MainViewFragment mainViewFragment;
 	private SettingsFragment settingsFragment;
 	
+	public Bundle savedStateBundle;
 	public ISensorListener sensorListener;
+	
+	public boolean isLandScape = false;
 	
 	public static String deviceId;
 	public static String deviceName = "Android device";
@@ -148,7 +151,13 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
         
         if(this.mainViewFragment.isPause) this.showToast(getString(R.string.toast_sensorlistener_stopped));
     }
-    
+    public void onSettingsItemClicked(Boolean _isLandScape) {
+    	this.isLandScape = _isLandScape;
+    	FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+    	this.settingsFragment = new SettingsFragment();
+        fragmentTransaction.replace(R.id.fragment_content, this.settingsFragment);
+        fragmentTransaction.commit();
+    }
     private void onMainItemClicked() {
     	FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
     	fragmentTransaction.replace(R.id.fragment_content,this.mainViewFragment);

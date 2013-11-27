@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
@@ -46,6 +47,7 @@ public class SettingsFragment extends Fragment implements OnClickListener {
 	private String location;
 	private int port;
 	private long interval;
+	
 	public static final String PREFS_NAME = "RealVirtualInteraction";
 	public static final String SHARED_SENSORS = "Sensors";
 	public static final String SHARED_ADDRESS = "ServerAddress";
@@ -54,11 +56,11 @@ public class SettingsFragment extends Fragment implements OnClickListener {
 	public static final String SHARED_LOCATION = "ContextualLocation";
 	public static final String SHARED_GPS = "GpsLocation";
 
-
-    
 	@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		this.settingsFragmentView = (LinearLayout) inflater.inflate(R.layout.settings , null);
+		if (((MainActivity)getActivity()).isLandScape)this.settingsFragmentView = (LinearLayout) inflater.inflate(R.layout.settings_landscape , null);
+		else this.settingsFragmentView = (LinearLayout) inflater.inflate(R.layout.settings , null);
+		
 		this.sensorListLeft = (LinearLayout) this.settingsFragmentView.findViewById(R.id.settings_sensorlist_left);
 		this.sensorListRight = (LinearLayout) this.settingsFragmentView.findViewById(R.id.settings_sensorlist_right);
 		this.addressTextField = (EditText) this.settingsFragmentView.findViewById(R.id.settings_address);
@@ -92,11 +94,14 @@ public class SettingsFragment extends Fragment implements OnClickListener {
 	    Set<String> sensors = settings.getStringSet(SHARED_SENSORS, this.defaultValues);
 	 
 	    for (String sensor : this.defaultValues) {
+	    	
 	    	int id = Integer.parseInt(sensor);
+	    	
 	    	CheckBox cb = new CheckBox(getActivity());
 	    	cb.setTextColor(Color.BLACK);
 	    	cb.setText(JsonParser.resolveSensorTypeById(id));
 	        cb.setId(id);
+	        
 	        if (sensors.contains(JsonParser.resolveSensorTypeById(id)))cb.setChecked(true);
 	        if (isLeft) {
 	        	this.sensorListLeft.addView(cb);
@@ -137,6 +142,19 @@ public class SettingsFragment extends Fragment implements OnClickListener {
 		getActivity().invalidateOptionsMenu();
     	super.onCreateOptionsMenu(menu, inflater);
 	}
+	
+	@Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig); 
+
+        if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+        	this.saveState();
+        	if(((MainActivity)getActivity()).isLandScape)((MainActivity)getActivity()).onSettingsItemClicked(false);
+        } else if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        	this.saveState();
+        	if(!((MainActivity)getActivity()).isLandScape)((MainActivity)getActivity()).onSettingsItemClicked(true);
+        }
+    }
 	
 	private void saveState() {
 		

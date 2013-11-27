@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Set;
 
 import android.app.Fragment;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -63,6 +64,17 @@ public class MainViewFragment extends Fragment implements OnClickListener{
 		}
 		this.isPause = _savedState.getBoolean(STATE_TOGGLE_BUTTON);
 	}
+	
+	@Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig); 
+
+        if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+        	if(((MainActivity)getActivity()).isLandScape)((MainActivity)getActivity()).isLandScape = false;
+        } else if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        	if(!((MainActivity)getActivity()).isLandScape)((MainActivity)getActivity()).isLandScape = true;
+        }
+    }
 	
 	public void addNewMessage(String _msg, Boolean _isInbound) {
 		
