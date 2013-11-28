@@ -13,9 +13,9 @@
     <string name="settings_interval_title">Sensor event interval:</string>
     <string name="settings_interval_unit">ms</string>
     <string name="settings_location_title">Location:</string>
-     <string name="settings_location_hint">e.g. office</string>
+    <string name="settings_location_hint">e.g. office</string>
     <string name="settings_gps_location_title">GPS</string>
-    <string name="settings_button_exit_title">Exit</string>
+    <string name="settings_button_exit_title">Return</string>
     <string name="settings_button_save_title">Save</string>
     <string name="settings_button_reset_title">Reset</string>
     <string name="event_button_reset_title">Clear</string>
@@ -24,4 +24,5 @@
     <string name="toast_sensorlistener_stopped">Sensor events listening paused</string>
     <string name="toast_sensorlistener_no_sensors_selected">No sensors selected for listening, please select at least one sensor</string>
 
+    <string name="exception_unknown_host">Application was unable to resolve server host: </string>
 </resources>

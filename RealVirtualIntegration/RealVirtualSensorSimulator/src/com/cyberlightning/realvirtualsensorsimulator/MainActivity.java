@@ -56,6 +56,9 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
             	break;
             case MESSAGE_FROM_SERVER: 			mainViewFragment.addNewMessage(_msg.obj.toString(), true);
             	break;
+            case ClientSocket.MESSAGE_TYPE_UNKNOWNHOST_ERROR:	showToast(getString(R.string.exception_unknown_host) + _msg.obj.toString());
+    				
+    			
             }
         }
     };
@@ -206,9 +209,9 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
     public void update(Observable observable, Object data) {
 		
 		if (observable instanceof ClientSocket) {
-			this.sensorListener.toggleSensor(1); //TODO implement     
+			//implement something here do not draw to UI 
         } else if (observable instanceof SensorListener) {
             this.clientSocket.sendMessage((Message)data);
-        }    
+        }   
     }
 }

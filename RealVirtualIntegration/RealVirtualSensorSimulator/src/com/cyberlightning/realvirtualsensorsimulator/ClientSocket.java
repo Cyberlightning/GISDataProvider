@@ -221,15 +221,18 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 		
 		private boolean resolveServerAddress() {
 			SharedPreferences settings = application.getContext().getSharedPreferences(SettingsFragment.PREFS_NAME, 0);
+			String address = "";
 			try {
-				String address = settings.getString(SettingsFragment.SHARED_ADDRESS, SERVER_DEFAULT_ADDRESS);
+				address = settings.getString(SettingsFragment.SHARED_ADDRESS, SERVER_DEFAULT_ADDRESS);
 				serverAddress = InetAddress.getByName(address);
 				serverPort = settings.getInt(SettingsFragment.SHARED_PORT, SERVER_DEFAULT_PORT);
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				setChanged();
-				notifyObservers(Message.obtain(null, MESSAGE_TYPE_UNKNOWNHOST_ERROR, e.getCause()));
+				Message msg = Message.obtain(null, MESSAGE_TYPE_UNKNOWNHOST_ERROR, address);
+				msg.setTarget(application.getTarget());
+	        	msg.sendToTarget();
+				
 				this.destroy();
 				return false;
 			}

@@ -99,6 +99,7 @@ public class SettingsFragment extends Fragment implements OnClickListener {
 	    	
 	    	CheckBox cb = new CheckBox(getActivity());
 	    	cb.setTextColor(Color.BLACK);
+	    	cb.setTextSize(11);
 	    	cb.setText(JsonParser.resolveSensorTypeById(id));
 	        cb.setId(id);
 	        
@@ -139,7 +140,7 @@ public class SettingsFragment extends Fragment implements OnClickListener {
 		((MenuItem)menu.findItem(R.id.menu_main)).setVisible(true);
 		((MenuItem)menu.findItem(R.id.menu_settings)).setVisible(false);
 		((MenuItem)menu.findItem(R.id.menu_settings)).setEnabled(false);
-		getActivity().invalidateOptionsMenu();
+		//getActivity().invalidateOptionsMenu(); //cause stack overflow in Samsung galaxy 4.1.2
     	super.onCreateOptionsMenu(menu, inflater);
 	}
 	
@@ -148,15 +149,15 @@ public class SettingsFragment extends Fragment implements OnClickListener {
         super.onConfigurationChanged(newConfig); 
 
         if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-        	this.saveState();
+        	this.saveState(false);
         	if(((MainActivity)getActivity()).isLandScape)((MainActivity)getActivity()).onSettingsItemClicked(false);
         } else if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-        	this.saveState();
+        	this.saveState(false);
         	if(!((MainActivity)getActivity()).isLandScape)((MainActivity)getActivity()).onSettingsItemClicked(true);
         }
     }
 	
-	private void saveState() {
+	private void saveState(Boolean _showToast) {
 		
 		Set<String> sensors = new HashSet<String>(this.defaultValues.size());
 		
@@ -198,12 +199,12 @@ public class SettingsFragment extends Fragment implements OnClickListener {
 	    	editor.commit();
 	    }
 	    
-		if (getActivity() instanceof MainActivity) ((MainActivity)getActivity()).showToast("Settings saved!");
+		if (_showToast) ((MainActivity)getActivity()).showToast("Settings saved!");
 		
 	}
 	
 	public void onBackPressed() {
-		this.saveState();
+		this.saveState(true);
 	}
 	
 	private void toggleGPS(Boolean _turnOn) {
@@ -223,7 +224,7 @@ public class SettingsFragment extends Fragment implements OnClickListener {
 			    this.sensorListRight.removeAllViews();
 				this.loadSettings();
 				break;
-			case R.id.settings_button_save: this.saveState();
+			case R.id.settings_button_save: this.saveState(true);
 				break;
 			case R.id.settings_gps_location: if (this.gpsCheckBox.isEnabled()) this.toggleGPS(this.gpsCheckBox.isChecked());
 		}		
