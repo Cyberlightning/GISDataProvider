@@ -276,23 +276,18 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 				}
 
 				isBusy = true;
-				//HashMap<String,SensorEvent> readSensors = copy;
 				ArrayList<SensorEventObject> sensorEvents = events;
 				events.clear();
 				isBusy = false;
-//				if (!readSensors.isEmpty()) {
-//					sendMessageToServer(JsonParser.createFromSensorEvent(readSensors, location, contextualLocation));
-//					Set<String> keys = readSensors.keySet();
-//					for (String key : keys) {
-//						sendMessageToUI( JsonParser.getTimeStamp() + ": " + key);
-//					}
-//				}
 				if (!sensorEvents.isEmpty()) {
 					sendMessageToServer(JsonParser.createFromSensorEvent(sensorEvents, location, contextualLocation));
-					for (SensorEventObject o : events) {
+					for (SensorEventObject o : sensorEvents) {
 						sendMessageToUI( JsonParser.getTimeStamp() + ": " + o.type);
 					}
 				}
+				
+
+				
 			}
 			return;
 		}
