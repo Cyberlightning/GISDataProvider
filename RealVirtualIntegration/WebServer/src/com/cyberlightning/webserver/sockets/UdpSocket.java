@@ -173,6 +173,7 @@ public class UdpSocket implements Runnable  {
 				     				for (InetSocketAddress target : msg.targetAddresses) {
 				     					DatagramPacket packet = new DatagramPacket(b,b.length,InetAddress.getByAddress(target.getAddress().getAddress()),target.getPort());
 				     					serverSocket.send(packet);
+				     					System.out.println("Packet send to device: " + InetAddress.getByAddress(target.getAddress().getAddress()).getHostAddress() + ":" + target.getPort());
 				     				}
 				     				
 				     			}

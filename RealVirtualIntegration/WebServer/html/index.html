@@ -171,47 +171,43 @@
 
         if (valueContainer.hasOwnProperty(uuid)) {
             hasEntries = true;
-            var entry = valueContainer[uuid];
-            var values = {};
+            var existingValues = valueContainer[uuid];
+
             for (var j  = 0; j < obj.sensors.length; j++) {
-                if(entry.hasOwnProperty(obj.sensors[j].attributes.type)){
-                     if(entry[obj.sensors[j].attributes.type].length > 4){
+                if(existingValues.hasOwnProperty(obj.sensors[j].attributes.type)){
+                    if(existingValues[obj.sensors[j].attributes.type].length > 4){
                             var tempArray = [];
-                            var dd = entry[obj.sensors[j].attributes.type];
+                            var dd = existingValues[obj.sensors[j].attributes.type];
                             for (var k = 1; k < dd.length; k++) {
                                 tempArray.push(dd[k]);
                             }
                             tempArray.push(obj.sensors[j].value.values);
-                            values[obj.sensors[j].attributes.type] = tempArray;
-                        }else {
+                            existingValues[obj.sensors[j].attributes.type] = tempArray;
+                    }else {
                             var tempArray = [];
-                            var dd = entry[obj.sensors[j].attributes.type];
+                            var dd = existingValues[obj.sensors[j].attributes.type];
                             for (var k = 0; k < dd.length; k++) {
                                 tempArray.push(dd[k]);
                             }
                             tempArray.push(obj.sensors[j].value.values);
-                            values[obj.sensors[j].attributes.type] = tempArray;
+                            existingValues[obj.sensors[j].attributes.type] = tempArray;
                         }
                 } else {
-                    var values = [];
-                    values.push(obj.sensors[j].value.values);
-                    entry[obj.sensors[j].attributes.type] = values;
+
+                    existingValues[obj.sensors[j].attributes.type] = obj.sensors[j];
                 }
+
             }
+        valueContainer[uuid] = existingValues;
         }
-        valueContainer[uuid] = values;
+
 
 
         if (!hasEntries ) {
             var sensorvals = {};
             for (var j = 0; j < obj.sensors.length; j++) {
-               if ( obj.sensors[j].value.primitive == "3DPoint") {
-                   var values = [];
-                   values.push(obj.sensors[j].value.values);
-               } else {
-                    var values = [];
-                   values.push(obj.sensors[j].value.values);
-               }
+               var values = [];
+               values.push(obj.sensors[j].value.values);
                sensorvals[obj.sensors[j].attributes.type] = values;
             }
             valueContainer[uuid] = sensorvals;

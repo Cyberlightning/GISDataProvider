@@ -121,17 +121,13 @@ public class MessageService implements Runnable  {
 		
 		while(true) {
 			synchronized(this) {
-	            
 				while(suspendFlag) {
-					
-					
 					try {
 						wait();
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					
 	            }
 	        }
 			
@@ -147,6 +143,7 @@ public class MessageService implements Runnable  {
 						DataStorageService.getInstance().addToBuffer(msg.originUUID, (DatagramPacket) msg.payload);
 						ArrayList<String> receivers = this.resolveReceivers(msg.originUUID);
 						for (String receiver: receivers) {
+							System.out.println(receiver);
 							this.registeredReceivers.get(receiver).onMessageReceived(msg);
 						}
 						this.messageBuffer.remove(msg);

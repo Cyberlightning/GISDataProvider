@@ -1,9 +1,13 @@
 package com.cyberlightning.realvirtualsensorsimulator;
 
 import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -98,15 +102,15 @@ public abstract class JsonParser {
 			}
 			
 			attributes.put("name", MainActivity.deviceName);
-			Object[] vals = _sensorEvents.values().toArray();
-			for(int o = 0; o < vals.length; o++) {
-				SensorEvent event = (SensorEvent)vals[o];
+			
+			for(Map.Entry<String, SensorEvent> entry : _sensorEvents.entrySet()) {
+				SensorEvent event = entry.getValue();
 				JSONObject sensorAttrs = new JSONObject();
 				JSONObject sensor = new JSONObject();
 				JSONObject sensorParams = new JSONObject();
 				JSONObject value = new JSONObject();
 				
-				sensorAttrs.put("type", resolveSensorTypeById(event.sensor.getType()));
+				sensorAttrs.put("type", entry.getKey());
 				sensorAttrs.put("vendor", event.sensor.getVendor());
 				sensorAttrs.put("power", event.sensor.getPower());
 				sensorAttrs.put("name", event.sensor.getName());

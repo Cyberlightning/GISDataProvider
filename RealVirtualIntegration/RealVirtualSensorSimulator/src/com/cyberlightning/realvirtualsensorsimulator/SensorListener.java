@@ -137,7 +137,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 				
 			}
 		}
-		this.copy.clear();
+		this.copy = new HashMap<String,SensorEvent>(selectedSensors.size());
 		return selectedSensors.size();
 	}
 		
@@ -169,7 +169,11 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	
 	@Override
 	public void onSensorChanged(SensorEvent _event) { 
-		if(!isBusy)this.copy.put(JsonParser.resolveSensorTypeById(_event.sensor.getType()), _event);
+		
+		if(!isBusy) {
+			String type = JsonParser.resolveSensorTypeById(_event.sensor.getType());
+			if (!this.copy.containsKey(type)) this.copy.put(type, _event);
+		}
 	}
 	
 	@Override
