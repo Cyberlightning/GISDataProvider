@@ -174,32 +174,34 @@
             var entry = valueContainer[uuid];
             var values = {};
             for (var j  = 0; j < obj.sensors.length; j++) {
-                for (var value in entry) {
-
-                    if (value == obj.sensors[j].attributes.type) {
-                        if(entry[value].length > 4){
+                if(entry.hasOwnProperty(obj.sensors[j].attributes.type)){
+                     if(entry[obj.sensors[j].attributes.type].length > 4){
                             var tempArray = [];
-                            var dd = entry[value];
+                            var dd = entry[obj.sensors[j].attributes.type];
                             for (var k = 1; k < dd.length; k++) {
                                 tempArray.push(dd[k]);
                             }
                             tempArray.push(obj.sensors[j].value.values);
-                            values[value] = tempArray;
+                            values[obj.sensors[j].attributes.type] = tempArray;
                         }else {
                             var tempArray = [];
-                            var dd = entry[value];
+                            var dd = entry[obj.sensors[j].attributes.type];
                             for (var k = 0; k < dd.length; k++) {
                                 tempArray.push(dd[k]);
                             }
                             tempArray.push(obj.sensors[j].value.values);
-                            values[value] = tempArray;
+                            values[obj.sensors[j].attributes.type] = tempArray;
                         }
+                } else {
+                    var values = [];
+                    values.push(obj.sensors[j].value.values);
+                    entry[obj.sensors[j].attributes.type] = values;
                 }
             }
-            }
-            valueContainer[uuid] = values;
-
         }
+        valueContainer[uuid] = values;
+
+
         if (!hasEntries ) {
             var sensorvals = {};
             for (var j = 0; j < obj.sensors.length; j++) {
@@ -500,10 +502,10 @@
           else
           	{
 				// Use localhost IP for websocket
-				ws = new WebSocket("ws://127.0.0.1:44445");
+				//ws = new WebSocket("ws://127.0.0.1:44445");
 
 				// Use dev.cyberlightning.com IP for websocket	
-				//ws = new WebSocket("ws://dev.cyberlightning.com:44445");
+				ws = new WebSocket("ws://dev.cyberlightning.com:44445");
           	}
           ws.onopen = function() {
              // Web Socket is connected, send data using send()

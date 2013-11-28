@@ -66,6 +66,10 @@ public class DataStorageService implements Runnable {
 	         
 	      } catch (IOException i) {
 	         i.printStackTrace();
+	         EntityTable e = entityTable;
+	         Map<String, InetSocketAddress> b = baseStationReferences;
+	         saveData(e,StaticResources.DATABASE_FILE_NAME);
+	         saveData(b, StaticResources.REFERENCE_TABLE_FILE_NAME);//remove these four lines at some point
 	         return;
 	      } catch(ClassNotFoundException c) {
 	         System.out.println("Database not found! ");

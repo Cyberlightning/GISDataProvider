@@ -28,29 +28,32 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 
 
 	private HashMap<String,SensorEvent> copy = new HashMap<String,SensorEvent>();
-	private ConcurrentLinkedQueue<SensorEvent> eventBuffer = new ConcurrentLinkedQueue<SensorEvent>();
 	private IMainActivity application;
 	private List<Sensor> deviceSensors;
 	private Location location;
-	private String contextualLocation;
-	private Thread thread;
+	private SensorEventHandler sensorEventHandler;
 	
+	private String contextualLocation;
 	private long sensorEventInterval;
+	
 	private boolean suspendFlag = true;
 	private boolean destroyFlag = false;
+	
 	private volatile boolean isBusy = false;
 
 	public static final long SENSOR_EVENT_INTERVAL = 4000;
     
 	public SensorListener(MainActivity _activity) {
 		this.application = _activity;
-		this.thread = new Thread(this);
-		this.thread.start();
+		Thread thread= new Thread(this);
+		thread.start();
 	}
 	
 	@Override
 	public void run() {
-		
+		this.sensorEventHandler= new SensorEventHandler();
+		Thread t = new Thread(sensorEventHandler);
+		t.start();
 		
 		while(true) {
 			
@@ -58,54 +61,32 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	            while(suspendFlag && !destroyFlag) {
 					try {
 						wait();
-						isBusy = true;
-						Thread.sleep(this.sensorEventInterval); //TODO check whether can be done better
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 						return;
 					}
 	            }
 	            if (destroyFlag) break; 
 	        }
-			
-			while(!this.eventBuffer.isEmpty()) {
-				String key = JsonParser.resolveSensorTypeById(this.eventBuffer.peek().sensor.getType());
-				if (key != null){
-					copy.put(key, this.eventBuffer.poll());	
-				}else {
-					this.eventBuffer.poll();
-				}
-			}
-			
-			if (!this.copy.isEmpty()) {
-				this.sendMessageToServer(JsonParser.createFromSensorEvent(copy, location, contextualLocation));
-				Set<String> keys = copy.keySet();
-				for (String key : keys) {
-					this.sendMessageToUI( JsonParser.getTimeStamp() + ": " + key);
-				}
-			}
-			
-			
-			this.suspendThread();
-			isBusy = false;
-			
 		}
-		return;
+	
 	}
 	
-	public void suspendThread() {
+	public synchronized void suspendThread() {
 	      suspendFlag = true;
 	}
 
 	private synchronized void wakeThread() {
 	      suspendFlag = false;
 	      notify();
+	      this.sensorEventHandler.wakeNestedThread();
 	}
 	
 	private synchronized void destroy() {
 	      this.destroyFlag = true;
 	      notify();
+	      this.sensorEventHandler.destroyNestedThread();
+	    
 	}
 	private Set<String> loadSettings() {
 		Set<String> defaultValues =  new HashSet<String>( this.deviceSensors.size());
@@ -156,6 +137,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 				
 			}
 		}
+		this.copy.clear();
 		return selectedSensors.size();
 	}
 		
@@ -187,18 +169,13 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	
 	@Override
 	public void onSensorChanged(SensorEvent _event) { 
-		if(!isBusy) {
-			this.eventBuffer.offer(_event);
-			if(this.eventBuffer.size() > 200) {
-				this.wakeThread();
-			}
-			
-		}
+		if(!isBusy)this.copy.put(JsonParser.resolveSensorTypeById(_event.sensor.getType()), _event);
 	}
 	
 	@Override
 	public void pause() {
 		this.suspendThread();
+		this.sensorEventHandler.suspendNestedThread();
 		this.unregisterAllSensors();
 		
 	}
@@ -256,6 +233,64 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		public void onStatusChanged(String provider, int status, Bundle extras) {
 			//TODO Auto-generated text block
 		}
+	}
+	
+	private class SensorEventHandler implements Runnable {
+		
+		protected boolean suspendNestedFlag = true;
+		protected boolean destroyNestedFlag = false;
+		
+		@Override
+		public void run() {
+			
+			while(true) {
+				
+				synchronized(this) {
+					
+					try {
+						
+						while(suspendNestedFlag && !destroyNestedFlag) {
+							wait();
+						}
+						if (destroyFlag) break; 
+						wait(sensorEventInterval);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+						break;
+					}
+					if(this.suspendNestedFlag) continue;
+				}
+
+				isBusy = true;
+				HashMap<String,SensorEvent> readSensors = copy;
+				isBusy = false;
+				if (!readSensors.isEmpty()) {
+					sendMessageToServer(JsonParser.createFromSensorEvent(readSensors, location, contextualLocation));
+					Set<String> keys = readSensors.keySet();
+					for (String key : keys) {
+						sendMessageToUI( JsonParser.getTimeStamp() + ": " + key);
+					}
+				}
+			}
+			return;
+		}
+		
+		public synchronized void suspendNestedThread() {
+			 this.suspendNestedFlag = true;
+			 notify();
+		}
+
+		public synchronized void wakeNestedThread() {
+		      this.suspendNestedFlag = false;
+		      notify();
+		     
+		}
+		
+		public synchronized void destroyNestedThread() {
+		      this.destroyNestedFlag = true;
+		      notify();
+		}
+		
 	}
 
 }

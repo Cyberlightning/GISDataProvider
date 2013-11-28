@@ -94,6 +94,7 @@ public abstract class StaticResources {
 
 	
 	public static final long SAVE_TO_HD_INTERVAL = 10000;
+	public static final int MAX_HISTORY_VALUES_FOR_SENSOR = 5;
 
 
 	

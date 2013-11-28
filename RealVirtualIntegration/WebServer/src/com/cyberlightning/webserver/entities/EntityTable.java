@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.cyberlightning.webserver.StaticResources;
+
 
 public class EntityTable implements java.io.Serializable {
 	
@@ -51,13 +53,24 @@ public class EntityTable implements java.io.Serializable {
 					if (oldSensor.uuid != null && sensor.uuid != null) {
 						if (oldSensor.uuid.contentEquals(sensor.uuid)) {
 							for (HashMap<String,Object> value: values) {
-								oldSensor.values.add(value);
+								if (oldSensor.values.size() < StaticResources.MAX_HISTORY_VALUES_FOR_SENSOR) {
+									oldSensor.values.add(value);
+								} else {
+									oldSensor.values.clear();
+									oldSensor.values.add(value);
+								}
+										
 							}
 						}
 					} else {
 						if (((String)oldSensor.attributes.get("type")).contentEquals((String)sensor.attributes.get("type"))) {
 							for (HashMap<String,Object> value: values) {
-								oldSensor.values.add(value);
+								if (oldSensor.values.size() < StaticResources.MAX_HISTORY_VALUES_FOR_SENSOR) {
+									oldSensor.values.add(value);
+								} else {
+									oldSensor.values.clear();
+									oldSensor.values.add(value);
+								}
 							}
 						} else {
 							// store in general entity history?
