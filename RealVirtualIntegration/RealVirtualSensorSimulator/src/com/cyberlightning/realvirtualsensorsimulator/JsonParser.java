@@ -1,6 +1,7 @@
 package com.cyberlightning.realvirtualsensorsimulator;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -12,6 +13,8 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.cyberlightning.realvirtualsensorsimulator.SensorListener.SensorEventObject;
 
 import android.annotation.SuppressLint;
 import android.hardware.Sensor;
@@ -81,7 +84,7 @@ public abstract class JsonParser {
 	}*/
 	
 	
-	public static String createFromSensorEvent(HashMap<String,SensorEvent> _sensorEvents, Location _location, String _contextualLocation) {
+	public static String createFromSensorEvent(ArrayList<SensorListener.SensorEventObject> _sensorEvents, Location _location, String _contextualLocation) {
 		
 		JSONObject wrapper = new JSONObject();
 		JSONObject device = new JSONObject();
@@ -103,14 +106,14 @@ public abstract class JsonParser {
 			
 			attributes.put("name", MainActivity.deviceName);
 			
-			for(Map.Entry<String, SensorEvent> entry : _sensorEvents.entrySet()) {
-				SensorEvent event = entry.getValue();
+			for(SensorEventObject o: _sensorEvents) {
+				SensorEvent event = o.event;
 				JSONObject sensorAttrs = new JSONObject();
 				JSONObject sensor = new JSONObject();
 				JSONObject sensorParams = new JSONObject();
 				JSONObject value = new JSONObject();
 				
-				sensorAttrs.put("type", entry.getKey());
+				sensorAttrs.put("type", o.type);
 				sensorAttrs.put("vendor", event.sensor.getVendor());
 				sensorAttrs.put("power", event.sensor.getPower());
 				sensorAttrs.put("name", event.sensor.getName());
@@ -144,7 +147,7 @@ public abstract class JsonParser {
 	
 	private static Object resolveValues (float[] _values, int _id) {
 		String prim = resolvePrimitive(_id);
-		if (prim.equals("double")){
+		if (prim.contentEquals("double")){
 			return _values[0];
 		} else {
 			JSONArray values = new JSONArray();

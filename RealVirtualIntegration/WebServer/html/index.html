@@ -193,7 +193,11 @@
                             existingValues[obj.sensors[j].attributes.type] = tempArray;
                         }
                 } else {
-
+                    for (var j = 0; j < obj.sensors.length; j++) {
+                        var values = [];
+                        values.push(obj.sensors[j].value.values);
+                        sensorvals[obj.sensors[j].attributes.type] = values;
+                    }
                     existingValues[obj.sensors[j].attributes.type] = obj.sensors[j];
                 }
 

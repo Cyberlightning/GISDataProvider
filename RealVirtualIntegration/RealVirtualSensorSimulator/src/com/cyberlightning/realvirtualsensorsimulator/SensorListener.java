@@ -1,6 +1,7 @@
 package com.cyberlightning.realvirtualsensorsimulator;
 
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,6 +29,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 
 
 	private HashMap<String,SensorEvent> copy = new HashMap<String,SensorEvent>();
+	private ArrayList<SensorEventObject> events;
 	private IMainActivity application;
 	private List<Sensor> deviceSensors;
 	private Location location;
@@ -137,7 +139,8 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 				
 			}
 		}
-		this.copy = new HashMap<String,SensorEvent>(selectedSensors.size());
+		//this.copy = new HashMap<String,SensorEvent>(selectedSensors.size());
+		this.events = new ArrayList<SensorEventObject>(selectedSensors.size());
 		return selectedSensors.size();
 	}
 		
@@ -172,7 +175,14 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		
 		if(!isBusy) {
 			String type = JsonParser.resolveSensorTypeById(_event.sensor.getType());
-			if (!this.copy.containsKey(type)) this.copy.put(type, _event);
+			boolean contains = false;
+			for (int i = 0 ; i < this.events.size(); i++) {
+				if (this.events.get(i).type.contentEquals(type)){
+					contains = true;
+				}
+			}
+			if (!contains) this.events.add(new SensorEventObject(_event,type));
+			//if (!this.copy.containsKey(type)) this.copy.put(type, _event);
 		}
 	}
 	
@@ -266,13 +276,21 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 				}
 
 				isBusy = true;
-				HashMap<String,SensorEvent> readSensors = copy;
+				//HashMap<String,SensorEvent> readSensors = copy;
+				ArrayList<SensorEventObject> sensorEvents = events;
+				events.clear();
 				isBusy = false;
-				if (!readSensors.isEmpty()) {
-					sendMessageToServer(JsonParser.createFromSensorEvent(readSensors, location, contextualLocation));
-					Set<String> keys = readSensors.keySet();
-					for (String key : keys) {
-						sendMessageToUI( JsonParser.getTimeStamp() + ": " + key);
+//				if (!readSensors.isEmpty()) {
+//					sendMessageToServer(JsonParser.createFromSensorEvent(readSensors, location, contextualLocation));
+//					Set<String> keys = readSensors.keySet();
+//					for (String key : keys) {
+//						sendMessageToUI( JsonParser.getTimeStamp() + ": " + key);
+//					}
+//				}
+				if (!sensorEvents.isEmpty()) {
+					sendMessageToServer(JsonParser.createFromSensorEvent(sensorEvents, location, contextualLocation));
+					for (SensorEventObject o : events) {
+						sendMessageToUI( JsonParser.getTimeStamp() + ": " + o.type);
 					}
 				}
 			}
@@ -295,6 +313,16 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		      notify();
 		}
 		
+	}
+	
+	public class SensorEventObject {
+		public SensorEvent event;
+		public String type;
+		
+		public SensorEventObject(SensorEvent _event, String _type) {
+			this.event = _event;
+			this.type = _type;
+		}
 	}
 
 }
