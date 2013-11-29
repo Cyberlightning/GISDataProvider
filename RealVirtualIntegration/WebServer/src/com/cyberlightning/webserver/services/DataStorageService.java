@@ -1,6 +1,7 @@
 package com.cyberlightning.webserver.services;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -64,24 +65,22 @@ public class DataStorageService implements Runnable {
 	        saveFileRoutine= new Thread((Runnable)(new SaveFileRoutine()));
 	        saveFileRoutine.start();
 	         
-	      } catch (IOException i) {
-	         i.printStackTrace();
+	      } catch (FileNotFoundException i) {
 	         EntityTable e = entityTable;
 	         Map<String, InetSocketAddress> b = baseStationReferences;
 	         saveData(e,StaticResources.DATABASE_FILE_NAME);
 	         saveData(b, StaticResources.REFERENCE_TABLE_FILE_NAME);//remove these four lines at some point
 	         return;
-	      } catch(ClassNotFoundException c) {
-	         System.out.println("Database not found! ");
-	         
-	         EntityTable e = entityTable;
+	      }  catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException c) {
+			 EntityTable e = entityTable;
 	         Map<String, InetSocketAddress> b = baseStationReferences;
 	         saveData(e,StaticResources.DATABASE_FILE_NAME);
 	         saveData(b, StaticResources.REFERENCE_TABLE_FILE_NAME);//remove these four lines at some point
-				
-	         c.printStackTrace();
-	         return;
-	      } 
+			c.printStackTrace();
+		} 
 	}
 	
 	/**

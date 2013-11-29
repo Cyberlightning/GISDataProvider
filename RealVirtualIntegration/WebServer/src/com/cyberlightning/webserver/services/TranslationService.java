@@ -325,7 +325,8 @@ public abstract class TranslationService {
 				actuatorsJson.add(actuatorJson);
 			
 			}
-			entityJson.put("actuators", actuatorsJson);
+			if (!actuatorsJson.isEmpty())entityJson.put("actuators", actuatorsJson);
+			
 			JSONArray sensorsJson = new JSONArray();
 			for (Sensor sensor : entity.sensors) {
 				JSONObject sensorJson = new JSONObject();
