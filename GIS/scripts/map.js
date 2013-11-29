@@ -1,6 +1,8 @@
 var xmlDoc;
 
+
 (function() {
+    var oldCoordinates = null;
 
     function parseServerCapabilities(response) {
         // console.log(response);
@@ -13,6 +15,7 @@ var xmlDoc;
     }
 
     function getGeoserverCapabilities() {
+        console.log("getGeoserverCapabilities");
         var xmlhttp;
         if (window.XMLHttpRequest) {
             xmlhttp = new XMLHttpRequest();
@@ -55,25 +58,32 @@ var xmlDoc;
         $("#selector").click(function(e) {
             // console.log(this.options[this.selectedIndex].text);
             e.preventDefault(); // if desired...
-          // other methods to call...
-          // initApp(); 
 
           newLayer = true;
-          // initSceneMngr(this.options[this.selectedIndex].text);
           getLayerDetails(this.options[this.selectedIndex].text);
         });
       });
 
     // Traps camera movement, used for analyzing when new layer data should be requested
     $("#camera_player-camera").bind("DOMAttrModified", function() {
-        var cam = document.getElementById("camera_player-camera");
-        var coordinates = cam.getAttribute("position");
-        if (coordinates != null){
-            var coordSplit = coordinates.split(" ");
-            var currentX = parseInt(coordSplit[0]);
-            var currentY = parseInt(coordSplit[2]);
-            // calculateCurrentPosLayerBlock(currentX, currentY);    
-        }
+        console.log("#camera_player-camera).bind(DOMAttrModified");
+        // check flag if new layer is loaded, because in this case camera height needs to be adjusted 
+        // and that operation tricks this function unneseccary. We want to see only camera movements after new layer is initialized
+        // if (newLayer){
+            var cam = document.getElementById("camera_player-camera");
+            var coordinates = cam.getAttribute("position");
+            if (!oldCoordinates && coordinates !== null){
+                oldCoordinates = coordinates;
+            }
+            // console.log("oldCoordinates: "+oldCoordinates);
+            // console.log("coordinates: "+coordinates);
+            if ((coordinates != null) && (coordinates !==oldCoordinates)) {
+                var coordSplit = coordinates.split(" ");
+                var currentX = parseFloat(coordSplit[0]);
+                var currentY = parseFloat(coordSplit[2]);
+                calculateCurrentPosLayerBlock(currentX, currentY);        
+                }
+        // }
     })
 
 

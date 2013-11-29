@@ -1,4 +1,7 @@
 "use strict";
+/**
+ * DO NOT EDIT OR CHANGE. THIS IS A COPY OF CAMERAFEED.HTML. JUST HERE FOR DEMO PURPOSES
+ */
 /*global Float32Array, Uint16Array */
 /*jslint vars: true, white: true, browser: true */
 var mapCenter = new Object();
@@ -148,7 +151,7 @@ var getImageList = function(data){
 var makeRequest = function() {
 	$('#photoList').append("<div id=\"loading-list\" class=\"tempicon\"><img src=\"img/loader.GIF\" alt=\"Loading...\" style= \" width: 25%; margin-left: 100px;margin-top: 300px;\"/></div>");
 	$('#photoMap').append("<div id=\"loading-map\" class=\"tempicon\"><img src=\"img/loader.GIF\" style=\"	width: 12%;margin-top: 310px;margin-left: 240px;\"alt=\"Loading...\" /></div>");
-	$.getJSON( "http://dev.cyberlightning.com:9090/RestClient/RestRequestMultiplexer", {command : "getAll", server : "dev.cyberlightning.com" }, getImageList);
+	$.getJSON( "http://dev.cyberlightning.com:9090/RestClient/ClientRequestMultiplexer", {command : "getAll", server : "dev.cyberlightning.com" }, getImageList);
 	//$.getJSON( "http://localhost:8080/RestClient/RestRequestMultiplexer", {command : "getAll", server : "dev.cyberlightning.com" } , getImageList);
 	cubeMain();
 };
