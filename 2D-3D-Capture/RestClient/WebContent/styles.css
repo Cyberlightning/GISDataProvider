@@ -8,6 +8,10 @@ body {
 	color: #ffffff;
 	font-family:"Lucida Sans Unicode", "Lucida Grande", sans-serif
 }
+a {
+	color: #ffffff;
+	font-family:"Lucida Sans Unicode", "Lucida Grande", sans-serif
+}
 
 .tempiconlist {
 	width: 25%;
@@ -21,12 +25,18 @@ body {
 	margin-left: 240px;
 }
 
+#topic {
+	position : absolute;
+	top:0px;
+	left:400px;
+}
+
 
 #logo{
 	position : absolute;
 	top:0px;
 	left:0px;
-	witdh: 400px;
+	width: 400px;
 }
 	
 #mobile{
@@ -42,6 +52,17 @@ body {
 
 
 #photoMap {
+	position : absolute;
+	height: 800px;
+	top	: 100px;
+	width : 600px;
+	left :280px;
+	border-color: white;
+	border-width: thin;
+	border-style: solid;
+}
+
+#demoList {
 	position : absolute;
 	height: 800px;
 	top	: 100px;
@@ -77,4 +98,15 @@ body {
 #cube-webgl {
 	margin-left:140px;
 	margin-top:50px;	
+}
+
+#image {
+	border-color: white;
+	border-width: thin;
+	border-style: solid;
+	position : absolute;
+	left: 1480px;
+	top: 100px;
+	width: 500px;
+	overflow: scroll;
 }
