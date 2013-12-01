@@ -2,6 +2,8 @@ package com.cyberlightning.realvirtualinteraction.backend;
 
 import java.io.IOException;
 
+import org.junit.runner.JUnitCore;
+
 import com.cyberlightning.realvirtualinteraction.backend.services.DataStorageService;
 import com.cyberlightning.realvirtualinteraction.backend.services.MessageService;
 import com.cyberlightning.realvirtualinteraction.backend.sockets.HttpSocket;
@@ -14,6 +16,8 @@ import com.cyberlightning.realvirtualinteraction.backend.sockets.WebSocket;
 public class Application  {
 
 	public static void main(String[] args) throws Exception, IOException {
+		
+		
 		
 		Runnable dataBase = DataStorageService.getInstance();
 		Thread dbThread = new Thread(dataBase);
@@ -32,12 +36,21 @@ public class Application  {
 		udpThread.start();
 		
 		MessageService.getInstance().startThread();
+		
+		for(String s : args) {
+			if(s.contentEquals("-simulate")){
+			Runnable test = new TestRoutine();
+			Thread t = new Thread(test);
+			t.start();
+			} if (s.contentEquals("com.cyberlightning.realvirtualinteraction.backend.TestRESTfulDataFormat")) {
+				  JUnitCore.main("com.cyberlightning.realvirtualinteraction.backend.TestRESTfulDataFormat");     
+			}
+		}
+		
 
 	}
 	
-	public void TestInterface() {
-		
-	}
+	
 	
 	
 }

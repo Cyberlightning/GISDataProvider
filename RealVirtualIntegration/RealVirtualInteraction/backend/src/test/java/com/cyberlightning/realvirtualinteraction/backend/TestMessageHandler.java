@@ -10,11 +10,7 @@ import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 
-import com.cyberlightning.realvirtualinteraction.backend.Application;
 import com.cyberlightning.realvirtualinteraction.backend.services.Gzip;
 import com.cyberlightning.realvirtualinteraction.backend.sockets.MessageObject;
 
@@ -25,29 +21,7 @@ public class TestMessageHandler {
 	public final int type = StaticResources.UDP_RECEIVER;
 	public final int testClientPort = 61616;
 	public final String testUdpSocketUUID = UUID.randomUUID().toString();
-//	  @Mock
-//	  Application server;
-//
-//	  @Before
-//	  protected void setUp() throws Exception {
-//	    MockitoAnnotations.initMocks(this);
-//	  }
 
-	 // @org.junit.Test
-	  //public void testQuery()  {
-	    // assume there is a class called ClassToTest
-	    // which could be tested
-	   
-	    // call a method
-	    
-
-	    // test the return type
-	    //assertTrue(check);
-
-	    // test that the query() method on the 
-	    // mock object was called
-	    //Mockito.verify(mock).query("* from t");
-	  //}
 	@Before
 	public void prepareEmptyCompressedMessageObject() {
 		try {

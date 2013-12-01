@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.JUnitCore;
 
 import com.cyberlightning.realvirtualinteraction.backend.entities.Entity;
 import com.cyberlightning.realvirtualinteraction.backend.services.DataStorageService;
@@ -33,7 +34,7 @@ public class TestRESTfulDataFormat {
 	public DatagramPacket testUnCompressedPacket;
 	public MessageObject testClientMessage;
 	public UdpSocket udpSocket;
-	
+
 	
 	@Before
 	public void prepareCompressedMessageObject() {
