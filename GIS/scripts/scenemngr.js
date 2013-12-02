@@ -37,21 +37,20 @@
 
      // Fetches layer details from GeoServer and passes them to getElements()-function
     this.getLayerDetails = function(layername) {
-        console.log("getLayerDetails");
-        var x = xmlDoc.getElementsByTagName("Layer");
+        //console.log("getLayerDetails");
+        var x = xmlDoc.getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "Layer");
         for (i=0;i<x.length;i++) { 
-            if (layername == x[i].getElementsByTagName("Identifier")[0].childNodes[0].nodeValue) {
+            if (layername == x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue) {
                 // console.log(x[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue);
                 // console.log(x[i].getElementsByTagName("Identifier")[0].childNodes[0].nodeValue);
-                console.log(x[i].getElementsByTagName("LowerCorner")[0].childNodes[0].nodeValue);
-                console.log(x[i].getElementsByTagName("UpperCorner")[0].childNodes[0].nodeValue);
+
                 // console.log(x[i].getElementsByTagName("OutputFormat")[0].childNodes[0].nodeValue);
                 // console.log(x[i].getElementsByTagName("DefaultCRS")[0].childNodes[0].nodeValue);
 
-                initSceneMngr(x[i].getElementsByTagName("Identifier")[0].childNodes[0].nodeValue,
-                              x[i].getElementsByTagName("LowerCorner")[0].childNodes[0].nodeValue,
-                              x[i].getElementsByTagName("UpperCorner")[0].childNodes[0].nodeValue,
-                              x[i].getElementsByTagName("DefaultCRS")[0].childNodes[0].nodeValue
+                initSceneMngr(x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue,
+                              x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "LowerCorner")[0].childNodes[0].nodeValue,
+                              x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "UpperCorner")[0].childNodes[0].nodeValue,
+                              x[i].getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "DefaultCRS")[0].childNodes[0].nodeValue
                               );
 
             }
@@ -93,8 +92,6 @@
 
 
         getElements(Identifier,
-                    // x[i].getElementsByTagName("LowerCorner")[0].childNodes[0].nodeValue,
-                    // x[i].getElementsByTagName("UpperCorner")[0].childNodes[0].nodeValue,
                     MinX, MinY, MaxX, MaxY, //custom size for layer min/max boundaries
                     // LayerMinX, LayerMinY, LayerMaxX, LayerMaxY, // Whole layer boundaries
                     DefaultCRS, 0, 0
@@ -110,8 +107,9 @@
     function getElements(layerName, lowerCornerX, lowerCornerY, higherCornerX, higherCornerY, layerCRS, transfromX, transfromY){
         console.log("getElements");
         var baseUrl = "http://localhost:9090/geoserver/";
-        // var texture_layer = "mml:UV41R_RVK_5";
+
         var texture_layer = "mml:pohjoisSuomi";
+
         var service = "w3ds";
         var version = "0.4.0";
 
@@ -136,17 +134,18 @@
                                         higherCornerY,
                                         layerCRS);
 
-        
-
 
         var textureResolution = 1024
-        var texture = "http://localhost:9090/geoserver/mml/wms?service=WMS&amp;version=1.1.0&amp;request=GetMap&amp;layers=" +
+       
+        var texture = baseUrl+"fiware/wms?service=WMS&amp;version=1.1.0&amp;request=GetMap&amp;layers=" +
+
                                         texture_layer + 
                                         "&amp;styles=&amp;bbox=" + 
                                         lowerCornerX+","+
                                         lowerCornerY+","+
                                         higherCornerX+","+
                                         higherCornerY + 
+
                                         "&amp;width="+textureResolution+"&amp;height="+textureResolution+"&amp;srs=EPSG:404000&amp;format=image%2Fpng"        
         // addTextureToShader(texture);
 
@@ -389,7 +388,6 @@ this.calculateCurrentPosLayerBlock = function(currentX, currentY){
             console.log(LayerblockArray[0],LayerblockArray[1],LayerblockArray[2]);
         }
     }
-
 
 }());
 

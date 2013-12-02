@@ -30,14 +30,16 @@ var xmlDoc;
                 // console.log(xmlhttp.responseText);
 
                 xmlDoc = new DOMParser().parseFromString(xmlhttp.responseText,'text/xml');
-                var x = xmlDoc.getElementsByTagName("Layer");
+                var x = xmlDoc.getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "Layer");
+                // xpath
+
                 // console.log(x);
                 for (i=0;i<x.length;i++)
                 { 
                     var combo = document.getElementById("selector");
                     var option = document.createElement("option");
-                    option.text = x[i].getElementsByTagName("Identifier")[0].childNodes[0].nodeValue;
-                    option.value = x[i].getElementsByTagName("Identifier")[0].childNodes[0].nodeValue;
+                    option.text = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue;
+                    option.value = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue;
                     try {
                         combo.add(option, null); //Standard 
                     }catch(error) {
