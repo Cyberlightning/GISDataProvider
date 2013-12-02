@@ -39,6 +39,8 @@ public class UdpSocket implements Runnable  {
 	 */
 	public UdpSocket (int _port) {
 		this.port = _port;
+		Thread t = new Thread(this);
+		t.start();
 	}
 	
 	@Override

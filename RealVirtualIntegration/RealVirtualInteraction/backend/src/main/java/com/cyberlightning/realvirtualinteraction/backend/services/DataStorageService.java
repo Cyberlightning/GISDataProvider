@@ -165,7 +165,10 @@ public class DataStorageService implements Runnable {
 			dbFile= (EntityTable)dataIn.readObject();
 			dataIn.close();
 			data.close();
-			} catch (IOException | ClassNotFoundException e) {
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}

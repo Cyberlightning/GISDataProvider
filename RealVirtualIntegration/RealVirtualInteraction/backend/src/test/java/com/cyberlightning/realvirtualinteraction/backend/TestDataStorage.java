@@ -13,6 +13,8 @@ import org.junit.Test;
 import com.cyberlightning.realvirtualinteraction.backend.services.DataStorageService;
 import com.cyberlightning.realvirtualinteraction.backend.services.Gzip;
 
+
+
 public class TestDataStorage {
 	
 	public DatagramPacket testCompressedPacket;
@@ -27,9 +29,9 @@ public class TestDataStorage {
 		try {
 			byte[] byteBuffer = Gzip.compress(this.testJsonString);
 			this.testCompressedPacket = new DatagramPacket(byteBuffer, byteBuffer.length,InetAddress.getByAddress(this.testClientAddress), this.testClientPort);
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+//		} catch (UnknownHostException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
