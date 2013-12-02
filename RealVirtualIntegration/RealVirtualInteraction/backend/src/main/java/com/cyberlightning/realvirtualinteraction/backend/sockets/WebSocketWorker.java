@@ -27,7 +27,7 @@ import com.cyberlightning.realvirtualinteraction.backend.services.MessageService
 public class WebSocketWorker implements Runnable {
 
 	private Socket clientSocket;
-	private String serverResponse = new String();
+	public String serverResponse = new String();
 	private InputStream input;
 	private OutputStream output;
 	private SendWorker sendWorker;
@@ -82,7 +82,7 @@ public class WebSocketWorker implements Runnable {
 	 * Parses the client request for security key and generates header for server response to complete the handshake
 	 * @param _request
 	 */
-	private void parseRequestLine(String _request)  {
+	public void parseRequestLine(String _request)  {
 		System.out.println("CLIENT REQUEST: " +_request);
 		if (_request.contains("Sec-WebSocket-Key: ")) {
 			this.serverResponse = WEB_SOCKET_SERVER_RESPONSE + generateSecurityKeyAccept(_request.replace("Sec-WebSocket-Key: ", "")) + "\r\n\r\n";

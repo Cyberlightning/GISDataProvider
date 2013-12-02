@@ -77,7 +77,7 @@ public class TestDataStorage {
 			isSuccess = false;
 		}
 		assertEquals("DataStorageServiceError not being able to store a testCompressedPacket: ",true, isSuccess );
-		System.out.println(" testDataStorageServiceSaveDatagramPacketWithUnCompressedPayload(): assertEquals(\"DataStorageServiceError not being able to store a Compressed Packet: ,true, isSuccess )");
+		System.out.println(" testDataStorageServiceSaveDatagramPacketWithCompressedPayload(): assertEquals(\"DataStorageServiceError not being able to store a Compressed Packet: ,true, isSuccess )");
 		
 		
 	}

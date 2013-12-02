@@ -11,10 +11,8 @@ import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
 
 import com.cyberlightning.realvirtualinteraction.backend.entities.Entity;
-import com.cyberlightning.realvirtualinteraction.backend.services.DataStorageService;
 import com.cyberlightning.realvirtualinteraction.backend.services.Gzip;
 import com.cyberlightning.realvirtualinteraction.backend.services.TranslationService;
 import com.cyberlightning.realvirtualinteraction.backend.sockets.MessageObject;
@@ -61,10 +59,6 @@ public class TestRESTfulDataFormat {
 		}
 	}
 	
-	
-	
-	
-	
 	@Test
 	public void testDecodeJsonStringToReturnCorrectNumberOfEntities() {
 		assertEquals("Decoding failed: Result does not equal 1",1, TranslationService.decodeSensorJson(this.testJsonString).size());
@@ -80,7 +74,7 @@ public class TestRESTfulDataFormat {
 	@Test
 	public void testEncodeJsonStringToReturnCorrectlyFormedEntity() {
 		ArrayList<Entity> entities = TranslationService.decodeSensorJson(this.testJsonString);
-		assertEquals("Encoding failed: JSON strings not matching", this.testJsonDeviceString, TranslationService.encodeJson(entities, 1));
+		assertEquals("Encoding failed: JSON strings not matching", this.testJsonDeviceString.length(), TranslationService.encodeJson(entities, 1).length());
 		System.out.println(" testEncodeJsonStringToReturnCorrectlyFormedEntity(): assertEquals(\"Encoding failed: JSON strings not matching\", this.testJsonDeviceString, TranslationService.encodeJson(entities, 1));");
 	}
 	
