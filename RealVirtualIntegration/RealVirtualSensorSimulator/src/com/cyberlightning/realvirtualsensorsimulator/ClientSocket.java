@@ -9,6 +9,11 @@ import java.net.UnknownHostException;
 import java.util.Observable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.cyberlightning.realvirtualsensorsimulator.interfaces.IClientSocket;
+import com.cyberlightning.realvirtualsensorsimulator.interfaces.IMainActivity;
+import com.cyberlightning.realvirtualsensorsimulator.staticresources.Gzip;
+import com.cyberlightning.realvirtualsensorsimulator.views.SettingsViewFragment;
+
 import android.content.SharedPreferences;
 import android.os.Message;
 
@@ -157,7 +162,7 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 		if (targetUUIDs == null) {
 			//TODO
 		}
-		
+		_content = "POST: interval=2000";
 		this.propagateMessage(_content, true); //TODO check this
 	}
     
@@ -220,12 +225,12 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 		}
 		
 		private boolean resolveServerAddress() {
-			SharedPreferences settings = application.getContext().getSharedPreferences(SettingsFragment.PREFS_NAME, 0);
+			SharedPreferences settings = application.getContext().getSharedPreferences(SettingsViewFragment.PREFS_NAME, 0);
 			String address = "";
 			try {
-				address = settings.getString(SettingsFragment.SHARED_ADDRESS, SERVER_DEFAULT_ADDRESS);
+				address = settings.getString(SettingsViewFragment.SHARED_ADDRESS, SERVER_DEFAULT_ADDRESS);
 				serverAddress = InetAddress.getByName(address);
-				serverPort = settings.getInt(SettingsFragment.SHARED_PORT, SERVER_DEFAULT_PORT);
+				serverPort = settings.getInt(SettingsViewFragment.SHARED_PORT, SERVER_DEFAULT_PORT);
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

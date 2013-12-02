@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import com.cyberlightning.realvirtualinteraction.backend.sockets.WebSocketWorker;
@@ -13,7 +12,7 @@ public class TestClientConnection {
 	
 	
 	
-	private WebSocketWorker webSocketWorker = new WebSocketWorker(null);;
+	private WebSocketWorker webSocketWorker = new WebSocketWorker(null);
 	
 	@Before
 	public void setUp() {
@@ -30,11 +29,15 @@ public class TestClientConnection {
 				   "Origin: http://example.com"+
 				   "Sec-WebSocket-Protocol: chat, superchat"+
 				   "Sec-WebSocket-Version: 13";
-		String responseHeader = "HTTP/1.1 101 Switching Protocols"+
-				"Upgrade: websocket"+
-				"Connection: Upgrade"+
-				"Sec-WebSocket-Accept: 05s3PM535kPX5QN7f7jHbHrBr4s=";
+		String responseHeader = "HTTP/1.1 101 Switching Protocols\r\n"+
+				"Upgrade: websocket\r\n"+
+				"Connection: Upgrade\r\n"+
+				"Sec-WebSocket-Accept: 05s3PM535kPX5QN7f7jHbHrBr4s=\r\n\r\n";
+		System.out.println("TestWebSocketHandshake(): Client query header: " + queryHeader);
 		webSocketWorker.parseRequestLine(queryHeader);
-		assertEquals("Response code should be correctly formed",responseHeader, webSocketWorker.serverResponse);
+		assertEquals("Sample response and test query should match",responseHeader, webSocketWorker.serverResponse);
+		System.out.println("Response query should match: " + responseHeader);
+		System.out.println("Expected result: true : Actual result: true ");
+		
 	}
 }

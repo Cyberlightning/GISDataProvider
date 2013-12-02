@@ -1,4 +1,4 @@
-package com.cyberlightning.realvirtualsensorsimulator;
+package com.cyberlightning.realvirtualsensorsimulator.staticresources;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

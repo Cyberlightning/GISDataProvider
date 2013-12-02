@@ -5,6 +5,11 @@ package com.cyberlightning.realvirtualsensorsimulator;
 import java.util.Observable;
 import java.util.Observer;
 
+import com.cyberlightning.realvirtualsensorsimulator.interfaces.IClientSocket;
+import com.cyberlightning.realvirtualsensorsimulator.interfaces.IMainActivity;
+import com.cyberlightning.realvirtualsensorsimulator.interfaces.ISensorListener;
+import com.cyberlightning.realvirtualsensorsimulator.views.MainViewFragment;
+import com.cyberlightning.realvirtualsensorsimulator.views.SettingsViewFragment;
 import com.example.realvirtualsensorsimulator.R;
 
 import android.os.Bundle;
@@ -32,7 +37,7 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
 	
 	private IClientSocket clientSocket;
 	private MainViewFragment mainViewFragment;
-	private SettingsFragment settingsFragment;
+	private SettingsViewFragment settingsFragment;
 	
 	public Bundle savedStateBundle;
 	public ISensorListener sensorListener;
@@ -148,7 +153,7 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
     	this.sensorListener.pause();
     	
     	FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-    	this.settingsFragment = new SettingsFragment();
+    	this.settingsFragment = new SettingsViewFragment();
         fragmentTransaction.replace(R.id.fragment_content, this.settingsFragment);
         fragmentTransaction.commit();
         
@@ -157,7 +162,7 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
     public void onSettingsItemClicked(Boolean _isLandScape) {
     	this.isLandScape = _isLandScape;
     	FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-    	this.settingsFragment = new SettingsFragment();
+    	this.settingsFragment = new SettingsViewFragment();
         fragmentTransaction.replace(R.id.fragment_content, this.settingsFragment);
         fragmentTransaction.commit();
     }

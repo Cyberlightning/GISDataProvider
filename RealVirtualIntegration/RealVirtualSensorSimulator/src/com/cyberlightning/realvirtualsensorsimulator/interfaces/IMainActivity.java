@@ -1,4 +1,4 @@
-package com.cyberlightning.realvirtualsensorsimulator;
+package com.cyberlightning.realvirtualsensorsimulator.interfaces;
 
 import android.content.Context;
 import android.os.Handler;

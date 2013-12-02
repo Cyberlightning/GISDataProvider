@@ -1,4 +1,4 @@
-package com.cyberlightning.realvirtualsensorsimulator;
+package com.cyberlightning.realvirtualsensorsimulator.staticresources;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -14,6 +14,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.cyberlightning.realvirtualsensorsimulator.MainActivity;
+import com.cyberlightning.realvirtualsensorsimulator.SensorListener;
 import com.cyberlightning.realvirtualsensorsimulator.SensorListener.SensorEventObject;
 
 import android.annotation.SuppressLint;

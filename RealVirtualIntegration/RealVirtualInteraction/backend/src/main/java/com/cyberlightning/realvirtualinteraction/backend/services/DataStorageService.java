@@ -29,7 +29,7 @@ public class DataStorageService implements Runnable {
 	private static final DataStorageService _serilizationService = new DataStorageService();
 	public Map<String, DatagramPacket> eventBuffer= new ConcurrentHashMap<String, DatagramPacket>(); 
 	public Map<String, InetSocketAddress> baseStationReferences= new ConcurrentHashMap<String, InetSocketAddress>(); 
-	private EntityTable entityTable = new EntityTable();
+	public EntityTable entityTable = new EntityTable();
 	
 	private Thread saveFileRoutine;
 	private boolean suspendFlag = true;
@@ -239,7 +239,7 @@ public class DataStorageService implements Runnable {
 		return baseUuids;
 	}
 
-	private void saveData (Object _object, String _fileName) {
+	public void saveData (Object _object, String _fileName) {
 		 
 		try {
 	         FileOutputStream fileOut =  new FileOutputStream(_fileName);

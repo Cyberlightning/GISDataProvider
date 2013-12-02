@@ -1,9 +1,13 @@
-package com.cyberlightning.realvirtualsensorsimulator;
+package com.cyberlightning.realvirtualsensorsimulator.views;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.cyberlightning.realvirtualsensorsimulator.ClientSocket;
+import com.cyberlightning.realvirtualsensorsimulator.MainActivity;
+import com.cyberlightning.realvirtualsensorsimulator.SensorListener;
+import com.cyberlightning.realvirtualsensorsimulator.staticresources.JsonParser;
 import com.example.realvirtualsensorsimulator.R;
 
 import android.app.Fragment;
@@ -28,7 +32,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
-public class SettingsFragment extends Fragment implements OnClickListener {
+public class SettingsViewFragment extends Fragment implements OnClickListener {
 	
 	private Button saveButton;
 	private Button exitButton;

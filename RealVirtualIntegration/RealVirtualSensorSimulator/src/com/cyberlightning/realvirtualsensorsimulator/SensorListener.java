@@ -9,6 +9,11 @@ import java.util.Observable;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.cyberlightning.realvirtualsensorsimulator.interfaces.IMainActivity;
+import com.cyberlightning.realvirtualsensorsimulator.interfaces.ISensorListener;
+import com.cyberlightning.realvirtualsensorsimulator.staticresources.JsonParser;
+import com.cyberlightning.realvirtualsensorsimulator.views.SettingsViewFragment;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -95,11 +100,11 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		for (Sensor sensor: this.deviceSensors) {
 			defaultValues.add(Integer.toString(sensor.getType()));
 		}
-		SharedPreferences settings = this.application.getContext().getSharedPreferences(SettingsFragment.PREFS_NAME, 0);
-		Set<String> sensors = settings.getStringSet(SettingsFragment.SHARED_SENSORS, defaultValues);
-		this.sensorEventInterval = settings.getLong(SettingsFragment.SHARED_INTERVAL,SENSOR_EVENT_INTERVAL);
+		SharedPreferences settings = this.application.getContext().getSharedPreferences(SettingsViewFragment.PREFS_NAME, 0);
+		Set<String> sensors = settings.getStringSet(SettingsViewFragment.SHARED_SENSORS, defaultValues);
+		this.sensorEventInterval = settings.getLong(SettingsViewFragment.SHARED_INTERVAL,SENSOR_EVENT_INTERVAL);
 		
-		boolean useGPS = settings.getBoolean(SettingsFragment.SHARED_GPS, false);
+		boolean useGPS = settings.getBoolean(SettingsViewFragment.SHARED_GPS, false);
 		
 		if (useGPS) {
 			LocationManager locationManager = (LocationManager)this.application.getContext().getSystemService(Context.LOCATION_SERVICE);
@@ -109,7 +114,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 			LocationListener locationListener = new GpsListener();  
 			locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, locationListener);	
 		}
-		this.contextualLocation = settings.getString(SettingsFragment.SHARED_LOCATION, null);
+		this.contextualLocation = settings.getString(SettingsViewFragment.SHARED_LOCATION, null);
 		
 //		if (this.application.getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS)) {
 //			

@@ -1,4 +1,4 @@
-package com.cyberlightning.realvirtualsensorsimulator;
+package com.cyberlightning.realvirtualsensorsimulator.interfaces;
 
 public interface ISensorListener {
 	public void pause();

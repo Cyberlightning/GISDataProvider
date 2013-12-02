@@ -204,7 +204,7 @@ public class WebSocketWorker implements Runnable {
 	 * 
 	 * @param _msg
 	 */
-	private void handlePOSTMessage(String _msg) { //TODO design post method options
+	public void handlePOSTMessage(String _msg) { //TODO design post method options
 		
 		String[] queries = _msg.split("&");
 		String[] targetUUIDs = null;

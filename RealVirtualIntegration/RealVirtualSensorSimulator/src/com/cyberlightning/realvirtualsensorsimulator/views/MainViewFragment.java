@@ -1,4 +1,4 @@
-package com.cyberlightning.realvirtualsensorsimulator;
+package com.cyberlightning.realvirtualsensorsimulator.views;
 
 import java.util.HashMap;
 import java.util.Set;
@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.cyberlightning.realvirtualsensorsimulator.MainActivity;
 import com.example.realvirtualsensorsimulator.R;
 
 public class MainViewFragment extends Fragment implements OnClickListener{
