@@ -30,7 +30,7 @@ public class Application  {
 		udpThread.start();
 		
 		MessageService.getInstance().startThread();
-
+		
 		for(String s : args) {
 			if(s.contentEquals("-simulate")){
 			Runnable test = new TestRoutine();

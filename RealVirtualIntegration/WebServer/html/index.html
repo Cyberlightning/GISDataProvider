@@ -357,7 +357,7 @@
         for (var sensor in device){
             if(sensor == eventTarget ){
                 var tempArray = device[sensor].value.values;
-                if( device[sensor].value.primitive == "3DPoint") {
+                if( device[sensor].value.primitive == "3DPoint" || device[sensor].value.primitive == "array"  ) {
                     is3DPoint = true;
                 	for (var k=0; k < tempArray.length; k++) {
                 		threeDPointValues.push(tempArray[k]);
@@ -492,7 +492,7 @@
 	}
 
     function sendData() {
-		var input = frm.command_input.value;
+		var input = "device_id=" +selectedUUID+"&message=" + frm.command_input.value;
         ws.send(input);
 	};
 
@@ -509,10 +509,10 @@
           else
           	{
 				// Use localhost IP for websocket
-				//ws = new WebSocket("ws://127.0.0.1:44445");
+				ws = new WebSocket("ws://127.0.0.1:44445");
 
 				// Use dev.cyberlightning.com IP for websocket	
-				ws = new WebSocket("ws://dev.cyberlightning.com:44445");
+				//ws = new WebSocket("ws://dev.cyberlightning.com:44445");
           	}
           ws.onopen = function() {
              // Web Socket is connected, send data using send()

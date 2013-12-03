@@ -116,9 +116,9 @@ public class WebSocketWorker implements Runnable {
 		this.doHandShake();
 		
 		this.sendWorker = new SendWorker();
-		
+		this.subscribeToAllSensors(); //replace
 		while(this.isConnected) {
-		
+			
 			try {
 					int opcode = this.input.read();  
 				    @SuppressWarnings("unused")
@@ -128,7 +128,7 @@ public class WebSocketWorker implements Runnable {
 				    if (opcode != 8) { 
 				    	 
 				    	//handleClientMessage(read());  //TODO implement how to subscribe by basestation id not socket class uuid.
-				    	testHandle(read());
+				    	this.sendDirectlyToClient(read());
 				    	
 				    	 
 				    } else {
@@ -162,11 +162,34 @@ public class WebSocketWorker implements Runnable {
 		return;	//Exits thread
 	}
 	
-	private void testHandle(String _request) { 
+	private void subscribeToAllSensors() { 
 		ArrayList<String> devices = new ArrayList<String> ();
 		devices.add(UdpSocket.uuid);
 		MessageService.getInstance().subscribeByIds(devices, this.uuid);
 		
+	}
+	
+	private void sendDirectlyToClient(String _msg) {
+		String[] queries = _msg.split("&");
+		String deviceId[] = new String[1];
+		String message = null;
+		
+		if (queries != null) {
+			for (int i = 0; i < queries.length; i ++) {
+				String[] params = queries[i].split("=");
+				if (params!= null) {
+					if (params[0].contentEquals("device_id")) {
+						deviceId[0] = params[1];
+					}
+					if (params[0].contentEquals("message")) {
+						message = params[1];
+					}
+					
+				}
+			}
+			MessageService.getInstance().addToMessageBuffer(new MessageObject(this.uuid,StaticResources.TCP_CLIENT,DataStorageService.getInstance().resolveBaseStationAddresses(deviceId),message));
+			
+		}
 	}
 	
 	@SuppressWarnings("unused")
