@@ -2,12 +2,10 @@ package com.cyberlightning.realvirtualsensorsimulator;
 
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Observable;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.cyberlightning.realvirtualsensorsimulator.interfaces.IMainActivity;
 import com.cyberlightning.realvirtualsensorsimulator.interfaces.ISensorListener;
@@ -17,12 +15,10 @@ import com.cyberlightning.realvirtualsensorsimulator.views.SettingsViewFragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -33,12 +29,12 @@ import android.os.Message;
 public class SensorListener extends Observable implements SensorEventListener,ISensorListener,Runnable  {
 
 
-	private HashMap<String,SensorEvent> copy = new HashMap<String,SensorEvent>();
+
 	private ArrayList<SensorEventObject> events;
 	private IMainActivity application;
 	private List<Sensor> deviceSensors;
 	private Location location;
-	private SensorEventHandler sensorEventHandler;
+
 	
 	private String contextualLocation;
 	private long sensorEventInterval;
@@ -47,6 +43,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	private boolean destroyFlag = false;
 	
 	private volatile boolean isBusy = false;
+	
 
 	public static final long SENSOR_EVENT_INTERVAL = 4000;
     
@@ -58,10 +55,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	
 	@Override
 	public void run() {
-		this.sensorEventHandler= new SensorEventHandler();
-		Thread t = new Thread(sensorEventHandler);
-		t.start();
-		
+
 		while(true) {
 			
 			synchronized(this) {
@@ -75,6 +69,19 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	            }
 	            if (destroyFlag) break; 
 	        }
+			this.unregisterAllSensors();
+
+			if (!events.isEmpty()) {
+				sendMessageToServer(JsonParser.createFromSensorEvent(events, location, contextualLocation));
+				for (SensorEventObject o : events) {
+					sendMessageToUI( JsonParser.getTimeStamp() + ": " + o.type);
+				}
+			}
+			events.clear();
+			new Thread((Runnable)new IntervalTimer()).start();
+			this.registerSensorListeners();
+			this.suspendThread();
+
 		}
 	
 	}
@@ -86,13 +93,13 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	private synchronized void wakeThread() {
 	      suspendFlag = false;
 	      notify();
-	      this.sensorEventHandler.wakeNestedThread();
+	      //this.sensorEventHandler.wakeNestedThread();
 	}
 	
 	private synchronized void destroy() {
 	      this.destroyFlag = true;
 	      notify();
-	      this.sensorEventHandler.destroyNestedThread();
+	     // this.sensorEventHandler.destroyNestedThread();
 	    
 	}
 	private Set<String> loadSettings() {
@@ -177,24 +184,21 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	
 	@Override
 	public void onSensorChanged(SensorEvent _event) { 
-		
-		if(!isBusy) {
-			String type = JsonParser.resolveSensorTypeById(_event.sensor.getType());
-			boolean contains = false;
-			for (int i = 0 ; i < this.events.size(); i++) {
-				if (this.events.get(i).type.contentEquals(type)){
-					contains = true;
-				}
+
+		String type = JsonParser.resolveSensorTypeById(_event.sensor.getType());
+		boolean contains = false;
+		for (int i = 0 ; i < this.events.size(); i++) {
+			if (this.events.get(i).type.contentEquals(type)){
+				contains = true;
 			}
-			if (!contains) this.events.add(new SensorEventObject(_event,type));
-			//if (!this.copy.containsKey(type)) this.copy.put(type, _event);
 		}
+		if (!contains) this.events.add(new SensorEventObject(_event,type));
 	}
 	
 	@Override
 	public void pause() {
+		this.isBusy = true;
 		this.suspendThread();
-		this.sensorEventHandler.suspendNestedThread();
 		this.unregisterAllSensors();
 		
 	}
@@ -202,6 +206,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 
 	@Override
 	public Integer resume() {
+		this.isBusy = false;
 		int numOfSensors = this.registerSensorListeners();
 		if ( numOfSensors > 0) this.wakeThread();
 		return numOfSensors;
@@ -209,6 +214,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	
 	@Override
 	public void end() {
+		this.isBusy = true;
 		this.unregisterAllSensors();
 		this.destroy();
 	}
@@ -254,63 +260,20 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		}
 	}
 	
-	private class SensorEventHandler implements Runnable {
-		
-		protected boolean suspendNestedFlag = true;
-		protected boolean destroyNestedFlag = false;
-		
+	private class IntervalTimer implements Runnable {
+
 		@Override
 		public void run() {
 			
-			while(true) {
-				
-				synchronized(this) {
-					
-					try {
-						
-						while(suspendNestedFlag && !destroyNestedFlag) {
-							wait();
-						}
-						if (destroyFlag) break; 
-						wait(sensorEventInterval);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-						break;
-					}
-					if(this.suspendNestedFlag) continue;
-				}
-
-				isBusy = true;
-				ArrayList<SensorEventObject> sensorEvents = events;
-				events.clear();
-				isBusy = false;
-				if (!sensorEvents.isEmpty()) {
-					sendMessageToServer(JsonParser.createFromSensorEvent(sensorEvents, location, contextualLocation));
-					for (SensorEventObject o : sensorEvents) {
-						sendMessageToUI( JsonParser.getTimeStamp() + ": " + o.type);
-					}
-				}
-				
-
-				
+	
+			try {
+				Thread.sleep(sensorEventInterval);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+			if (!isBusy)wakeThread();
 			return;
-		}
-		
-		public synchronized void suspendNestedThread() {
-			 this.suspendNestedFlag = true;
-			 notify();
-		}
-
-		public synchronized void wakeNestedThread() {
-		      this.suspendNestedFlag = false;
-		      notify();
-		     
-		}
-		
-		public synchronized void destroyNestedThread() {
-		      this.destroyNestedFlag = true;
-		      notify();
 		}
 		
 	}

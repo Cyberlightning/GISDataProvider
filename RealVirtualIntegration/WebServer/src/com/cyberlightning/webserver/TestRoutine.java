@@ -8,7 +8,6 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
-import com.cyberlightning.webserver.services.Gzip;
 
 public class TestRoutine implements Runnable {
 

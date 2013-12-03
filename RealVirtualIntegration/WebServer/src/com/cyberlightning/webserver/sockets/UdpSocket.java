@@ -127,9 +127,9 @@ public class UdpSocket implements Runnable  {
 				     				byte[] b = ((String) msg.payload).getBytes();
 				     				
 				     				for (InetSocketAddress target : msg.targetAddresses) {
-				     					DatagramPacket packet = new DatagramPacket(b,b.length,InetAddress.getByAddress(target.getAddress().getAddress()),target.getPort());
+				     					DatagramPacket packet = new DatagramPacket(b,b.length,target.getAddress(),target.getPort());
 				     					serverSocket.send(packet);
-				     					System.out.println("Packet send to device: " + InetAddress.getByAddress(target.getAddress().getAddress()).getHostAddress() + ":" + target.getPort());
+				     					System.out.println("Packet send to device: " + target.getAddress().getHostAddress()+ ":" + target.getPort());
 				     				}
 				     				
 				     			}

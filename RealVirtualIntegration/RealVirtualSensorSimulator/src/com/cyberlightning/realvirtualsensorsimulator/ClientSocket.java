@@ -57,7 +57,7 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 		try {
 			
 			this.serverSocket = new DatagramSocket(this.port);
-			this.serverSocket.setReceiveBufferSize(DEFAULT_BUFFER_SIZE);
+			//this.serverSocket.setReceiveBufferSize(DEFAULT_BUFFER_SIZE);
 			
 			byte[] receiveByte = new byte[DEFAULT_BUFFER_SIZE]; 
 			DatagramPacket receivedPacket = new DatagramPacket(receiveByte, receiveByte.length);
@@ -110,7 +110,9 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 		}
 		else if (result[0].trim().toUpperCase().contains("DELETE")) {
 			//this.handleDELETEMethod(result[result.length-1].toString());
-		} 
+		} else {
+			this.handlePOSTMethod(request, false);
+		}
 		
 		
 		
@@ -162,7 +164,7 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 		if (targetUUIDs == null) {
 			//TODO
 		}
-		_content = "POST: interval=2000";
+		
 		this.propagateMessage(_content, true); //TODO check this
 	}
     
