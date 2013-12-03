@@ -2,16 +2,30 @@ var xmlDoc;
 
 
 (function() {
+    var baseUrl = "http://localhost:9090/geoserver/";
     var oldCoordinates = null;
 
     function parseServerCapabilities(response) {
         // console.log(response);
 
-    }
+        xmlDoc = new DOMParser().parseFromString(response,'text/xml');
+        var x = xmlDoc.getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "Layer");
 
-    function getServerCapabilities(baseUrl, service, version) {
-        var requestUrl = baseUrl + "ows?service=" + service + "&version=" + version + "&request=GetCapabilities";
-        httpRequest(requestUrl, parseServerCapabilities);
+        // console.log(x);
+        for (i=0;i<x.length;i++)
+        { 
+            var combo = document.getElementById("selector");
+            var option = document.createElement("option");
+            option.text = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue;
+            option.value = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue;
+            try {
+                combo.add(option, null); //Standard 
+            } catch(error) {
+                combo.add(option); // IE only
+            }
+            option.value = "";
+        }
+
     }
 
     function getGeoserverCapabilities() {
@@ -26,31 +40,12 @@ var xmlDoc;
         // Set callback function
         xmlhttp.onreadystatechange = function() {
             if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-                // callback(xmlhttp.responseText);
                 // console.log(xmlhttp.responseText);
-
-                xmlDoc = new DOMParser().parseFromString(xmlhttp.responseText,'text/xml');
-                var x = xmlDoc.getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "Layer");
-                // xpath
-
-                // console.log(x);
-                for (i=0;i<x.length;i++)
-                { 
-                    var combo = document.getElementById("selector");
-                    var option = document.createElement("option");
-                    option.text = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue;
-                    option.value = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue;
-                    try {
-                        combo.add(option, null); //Standard 
-                    }catch(error) {
-                        combo.add(option); // IE only
-                    }
-                    option.value = "";
-                    }
-                }
+                parseServerCapabilities(xmlhttp.responseText);
             }
+        }
 
-        xmlhttp.open("GET", "http://localhost:9090/geoserver/ows?service=w3ds&version=0.4.0&request=GetCapabilities" , true);
+        xmlhttp.open("GET", baseUrl + "ows?service=w3ds&version=0.4.0&request=GetCapabilities" , true);
         xmlhttp.send();
     }
 
@@ -62,7 +57,7 @@ var xmlDoc;
             e.preventDefault(); // if desired...
 
           newLayer = true;
-          getLayerDetails(this.options[this.selectedIndex].text);
+          getLayerDetails(baseUrl, this.options[this.selectedIndex].text);
         });
       });
 

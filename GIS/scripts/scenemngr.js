@@ -1,6 +1,9 @@
 // var newLayer = new Boolean();
 
 (function() {
+    var baseUrl;
+    var texture_layer = "fiware:NorthernFinland_texture";
+
     // boolean to verify if new layer is loaded or new data fetched to already viewed layer
     var newlayer = true;
 
@@ -36,8 +39,9 @@
     var CamInitCenterX, CamInitCenterY = 0;
 
      // Fetches layer details from GeoServer and passes them to getElements()-function
-    this.getLayerDetails = function(layername) {
+    this.getLayerDetails = function(serverUrl, layername) {
         //console.log("getLayerDetails");
+        baseUrl = serverUrl;
         var x = xmlDoc.getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "Layer");
         for (i=0;i<x.length;i++) { 
             if (layername == x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue) {
@@ -106,9 +110,6 @@
     // layerCRS = Layer CRS
     function getElements(layerName, lowerCornerX, lowerCornerY, higherCornerX, higherCornerY, layerCRS, transfromX, transfromY){
         console.log("getElements");
-        var baseUrl = "http://localhost:9090/geoserver/";
-
-        var texture_layer = "mml:pohjoisSuomi";
 
         var service = "w3ds";
         var version = "0.4.0";
