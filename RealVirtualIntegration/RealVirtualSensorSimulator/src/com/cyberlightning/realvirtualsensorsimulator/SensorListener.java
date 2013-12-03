@@ -184,15 +184,17 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	
 	@Override
 	public void onSensorChanged(SensorEvent _event) { 
-
-		String type = JsonParser.resolveSensorTypeById(_event.sensor.getType());
-		boolean contains = false;
-		for (int i = 0 ; i < this.events.size(); i++) {
-			if (this.events.get(i).type.contentEquals(type)){
-				contains = true;
+		if(!this.isBusy) {
+			String type = JsonParser.resolveSensorTypeById(_event.sensor.getType());
+			boolean contains = false;
+			for (int i = 0 ; i < this.events.size(); i++) {
+				if (this.events.get(i).type.contentEquals(type)){
+					contains = true;
+				}
 			}
+			if (!contains) this.events.add(new SensorEventObject(_event,type));
 		}
-		if (!contains) this.events.add(new SensorEventObject(_event,type));
+	
 	}
 	
 	@Override

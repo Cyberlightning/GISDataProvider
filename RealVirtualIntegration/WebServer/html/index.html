@@ -151,7 +151,7 @@
         if (selectedUUID) {
             if (selectedUUID == currentUUID) {
             updateValueHistory(entities[currentUUID],currentUUID);
-            updateContent(entities[currentUUID]);
+            updateContent(valueContainer[currentUUID]);
             drawCharts(currentUUID);
             }else {
                updateValueHistory(entities[currentUUID],currentUUID);
@@ -159,7 +159,7 @@
         }else {
             selectedUUID = currentUUID;
             updateValueHistory(entities[currentUUID],currentUUID);
-            updateContent(entities[currentUUID]);
+            updateContent(valueContainer[currentUUID]);
             drawCharts(currentUUID);
         }
 
@@ -175,30 +175,29 @@
 
             for (var j  = 0; j < obj.sensors.length; j++) {
                 if(existingValues.hasOwnProperty(obj.sensors[j].attributes.type)){
-                    if(existingValues[obj.sensors[j].attributes.type].length > 4){
+                    if(existingValues[obj.sensors[j].attributes.type].value.values.length > 4) {
                             var tempArray = [];
-                            var dd = existingValues[obj.sensors[j].attributes.type];
+                            var dd = existingValues[obj.sensors[j].attributes.type].value.values;
                             for (var k = 1; k < dd.length; k++) {
                                 tempArray.push(dd[k]);
                             }
                             tempArray.push(obj.sensors[j].value.values);
-                            existingValues[obj.sensors[j].attributes.type] = tempArray;
+                            existingValues[obj.sensors[j].attributes.type].value.values = tempArray;
                     }else {
                             var tempArray = [];
-                            var dd = existingValues[obj.sensors[j].attributes.type];
+                            var dd = existingValues[obj.sensors[j].attributes.type].value.values;
                             for (var k = 0; k < dd.length; k++) {
                                 tempArray.push(dd[k]);
                             }
                             tempArray.push(obj.sensors[j].value.values);
-                            existingValues[obj.sensors[j].attributes.type] = tempArray;
+                            existingValues[obj.sensors[j].attributes.type].value.values = tempArray;
                         }
                 } else {
-                    for (var j = 0; j < obj.sensors.length; j++) {
-                        var values = [];
-                        values.push(obj.sensors[j].value.values);
-                        sensorvals[obj.sensors[j].attributes.type] = values;
-                    }
-                    existingValues[obj.sensors[j].attributes.type] = obj.sensors[j];
+                    var valuesArray = [];
+                    valuesArray.push(obj.sensors[j].value.values);
+                    var sensor = obj.sensors[j];
+                    sensor.value.values = valuesArray;
+                    existingValues[obj.sensors[j].attributes.type] = sensor;
                 }
 
             }
@@ -210,31 +209,46 @@
         if (!hasEntries ) {
             var sensorvals = {};
             for (var j = 0; j < obj.sensors.length; j++) {
-               var values = [];
-               values.push(obj.sensors[j].value.values);
-               sensorvals[obj.sensors[j].attributes.type] = values;
+               var valuesArray = [];
+               valuesArray.push(obj.sensors[j].value.values);
+               var sensor = obj.sensors[j];
+               sensor.value.values = valuesArray;
+               sensorvals[obj.sensors[j].attributes.type] = sensor;
             }
             valueContainer[uuid] = sensorvals;
+
         }
 
     }
 
+    function updateContent(obj) {
+        var accordion = document.getElementById('accordion');
+        while(accordion.hasChildNodes()) {
+            accordion.removeChild(accordion.lastChild);
+        }
+
+        addNewContent(obj);
+    }
+
+
     function addNewContent(obj) {
-        var sensors = obj.sensors;
+        var sensors = valueContainer[selectedUUID];
         var attr = [];
-        for (var i = 0; i < sensors.length; i++ ) {
-            if(sensors[i].attributes.type != null ){
-                type = sensors[i].attributes.type;
-                var active = $('#accordion').accordion('option', 'active');
-                $('#accordion').append('<h3><a href="#" onclick="drawCharts(event)">' + type + '</a></h3><div>'+ parseContent(sensors[i]) +'</div>').accordion('destroy').accordion({ active: active});
-            }
-            if (obj.attributes.gps != null && gpsShown == false) {
+        for (var sensor in sensors) {
+            if(sensors.hasOwnProperty(sensor)) {
+             type = sensor;
+             var active = $('#accordion').accordion('option', 'active');
+             $('#accordion').append('<h3><a href="#" onclick="drawCharts(event)">' + type + '</a></h3><div>'+ parseContent(sensors[sensor], null) +'</div>').accordion('destroy').accordion({ active: active});
+
+            if (entities[selectedUUID].attributes.gps != null && gpsShown == false) {
                gpsShown = true;
-            	lat = parseFloat(obj.attributes.gps[0]);
-				lon = parseFloat(obj.attributes.gps[1]);
+            	lat = parseFloat(entities[selectedUUID].attributes.gps[0]);
+				lon = parseFloat(entities[selectedUUID].attributes.gps[1]);
 				$('#accordion').accordion({heightStyle: 'content'});
-				$('#accordion').append('<h3><a href="#" onclick="loadMap(event)">gps</a></h3><div>'+ parseContent(sensors[i],obj.attributes.gps) +'</div>').accordion('destroy').accordion({ active: active});
+				$('#accordion').append('<h3><a href="#" onclick="loadMap(event)">gps</a></h3><div>'+ parseContent(sensors[sensor],entities[selectedUUID].attributes.gps) +'</div>').accordion('destroy').accordion({ active: active});
             }
+            }
+
         }
         gpsShown = false;
     }
@@ -249,9 +263,10 @@
             content += "<b>Location: </b>[" +loc + "] ";
         }else {
             content += "<b>Sensor value: </b>";
-             if (obj.value.primitive == "3DPoint") {
-                 var sensors = valueContainer[selectedUUID]
-                 var values = sensors[obj.attributes.type];
+             if (obj.value.primitive != "double") {
+                 //var sensors = valueContainer[selectedUUID]
+                 //var values = sensors[obj.attributes.type];
+                 var values = obj.value.values;
                  content += "</br>"
                  var linenumber = 1;
                  for (var l = (values.length - 1); l > -1; l--) {
@@ -265,9 +280,9 @@
                      content += " ] (<i>" + obj.value.unit + "</i>)</br> ";
 
                  }
-             } else if (obj.value.primitive == "double"){
-                 var sensors = valueContainer[selectedUUID]
-                 var values = sensors[obj.attributes.type];
+             } else {
+                 //var sensors = valueContainer[selectedUUID]
+                 var values = obj.value.values;
                  content += "</br>"
                  var linenumber = 1;
                  for (var l = (values.length -1); l > -1; l--) {
@@ -280,14 +295,6 @@
         return content;
     }
 
-    function updateContent(obj) {
-        var accordion = document.getElementById('accordion');
-        while(accordion.hasChildNodes()) {
-            accordion.removeChild(accordion.lastChild);
-        }
-
-        addNewContent(obj);
-    }
 
 	function drawCharts(e) {
 
@@ -348,15 +355,15 @@
         var temperatureArray = [];
         var device = valueContainer[selectedUUID];
         for (var sensor in device){
-            if(sensor ==eventTarget ){
-                var tempArray = device[sensor];
-                if(tempArray[0].length > 1) {
+            if(sensor == eventTarget ){
+                var tempArray = device[sensor].value.values;
+                if( device[sensor].value.primitive == "3DPoint") {
                     is3DPoint = true;
                 	for (var k=0; k < tempArray.length; k++) {
                 		threeDPointValues.push(tempArray[k]);
                 	}
                 } else {
-                    temperatureArray = device[sensor];
+                    temperatureArray = device[sensor].value.values;
                 	for (var c = 0; c < tempArray.length; c++) {
                         if (minValue > parseFloat(tempArray[c]) || minValue == null) {
 					    	minValue = parseFloat(tempArray[c]);
