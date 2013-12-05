@@ -23,6 +23,7 @@
     <string name="event_button_toggle_pause_title">Pause</string>
     <string name="toast_sensorlistener_stopped">Sensor events listening paused</string>
     <string name="toast_sensorlistener_no_sensors_selected">No sensors selected for listening, please select at least one sensor</string>
-
+	<string name="alert_no_sensors_selected_title">No sensors selected!</string>
+	<string name="alert_no_sensors_selected_content">Go to settings view for selecting sensors?</string>
     <string name="exception_unknown_host">Application was unable to resolve server host: </string>
 </resources>

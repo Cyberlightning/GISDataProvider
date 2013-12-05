@@ -3,18 +3,14 @@ package com.cyberlightning.webserver.sockets;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.Iterator;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.cyberlightning.webserver.StaticResources;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
-import com.cyberlightning.webserver.services.Gzip;
 import com.cyberlightning.webserver.services.MessageService;
 
 public class UdpSocket implements Runnable  {

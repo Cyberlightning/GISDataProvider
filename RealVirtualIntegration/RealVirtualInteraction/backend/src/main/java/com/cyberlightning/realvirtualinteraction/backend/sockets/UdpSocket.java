@@ -6,15 +6,12 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.Iterator;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.cyberlightning.realvirtualinteraction.backend.StaticResources;
 import com.cyberlightning.realvirtualinteraction.backend.interfaces.IMessageEvent;
-import com.cyberlightning.realvirtualinteraction.backend.services.Gzip;
 import com.cyberlightning.realvirtualinteraction.backend.services.MessageService;
 
 

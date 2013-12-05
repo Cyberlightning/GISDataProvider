@@ -1,9 +1,9 @@
 package com.cyberlightning.realvirtualsensorsimulator;
 
 
-
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Set;
 
 import com.cyberlightning.realvirtualsensorsimulator.interfaces.IClientSocket;
 import com.cyberlightning.realvirtualsensorsimulator.interfaces.IMainActivity;
@@ -18,10 +18,13 @@ import android.os.Looper;
 import android.os.Message;
 import android.provider.Settings.Secure;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -92,9 +95,9 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
         super.onConfigurationChanged(newConfig); 
 
         if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-        	 //TODO setContentView(Custom Portrait view)
+        	 //TODO Make implementation if the need occurs. 
         } else if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            //TODO setContentView(Custom Landscape view)
+        	//TODO Make implementation if the need occurs. 
         }
     }
 
@@ -130,6 +133,10 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
     	super.onDestroy(); 
     }
     
+    /**
+     * Called when menu item is being clicked.
+     * @param item The item being clicked.
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
        
@@ -148,6 +155,9 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
         }
     }
     
+    /**
+     * Called when in any other view than settings view to show settings view fragment
+     */
     public void onSettingsItemClicked() {
     	this.savedStateBundle = this.mainViewFragment.getSavedState();
     	this.sensorListener.pause();
@@ -159,6 +169,11 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
         
         if(this.mainViewFragment.isPause) this.showToast(getString(R.string.toast_sensorlistener_stopped));
     }
+    
+   /**
+    * Called only when orientation is changed 
+    * @param _isLandScape true if new Configuration.ORIENTATION_LANDSCAPE is called
+    */
     public void onSettingsItemClicked(Boolean _isLandScape) {
     	this.isLandScape = _isLandScape;
     	FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
@@ -166,12 +181,20 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
         fragmentTransaction.replace(R.id.fragment_content, this.settingsFragment);
         fragmentTransaction.commit();
     }
+    
+    /**
+     * Called from any other view than main view to initiate showing main view fragment
+     */
     private void onMainItemClicked() {
     	FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
     	fragmentTransaction.replace(R.id.fragment_content,this.mainViewFragment);
         fragmentTransaction.commit();
     }
-  
+    
+    /**
+     * Generic customized toast to be used by the application. 
+     * @param _message Toast content
+     */
     public void showToast(String _message) {
     	
 	    LayoutInflater inflater = getLayoutInflater();
@@ -186,7 +209,44 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
 	    toast.setView(layout);
 	    toast.show();  	
 	}
+    /**
+     * Called when activity started and no sensors selected for listening. User can cancel the dialog or redirect to
+     * settings view for selecting sensors. A convenience method. 
+     */
+    private void showNoSensorsAlertDialog() {
+    	
+    	AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+    	
+    	// set title
+		alertDialogBuilder.setTitle(R.string.alert_no_sensors_selected_title);
+ 
+		// set dialog message
+		alertDialogBuilder.setMessage(R.string.alert_no_sensors_selected_content)
+				.setCancelable(false)
+				.setPositiveButton("Yes",new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog,int id) {
+						onSettingsItemClicked();
+					}
+				  })
+				.setNegativeButton("No",new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog,int id) {
+						// if this button is clicked, just close
+						// the dialog box and do nothing
+						dialog.cancel();
+					}
+				});
+ 
+		// create alert dialog
+		AlertDialog alertDialog = alertDialogBuilder.create();
+ 
+		// show it
+		alertDialog.show();
+    }
     
+    /**
+     * This method is initiated on startup and will launch necessary components. Also if no sensors selected for listening it will notify
+     * the user with an alert dialog.
+     */
     private void StartApplication() {
     	ClientSocket clientSocket= new ClientSocket(this);
 		clientSocket.addObserver(this);
@@ -195,21 +255,36 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
 		SensorListener sensorListener = new SensorListener(this);
 		sensorListener.addObserver(this);
 		this.sensorListener = sensorListener;
+		
+		SharedPreferences settings = getContext().getSharedPreferences(SettingsViewFragment.PREFS_NAME, 0);
+		Set<String> sensors = settings.getStringSet(SettingsViewFragment.SHARED_SENSORS, null);
+		if (sensors == null || sensors.size() ==0) this.showNoSensorsAlertDialog();
     }
     
-
+    /**
+     * This method returns a reference to main activity context giving access to system resources through this. 
+     */
 	@Override
 	public Context getContext() {
 		// TODO Auto-generated method stub
 		return this.getApplicationContext();
 	}
 
-
+	/**
+	 * This method returns a reference to message handler instance of main activity. This enables any class to fetch the address of main class for sending
+	 * message events using Android system messaging. 
+	 */
 	@Override
 	public Handler getTarget() {
 		return this.messageHandler;
 	}
-
+	
+	/**
+	 * This method is part of Java Observer pattern and used for passing data between sensor listener and client socket. Notice: Calling
+	 * display within this method will cause exception on Android. 
+	 * @param observable class
+	 * @param data object passed from observable class 
+	 */
 	@Override
     public void update(Observable observable, Object data) {
 		

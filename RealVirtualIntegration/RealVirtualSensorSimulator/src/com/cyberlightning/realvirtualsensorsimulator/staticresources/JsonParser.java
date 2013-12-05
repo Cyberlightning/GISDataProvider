@@ -2,13 +2,7 @@ package com.cyberlightning.realvirtualsensorsimulator.staticresources;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,65 +21,13 @@ public abstract class JsonParser {
 	
 	public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 	
-	
-	/*{
-	    "9627f38e-51a1-4d87-9d1f-9790e01ecfef": {
-
-	        "BC:6A:29:AB:E8:B5": {
-	            "sensors": [
-	                {
-	                    "value": {
-	                        "unit": "m/s2",
-	                        "primitive": "double",
-	                        "time": "2013-11-07 16:03",
-	                        "values": [
-	                            0,
-	                            0.109375,
-	                            -1.015625
-
-	                        ]
-	                    },
-	                    "uuid": "f000aa10-0451-4000-b000-000000000000",
-	                    "parameters": {
-	                        "toggleable": "true",
-	                        "options": "boolean"
-	                    },
-	                    "attributes": {
-	                        "type": "accelerometer",
-	                        "vendor": "Texas Instruments"
-	                    }
-	                },
-	                {
-	                    "value": {
-	                        "unit": "Celsius",
-	                        "primitive": "double",
-	                        "time": "2013-11-07 16:03",
-	                        "values": 22.8125
-
-	                    },
-	                    "uuid": "f000aa00-0451-4000-b000-000000000000",
-	                    "parameters": {
-	                        "toggleable": "true",
-	                        "options": "boolean"
-	                    },
-	                    "attributes": {
-	                        "type": "temperature",
-	                        "vendor": "Texas Instruments"
-	                    }
-	                }
-	            ],
-	            "attributes": {
-	                "location": [
-	                    "65.567",
-	                    "25.765"
-	                ],
-	                "name": "TI CC2541 Sensor"
-	            }
-	        }
-	    }
-	}*/
-	
-	
+	/**
+	 * Encodes a sensor events in to a JSON type of RESTful data format documented in FI-WARE RealVirtualInteraction open specifications.
+	 * @param _sensorEvents
+	 * @param _location
+	 * @param _contextualLocation
+	 * @return Returns a String in JSON format.
+	 */
 	public static String createFromSensorEvent(ArrayList<SensorListener.SensorEventObject> _sensorEvents, Location _location, String _contextualLocation) {
 		
 		JSONObject wrapper = new JSONObject();
