@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  	android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+	<ImageView 
+    	android:contentDescription="@string/marker_content_description"
+    	android:id="@+id/marker_view"
+    	android:layout_width="fill_parent"
+    	android:layout_height="fill_parent"/>
+	
+	<!-- Footer starts here -->
+    <View
+    		android:layout_width="match_parent"
+    		android:layout_height="2dp"
+    		android:layout_marginLeft="15dp"
+    		android:layout_marginRight="15dp"
+    		android:layout_marginTop="5dp"
+    		android:layout_marginBottom="3dp"
+   	 		android:background="#CC99FF" />
+     <LinearLayout 
+        android:orientation="horizontal"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+        	<Button android:id="@+id/return_button"
+        		android:layout_width="wrap_content"
+        		android:layout_height="wrap_content"
+        		style="?android:attr/buttonBarButtonStyle" 
+        		android:text="@string/marker_button_exit_title"
+        		android:textColor="#ffffff"
+        		android:textSize="20sp" />
+     </LinearLayout>
+</LinearLayout>

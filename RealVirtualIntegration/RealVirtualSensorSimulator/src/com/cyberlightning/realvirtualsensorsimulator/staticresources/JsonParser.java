@@ -35,8 +35,7 @@ public abstract class JsonParser {
 		JSONObject sensorWraper = new JSONObject();
 		JSONObject attributes = new JSONObject();
 		JSONArray sensors = new JSONArray();
-		
-		
+	
 		try {
 			
 			if (_location != null) {

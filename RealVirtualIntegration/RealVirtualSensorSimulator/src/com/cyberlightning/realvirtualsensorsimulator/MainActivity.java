@@ -5,12 +5,15 @@ package com.cyberlightning.realvirtualsensorsimulator;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
+
 import com.cyberlightning.realvirtualsensorsimulator.interfaces.IClientSocket;
 import com.cyberlightning.realvirtualsensorsimulator.interfaces.IMainActivity;
 import com.cyberlightning.realvirtualsensorsimulator.interfaces.ISensorListener;
 import com.cyberlightning.realvirtualsensorsimulator.views.MainViewFragment;
+import com.cyberlightning.realvirtualsensorsimulator.views.MarkerViewFragment;
 import com.cyberlightning.realvirtualsensorsimulator.views.SettingsViewFragment;
 import com.example.realvirtualsensorsimulator.R;
+
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -42,6 +45,7 @@ import android.widget.Toast;
 	private IClientSocket clientSocket;
 	private MainViewFragment mainViewFragment;
 	private SettingsViewFragment settingsFragment;
+	private MarkerViewFragment markerViewFragment;
 	
 	public Bundle savedStateBundle;
 	public ISensorListener sensorListener;
@@ -53,6 +57,8 @@ import android.widget.Toast;
 	
 	public static final int MESSAGE_FROM_SENSOR_LISTENER = 1;
 	public static final int MESSAGE_FROM_SERVER = 2;
+	public static final int MESSAGE_TYPE_UNKNOWNHOST_ERROR = 3;
+	public static final int MESSAGE_TYPE_SET_MARKER= 4;
 	
 	public static final String MAIN_VIEW_FRAGMENT = "MainViewFragment";
 	
@@ -61,12 +67,17 @@ import android.widget.Toast;
 		@Override
         public void handleMessage(Message _msg) {
             switch (_msg.what) {
-            case MESSAGE_FROM_SENSOR_LISTENER: 	mainViewFragment.addNewMessage(_msg.obj.toString(), false);
+            case MESSAGE_FROM_SENSOR_LISTENER: 	
+            	mainViewFragment.addNewMessage(_msg.obj.toString(), false);
             	break;
-            case MESSAGE_FROM_SERVER: 			mainViewFragment.addNewMessage(_msg.obj.toString(), true);
+            case MESSAGE_FROM_SERVER: 			
+            	mainViewFragment.addNewMessage(_msg.obj.toString(), true);
             	break;
-            case ClientSocket.MESSAGE_TYPE_UNKNOWNHOST_ERROR:	showToast(getString(R.string.exception_unknown_host) + _msg.obj.toString());
-    				
+            case MESSAGE_TYPE_UNKNOWNHOST_ERROR:	
+            	showToast(getString(R.string.exception_unknown_host) + _msg.obj.toString());
+            case MESSAGE_TYPE_SET_MARKER:
+            	onMarkerViewCalled(_msg.obj.toString());
+            	break;
     			
             }
         }
@@ -166,6 +177,24 @@ import android.widget.Toast;
     	FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
     	this.settingsFragment = new SettingsViewFragment();
         fragmentTransaction.replace(R.id.fragment_content, this.settingsFragment);
+        fragmentTransaction.commit();
+        
+        if(this.mainViewFragment.isPause) this.showToast(getString(R.string.toast_sensorlistener_stopped));
+    }
+    
+    /**
+     * Called when in any other view than settings view to show settings view fragment
+     */
+    public void onMarkerViewCalled(String _id) {
+    	this.savedStateBundle = this.mainViewFragment.getSavedState();
+    	this.sensorListener.pause();
+    	
+    	FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+    	this.markerViewFragment = new MarkerViewFragment();
+    	Bundle bundle = new Bundle();
+    	bundle.putString("markerID", _id);
+    	this.markerViewFragment.setArguments(bundle);
+        fragmentTransaction.replace(R.id.fragment_content, this.markerViewFragment);
         fragmentTransaction.commit();
         
         if(this.mainViewFragment.isPause) this.showToast(getString(R.string.toast_sensorlistener_stopped));
