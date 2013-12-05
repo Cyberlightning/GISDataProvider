@@ -212,6 +212,7 @@ public class SettingsViewFragment extends Fragment implements OnClickListener {
 	}
 	
 	private void toggleGPS(Boolean _turnOn) {
+		
 		Intent intent=new Intent("android.location.GPS_ENABLED_CHANGE");
 		intent.putExtra("enabled", _turnOn);
 		getActivity().sendBroadcast(intent);

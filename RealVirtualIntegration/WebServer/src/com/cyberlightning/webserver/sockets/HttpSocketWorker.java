@@ -6,8 +6,8 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.util.UUID;
 
-
 import com.cyberlightning.webserver.StaticResources;
+import com.cyberlightning.webserver.entities.MessageObject;
 import com.cyberlightning.webserver.entities.SpatialQuery;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
 import com.cyberlightning.webserver.services.DataStorageService;

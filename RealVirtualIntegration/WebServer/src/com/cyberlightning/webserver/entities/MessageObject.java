@@ -1,4 +1,4 @@
-package com.cyberlightning.webserver.sockets;
+package com.cyberlightning.webserver.entities;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;

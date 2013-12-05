@@ -1,6 +1,7 @@
 package com.cyberlightning.realvirtualsensorsimulator;
 
 
+
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
@@ -24,6 +25,7 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.view.Gravity;
@@ -243,6 +245,7 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
 		alertDialog.show();
     }
     
+    
     /**
      * This method is initiated on startup and will launch necessary components. Also if no sensors selected for listening it will notify
      * the user with an alert dialog.
@@ -294,4 +297,37 @@ public class MainActivity extends Activity implements Observer,IMainActivity {
             this.clientSocket.sendMessage((Message)data);
         }   
     }
+
+	@Override
+	public void showNoGpsAlert() {
+		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+    	
+    	// set title
+		alertDialogBuilder.setTitle(R.string.alert_no_gps_selected_title);
+ 
+		// set dialog message
+		alertDialogBuilder.setMessage(R.string.alert_no_gps_selected_content)
+				.setCancelable(false)
+				.setPositiveButton("Yes",new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog,int id) {
+						Intent callGPSSettingIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+						callGPSSettingIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			            getContext().startActivity(callGPSSettingIntent);
+					}
+				  })
+				.setNegativeButton("No",new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog,int id) {
+						// if this button is clicked, just close
+						// the dialog box and do nothing
+						dialog.cancel();
+					}
+				});
+ 
+		// create alert dialog
+		AlertDialog alertDialog = alertDialogBuilder.create();
+ 
+		// show it
+		alertDialog.show();
+		
+	}
 }

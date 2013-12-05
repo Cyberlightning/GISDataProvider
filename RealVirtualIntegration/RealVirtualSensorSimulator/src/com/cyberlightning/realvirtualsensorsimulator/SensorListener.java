@@ -13,7 +13,6 @@ import com.cyberlightning.realvirtualsensorsimulator.staticresources.JsonParser;
 import com.cyberlightning.realvirtualsensorsimulator.views.SettingsViewFragment;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -34,7 +33,6 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	private IMainActivity application;
 	private List<Sensor> deviceSensors;
 	private Location location;
-
 	
 	private String contextualLocation;
 	private long sensorEventInterval;
@@ -93,14 +91,11 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	private synchronized void wakeThread() {
 	      suspendFlag = false;
 	      notify();
-	      //this.sensorEventHandler.wakeNestedThread();
 	}
 	
 	private synchronized void destroy() {
 	      this.destroyFlag = true;
-	      notify();
-	     // this.sensorEventHandler.destroyNestedThread();
-	    
+	      notify();   
 	}
 	private Set<String> loadSettings() {
 		Set<String> defaultValues =  new HashSet<String>( this.deviceSensors.size());
@@ -115,30 +110,19 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		
 		if (useGPS) {
 			LocationManager locationManager = (LocationManager)this.application.getContext().getSystemService(Context.LOCATION_SERVICE);
-			Intent intent=new Intent("android.location.GPS_ENABLED_CHANGE");
-			intent.putExtra("enabled", useGPS);
-			this.application.getContext().sendBroadcast(intent);
-			LocationListener locationListener = new GpsListener();  
-			locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, locationListener);	
+			if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+				this.application.showNoGpsAlert();
+		    }else{
+		    	LocationListener locationListener = new GpsListener();  
+				locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, locationListener);	
+		    }
 		}
+		
 		this.contextualLocation = settings.getString(SettingsViewFragment.SHARED_LOCATION, null);
-		
-//		if (this.application.getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS)) {
-//			
-//		} else {
-//			LocationListener locationListener = new GpsListener();  
-//			locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-//			Criteria criteria = new Criteria();
-//			criteria.setAccuracy(0);
-//			String bestProvider = locationManager.getBestProvider(criteria, true);
-//			this.location= locationManager.getLastKnownLocation(bestProvider); 
-//			//TODO handle location if gotten
-//		}
-		
 		
 		return sensors;
 	}
-
+	
 	
 	private Integer registerSensorListeners(){
 			
@@ -151,7 +135,6 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 				
 			}
 		}
-		//this.copy = new HashMap<String,SensorEvent>(selectedSensors.size());
 		this.events = new ArrayList<SensorEventObject>(selectedSensors.size());
 		return selectedSensors.size();
 	}

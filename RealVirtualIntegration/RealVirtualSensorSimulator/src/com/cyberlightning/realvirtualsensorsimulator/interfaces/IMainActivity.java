@@ -8,4 +8,6 @@ public interface IMainActivity {
 	public Context getContext();
 
 	public Handler getTarget();
+	
+	public void showNoGpsAlert();
 }

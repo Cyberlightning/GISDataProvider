@@ -10,8 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.cyberlightning.webserver.StaticResources;
+import com.cyberlightning.webserver.entities.MessageObject;
 import com.cyberlightning.webserver.interfaces.IMessageEvent;
-import com.cyberlightning.webserver.sockets.MessageObject;
 import com.cyberlightning.webserver.sockets.UdpSocket;
 
 /**
