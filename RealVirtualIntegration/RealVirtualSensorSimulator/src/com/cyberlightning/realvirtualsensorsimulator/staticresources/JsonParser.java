@@ -108,13 +108,14 @@ public abstract class JsonParser {
 	}
 	
 	
+	@SuppressWarnings("deprecation")
 	private static String resolvePrimitive(int _id) {
 		String primitive = null;
 		
 		switch(_id){
 			case Sensor.TYPE_ACCELEROMETER: primitive = "3DPoint";
 				break;
-			case Sensor.TYPE_TEMPERATURE:primitive = "double";
+			case Sensor.TYPE_AMBIENT_TEMPERATURE:primitive = "double";
 				break;
 			case Sensor.TYPE_ROTATION_VECTOR:primitive = "array";
 				break;
@@ -132,8 +133,9 @@ public abstract class JsonParser {
 				break;
 			case Sensor.TYPE_PROXIMITY:primitive = "double";
 				break;
-			
-			case Sensor.TYPE_ORIENTATION:primitive = "3DPoint";
+			case Sensor.TYPE_ORIENTATION:primitive ="3DPoint";
+				break;
+			case Sensor.TYPE_RELATIVE_HUMIDITY:primitive = "double";
 				break;
 			
 			
@@ -146,12 +148,13 @@ public abstract class JsonParser {
 		return  new SimpleDateFormat(DATE_FORMAT).format(new Date(System.currentTimeMillis()));
 	}
 	
+	@SuppressWarnings("deprecation")
 	public static String resolveSensorUnitById(int _id) {
 		String unit = null;
 		switch(_id){
 			case Sensor.TYPE_ACCELEROMETER: unit = "m/s2";
 				break;
-			case Sensor.TYPE_TEMPERATURE:unit = "celcius";
+			case Sensor.TYPE_AMBIENT_TEMPERATURE:unit = "celcius";
 				break;
 			case Sensor.TYPE_ROTATION_VECTOR:unit = "array";
 				break;
@@ -171,17 +174,21 @@ public abstract class JsonParser {
 				break;	
 			case Sensor.TYPE_ORIENTATION:unit = "orientation";
 				break;
+			case Sensor.TYPE_RELATIVE_HUMIDITY:unit = "percent";
+			break;
+		
 			}
 			
 			return unit;
 		}
 	
+	@SuppressWarnings("deprecation")
 	public static String resolveSensorTypeById(int _id) {
 		String name = null;
 		switch(_id){
 			case Sensor.TYPE_ACCELEROMETER: name = "accelerometer";
 				break;
-			case Sensor.TYPE_TEMPERATURE:name = "temperature";
+			case Sensor.TYPE_AMBIENT_TEMPERATURE:name = "temperature";
 				break;
 			case Sensor.TYPE_ROTATION_VECTOR:name = "rotationvector";
 				break;
@@ -200,7 +207,8 @@ public abstract class JsonParser {
 			case Sensor.TYPE_PROXIMITY:name = "proximity";
 				break;
 			case Sensor.TYPE_ORIENTATION:name = "orientation";
-				break;		
+				break;
+			case Sensor.TYPE_RELATIVE_HUMIDITY: name = "relativehumidity";
 			}
 			return name;
 		}

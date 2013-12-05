@@ -6,6 +6,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Locale;
 import java.util.Observable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -94,7 +95,8 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 		int toIndex = result[0].indexOf("HTTP");
 		
 		/* Passes the urlencoded query string to appropriate http method handlers*/
-		if (result[0].trim().toUpperCase().contains("POST")) {
+		String method = result[0].trim().toUpperCase(Locale.ROOT);
+		if (method.contains("POST")) {
 			
 			fromIndex =  result[0].indexOf("/");
 			String content = result[0].substring(fromIndex, toIndex);
@@ -105,10 +107,10 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 			}
 			
 		}
-		else if (result[0].trim().toUpperCase().contains("PUT")) {
+		else if (method.contains("PUT")) {
 			//this.handlePUTMethod(result[result.length-1].toString());
 		}
-		else if (result[0].trim().toUpperCase().contains("DELETE")) {
+		else if (method.contains("DELETE")) {
 			//this.handleDELETEMethod(result[result.length-1].toString());
 		} else {
 			this.handlePOSTMethod(request, false);
