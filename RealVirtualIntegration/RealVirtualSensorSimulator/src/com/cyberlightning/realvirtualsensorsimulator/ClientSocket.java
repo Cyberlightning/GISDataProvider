@@ -140,38 +140,66 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 	private void handlePOSTMethod(String _content, boolean _isFile) {
 		
 		String[] queries = _content.split("&");
-		String[] targetUUIDs = null;
+		
 	
-		for (int i = 0; i < queries.length; i++) {
-			
-			if(queries[i].contains("action")) {
-				String[] action = queries[i].split("=");
-				
+		for (String attr : queries) {
+			if(attr.contains("action")) {
+				String[] action = attr.split("=");
 				if (action[1].contentEquals("update")) {
-				
 					for (int j = 0; j < queries.length; j++) {
-						
 						if (queries[j].contains("device_id")) {
-							String[] s = queries.clone()[j].trim().split("=");
-							targetUUIDs = s[1].split(","); //check correct regex
+							String[] device= queries.clone()[j].trim().split("=");
+							if (device[1].trim().contentEquals(MainActivity.deviceId)) {
+								for (int k = 0; k < queries.length; k++) {
+									if (queries[k].contains("sensor_id")){
+										String[] sensor = queries.clone()[k].trim().split("=");
+										if (sensor[1].trim().contentEquals(MainActivity.displayActuator)) {
+											for (int l = 0; l < queries.length; l++) {
+												if (queries[l].contains("parameter")) {
+													String[] params = queries.clone()[l].trim().split("=");
+													String param = params[1].trim();
+													if (param.contentEquals("viewstate")) {
+														for (int m = 0; m < queries.length;m++) {
+															if (queries[m].contains("value")) {
+																String[] values = queries.clone()[m].trim().split("=");
+																String value = values[1].trim();
+																Message msg = Message.obtain(null, MainActivity.MESSAGE_TYPE_SET_MARKER, value);
+														    	msg.setTarget(this.application.getTarget());
+														        msg.sendToTarget();
+														        break;
+															}
+														}
+														break;
+													}
+													
+												}
+												
+										    	
+											}
+											break;
+										} 
+									}
+									
+								}
+								break;
+							} else {
+								break;
+							}	
 						}
+						
 					}
-
+					break;
 				}else if (action[1].contentEquals("upload")) {
 					//TODO
 				} 
+				
+			} else {
+				this.propagateMessage(_content, true); 
 			}
-			
+			break;
 		}
-		if (targetUUIDs == null) {
-			//TODO
-		}
-		
-		this.propagateMessage(_content, true); //TODO check this
 	}
-    
-    
-    
+
 	public class SocketSender implements Runnable {
 		private boolean suspendFlag = true;
 		private boolean destroyFlag = false;

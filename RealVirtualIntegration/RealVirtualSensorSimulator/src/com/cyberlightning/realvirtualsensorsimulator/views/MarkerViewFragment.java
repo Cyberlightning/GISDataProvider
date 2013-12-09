@@ -35,6 +35,7 @@ public class MarkerViewFragment extends Fragment implements OnClickListener {
         Bundle bundle=getArguments();
         this.markerId = bundle.getString("markerID");
         this.changeMarker(this.markerId);
+        setHasOptionsMenu(true);
         return view;
     }
 	

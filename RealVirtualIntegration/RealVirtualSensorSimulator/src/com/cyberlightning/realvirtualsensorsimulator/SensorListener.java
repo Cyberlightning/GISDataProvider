@@ -33,6 +33,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	private IMainActivity application;
 	private List<Sensor> deviceSensors;
 	private Location location;
+	private LocationListener locationListener;
 	
 	private String contextualLocation;
 	private long sensorEventInterval;
@@ -105,7 +106,14 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		SharedPreferences settings = this.application.getContext().getSharedPreferences(SettingsViewFragment.PREFS_NAME, 0);
 		Set<String> sensors = settings.getStringSet(SettingsViewFragment.SHARED_SENSORS, defaultValues);
 		this.sensorEventInterval = settings.getLong(SettingsViewFragment.SHARED_INTERVAL,SENSOR_EVENT_INTERVAL);
+		this.contextualLocation = settings.getString(SettingsViewFragment.SHARED_LOCATION, null);
 		
+		return sensors;
+	}
+	
+	private void registerGpsListener() {
+		
+		SharedPreferences settings = this.application.getContext().getSharedPreferences(SettingsViewFragment.PREFS_NAME, 0);
 		boolean useGPS = settings.getBoolean(SettingsViewFragment.SHARED_GPS, false);
 		
 		if (useGPS) {
@@ -113,16 +121,16 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 			if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
 				this.application.showNoGpsAlert();
 		    }else{
-		    	LocationListener locationListener = new GpsListener();  
-				locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, locationListener);	
+		    	this.locationListener = new GpsListener();  
+				locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 0, this.locationListener);	
 		    }
 		}
-		
-		this.contextualLocation = settings.getString(SettingsViewFragment.SHARED_LOCATION, null);
-		
-		return sensors;
 	}
 	
+	private void unregisterGpsListener() {
+		LocationManager locationManager = (LocationManager)this.application.getContext().getSystemService(Context.LOCATION_SERVICE);
+		if (this.locationListener != null)locationManager.removeUpdates(this.locationListener);
+	}
 	
 	private Integer registerSensorListeners(){
 			
@@ -185,7 +193,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		this.isBusy = true;
 		this.suspendThread();
 		this.unregisterAllSensors();
-		
+		this.unregisterGpsListener();
 	}
 
 
@@ -193,7 +201,10 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	public Integer resume() {
 		this.isBusy = false;
 		int numOfSensors = this.registerSensorListeners();
-		if ( numOfSensors > 0) this.wakeThread();
+		if ( numOfSensors > 0) {
+			this.wakeThread();
+			this.registerGpsListener();
+		}
 		return numOfSensors;
 	}
 	
@@ -201,6 +212,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	public void end() {
 		this.isBusy = true;
 		this.unregisterAllSensors();
+		this.unregisterGpsListener();
 		this.destroy();
 	}
 

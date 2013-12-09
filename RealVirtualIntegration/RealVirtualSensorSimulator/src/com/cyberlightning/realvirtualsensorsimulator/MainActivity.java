@@ -54,6 +54,8 @@ import android.widget.Toast;
 	
 	public static String deviceId;
 	public static String deviceName = "Android device";
+	public static String displayActuator = "display";
+	public static String displayParameter = "viewstate";
 	
 	public static final int MESSAGE_FROM_SENSOR_LISTENER = 1;
 	public static final int MESSAGE_FROM_SERVER = 2;
