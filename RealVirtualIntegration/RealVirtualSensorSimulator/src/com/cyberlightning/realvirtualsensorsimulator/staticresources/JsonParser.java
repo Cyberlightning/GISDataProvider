@@ -3,6 +3,9 @@ package com.cyberlightning.realvirtualsensorsimulator.staticresources;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -10,6 +13,7 @@ import org.json.JSONObject;
 
 import com.cyberlightning.realvirtualsensorsimulator.MainActivity;
 import com.cyberlightning.realvirtualsensorsimulator.SensorListener;
+import com.cyberlightning.realvirtualsensorsimulator.SensorListener.ActuatorComponent;
 import com.cyberlightning.realvirtualsensorsimulator.SensorListener.SensorEventObject;
 
 import android.annotation.SuppressLint;
@@ -28,12 +32,13 @@ public abstract class JsonParser {
 	 * @param _contextualLocation
 	 * @return Returns a String in JSON format.
 	 */
-	public static String createFromSensorEvent(ArrayList<SensorListener.SensorEventObject> _sensorEvents, Location _location, String _contextualLocation) {
+	public static String createFromSensorEvent(ArrayList<SensorListener.SensorEventObject> _sensorEvents, Location _location, String _contextualLocation, ArrayList<SensorListener.ActuatorComponent> _actuators) {
 		
 		JSONObject wrapper = new JSONObject();
 		JSONObject device = new JSONObject();
-		JSONObject sensorWraper = new JSONObject();
+		JSONObject deviceWrapper = new JSONObject();
 		JSONObject attributes = new JSONObject();
+		JSONArray actuators = new JSONArray();
 		JSONArray sensors = new JSONArray();
 	
 		try {
@@ -53,7 +58,8 @@ public abstract class JsonParser {
 				SensorEvent event = o.event;
 				JSONObject sensorAttrs = new JSONObject();
 				JSONObject sensor = new JSONObject();
-				JSONObject sensorParams = new JSONObject();
+				JSONArray sensorConfiguration = new JSONArray();
+				JSONObject sensorParameter = new JSONObject();
 				JSONObject value = new JSONObject();
 				
 				sensorAttrs.put("type", o.type);
@@ -62,9 +68,10 @@ public abstract class JsonParser {
 				sensorAttrs.put("name", event.sensor.getName());
 				sensor.put("attributes", sensorAttrs);
 				
-				sensorParams.put("toggleable", "boolean");
-				sensorParams.put("interval", "ms");
-				sensor.put("parameters", sensorParams);
+				sensorParameter.put("toggleable", "boolean");
+				sensorParameter.put("interval", "ms");
+				sensorConfiguration.put(sensorParameter);
+				sensor.put("configuration", sensorConfiguration);
 				
 				value.put("values", resolveValues(event.values,event.sensor.getType()));
 				value.put("time", getTimeStamp());
@@ -74,10 +81,71 @@ public abstract class JsonParser {
 				sensor.put("value", value);
 				sensors.put(sensor);
 			}
+			
+			for (ActuatorComponent actuator : _actuators) {
+				JSONObject actuatorComponent = new JSONObject();
+				
+				JSONObject actuatorAttrs = new JSONObject();
+				Set<String> keys = actuator.attributes.keySet();
+				for (String key : keys) {
+					actuatorAttrs.put(key, actuator.attributes.get(key));
+				}
+				
+				actuatorComponent.put("attributes", actuatorAttrs);
+				
+				
+				Iterator<HashMap<String,Object>> entries = actuator.actions.iterator();
+				JSONArray actions = new JSONArray();
+				
+				while (entries.hasNext()) {
+					JSONObject action = new JSONObject();
+					HashMap<String,Object> entry = entries.next();
+					Set<String> entryKeys = entry.keySet();
+					for (String entryKey : entryKeys) {
+						action.put(entryKey, entry.get(entryKey));
+					}
+					actions.put(action);
+				}
+				
+				actuatorComponent.put("actions", actions);
+				
+				Iterator<HashMap<String,Object>> configs = actuator.configuration.iterator();
+				JSONArray configuration = new JSONArray();
+				
+				while (configs.hasNext()) {
+					JSONObject parameter = new JSONObject();
+					HashMap<String,Object> config = configs.next();
+					Set<String> parameters = config.keySet();
+					for (String param : parameters) {
+						parameter.put(param, config.get(param));
+					}
+					configuration.put(parameter);
+				}
+				
+				actuatorComponent.put("configuration", configuration);
+				
+				Iterator<HashMap<String,Object>> calls = actuator.callbacks.iterator();
+				JSONArray callbacks = new JSONArray();
+				
+				while (calls.hasNext()) {
+					JSONObject callback = new JSONObject();
+					HashMap<String,Object> call = calls.next();
+					Set<String> callKeys = call.keySet();
+					for (String callKey : callKeys) {
+						callback.put(callKey, call.get(callKey));
+					}
+					callbacks.put(callback);
+				}
+				
+				actuatorComponent.put("callbacks", callbacks);
+				actuators.put(actuatorComponent);
 
-			sensorWraper.put("sensors", sensors);
-			sensorWraper.put("attributes", attributes);
-			device.put(MainActivity.deviceId, sensorWraper);
+			}
+			
+			deviceWrapper.put("actuators", actuators);
+			deviceWrapper.put("sensors", sensors);
+			device.put("attributes", attributes);
+			device.put(MainActivity.deviceId, deviceWrapper);
 			wrapper.put(MainActivity.deviceId, device);
 			
 			

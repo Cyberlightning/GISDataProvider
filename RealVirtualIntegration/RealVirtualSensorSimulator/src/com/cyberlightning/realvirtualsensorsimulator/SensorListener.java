@@ -2,6 +2,7 @@ package com.cyberlightning.realvirtualsensorsimulator;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Observable;
@@ -14,6 +15,7 @@ import com.cyberlightning.realvirtualsensorsimulator.views.SettingsViewFragment;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Point;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -23,12 +25,14 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Message;
+import android.view.Display;
+import android.view.WindowManager;
 
 
 public class SensorListener extends Observable implements SensorEventListener,ISensorListener,Runnable  {
 
 
-
+	private ArrayList<ActuatorComponent> actuators =  new  ArrayList<ActuatorComponent>();
 	private ArrayList<SensorEventObject> events;
 	private IMainActivity application;
 	private List<Sensor> deviceSensors;
@@ -54,7 +58,8 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 	
 	@Override
 	public void run() {
-
+		
+		this.initializeActuators(); //this needs to be done only once
 		while(true) {
 			
 			synchronized(this) {
@@ -71,7 +76,7 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 			this.unregisterAllSensors();
 
 			if (!events.isEmpty()) {
-				sendMessageToServer(JsonParser.createFromSensorEvent(events, location, contextualLocation));
+				sendMessageToServer(JsonParser.createFromSensorEvent(events, location, contextualLocation,actuators));
 				for (SensorEventObject o : events) {
 					sendMessageToUI( JsonParser.getTimeStamp() + ": " + o.type);
 				}
@@ -109,6 +114,52 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 		this.contextualLocation = settings.getString(SettingsViewFragment.SHARED_LOCATION, null);
 		
 		return sensors;
+	}
+	
+	private void initializeActuators() {
+		
+		WindowManager wm = (WindowManager) application.getContext().getSystemService(Context.WINDOW_SERVICE);
+		Display display = wm.getDefaultDisplay();
+		Point size = new Point();
+		display.getSize(size);
+		ActuatorComponent actuator = new ActuatorComponent();
+		actuator.attributes.put("dimensions", "[" + size.x+","+size.y+"]");
+		
+		String[] values = {"marker1","marker2","marker3","marker4","marker6","marker7","marker8","marker9","marker10","marker11","marker12","marker13","marker14","marker15","marker15","marker16","marker17","marker18","marker19"};
+		
+		StringBuilder builder = new StringBuilder();
+		builder.append("[");
+		for(String s : values) {
+		    builder.append(s + ",");
+		}
+		builder.replace(builder.length()-1, builder.length(), "");
+		builder.append("]");
+		
+		HashMap<String,Object> action = new HashMap<String,Object>();
+		action.put("parameter", "viewstate");
+		action.put("primitive", "array");
+		action.put("unit", "string");
+		action.put("value",  builder.toString());
+		action.put("state", null);
+		
+		actuator.actions.add(action);
+		
+		HashMap<String,Object> param = new HashMap<String,Object>();
+		
+		param.put("name", "viewsize");
+		param.put("unit", "percent");
+		param.put("value","100");
+	
+		actuator.configuration.add(param);
+
+		HashMap<String,Object> callback = new HashMap<String,Object>();
+		callback.put("target", "viewstate");
+		callback.put("return_type", "boolean");
+		
+		actuator.callbacks.add(callback);
+		
+		this.actuators.add(actuator);
+		
 	}
 	
 	private void registerGpsListener() {
@@ -283,6 +334,13 @@ public class SensorListener extends Observable implements SensorEventListener,IS
 			this.event = _event;
 			this.type = _type;
 		}
+	}
+	
+	public class ActuatorComponent {
+		public HashMap<String, Object> attributes = new HashMap<String,Object>();
+		public ArrayList<HashMap<String, Object>> configuration = new  ArrayList<HashMap<String, Object>>();
+		public ArrayList<HashMap<String, Object>> actions = new  ArrayList<HashMap<String, Object>>();
+		public ArrayList<HashMap<String, Object>> callbacks = new  ArrayList<HashMap<String, Object>>();
 	}
 
 }
