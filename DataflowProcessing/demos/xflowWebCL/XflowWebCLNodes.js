@@ -1,10 +1,14 @@
 (function () {
     var webcl = XML3D.webcl,
-        cmdQueue = webcl.cmdQueue,
-        ctx = webcl.ctx;
+        kernelManager = webcl.kernels,
+        cmdQueue;
+        XML3D.debug.loglevel = 1;
+        webcl.init("GPU");
+        cmdQueue = webcl.createCommandQueue();
 
     (function () {
-        webcl.kernels.register("clThresholdImage",
+
+        kernelManager.register("clThresholdImage",
             ["__kernel void clThresholdImage(__global const uchar4* src, __global uchar4* dst, uint width, uint height)",
                 "{",
                 "int x = get_global_id(0);",
@@ -21,9 +25,9 @@
                 "dst[i] = (uchar4)(color, color, color, 255);",
                 "}"].join("\n"));
 
-        var kernel = webcl.kernels.getKernel("clThresholdImage"),
-            oldBufSize = 0,
-            buffers = {bufIn: null, bufOut: null};
+         var kernel = webcl.kernels.getKernel("clThresholdImage"),
+             oldBufSize = 0,
+             buffers = {bufIn: null, bufOut: null};
 
 
         Xflow.registerOperator("xflow.clThresholdImage", {
@@ -55,16 +59,13 @@
                         bufOut.releaseCLResources();
                     }
                     // Setup WebCL context using the default device of the first available platform
-                    bufIn = buffers.bufIn = ctx.createBuffer(WebCL.CL_MEM_READ_ONLY, bufSize);
-                    bufOut = buffers.bufOut = ctx.createBuffer(WebCL.CL_MEM_WRITE_ONLY, bufSize);
+                    bufIn = buffers.bufIn = webcl.createBuffer(bufSize, "r");
+                    bufOut = buffers.bufOut = webcl.createBuffer(bufSize, "w");
 
                 }
 
-                kernel.setArg(0, bufIn);
-                kernel.setArg(1, bufOut);
-                kernel.setArg(2, new Uint32Array([width]));
-                kernel.setArg(3, new Uint32Array([height]));
-
+                kernelManager.setArgs(kernel, bufIn, bufOut,
+                    new Uint32Array([width]), new Uint32Array([height]));
 
                 // Write the buffer to OpenCL device memory
                 cmdQueue.enqueueWriteBuffer(bufIn, false, 0, bufSize, image.data, []);
@@ -95,7 +96,8 @@
      */
 
     (function () {
-        webcl.kernels.register("clDesaturate",
+
+        kernelManager.register("clDesaturate",
             ["__kernel void clDesaturate(__global const uchar4* src, __global uchar4* dst, uint width, uint height)",
                 "{",
                 "int x = get_global_id(0);",
@@ -105,6 +107,7 @@
                 "uchar lum = (uchar)(0.30f * color.x + 0.59f * color.y + 0.11f * color.z);",
                 "dst[i] = (uchar4)(lum, lum, lum, 255);",
                 "}"].join("\n"));
+
 
         var kernel = webcl.kernels.getKernel("clDesaturate"),
             oldBufSize = 0,
@@ -140,15 +143,14 @@
                     }
 
                     // Setup WebCL context using the default device of the first available platform
-                    bufIn = buffers.bufIn = ctx.createBuffer(WebCL.CL_MEM_READ_ONLY, bufSize);
-                    bufOut = buffers.bufOut = ctx.createBuffer(WebCL.CL_MEM_WRITE_ONLY, bufSize);
+                    bufIn = buffers.bufIn = webcl.createBuffer(bufSize, "r");
+                    bufOut = buffers.bufOut = webcl.createBuffer(bufSize, "w");
 
                 }
 
-                kernel.setArg(0, bufIn);
-                kernel.setArg(1, bufOut);
-                kernel.setArg(2, new Uint32Array([width]));
-                kernel.setArg(3, new Uint32Array([height]));
+                try{
+                kernelManager.setArgs(kernel, bufIn, bufOut,
+                    new Uint32Array([width]), new Uint32Array([height]));
 
                 // Write the buffer to OpenCL device memory
                 cmdQueue.enqueueWriteBuffer(bufIn, false, 0, bufSize, image.data, []);
@@ -164,6 +166,7 @@
                 cmdQueue.enqueueReadBuffer(bufOut, false, 0, bufSize, result.data, []);
 
                 cmdQueue.finish(); //Finish all the operations
+                }catch(e){console.log(e.name, e.message );}
 
                 //console.timeEnd("clDesaturate");
                 return true;
@@ -172,7 +175,8 @@
     }());
 
     (function () {
-        webcl.kernels.register("clBlur",
+
+        kernelManager.register("clBlur",
             ["__kernel void clBlur(__global const uchar4* src, __global uchar4* dst, uint width, uint height, uint blurSize)",
                 "{",
                 "const float m[9] = {0.05f, 0.09f, 0.12f, 0.15f, 0.16f, 0.15f, 0.12f, 0.09f, 0.05f};",
@@ -199,6 +203,7 @@
                 "result = convert_uchar3_rte(sum);",
                 "dst[i] = (uchar4)(result.x, result.y, result.z, 255);",
                 "}"].join("\n"));
+
 
         var kernel = webcl.kernels.getKernel("clBlur"),
             oldBufSize = 0,
@@ -232,16 +237,14 @@
                     }
 
                     // Setup WebCL context using the default device of the first available platform
-                    bufIn = buffers.bufIn = ctx.createBuffer(WebCL.CL_MEM_READ_ONLY, bufSize);
-                    bufOut = buffers.bufOut = ctx.createBuffer(WebCL.CL_MEM_WRITE_ONLY, bufSize);
+                    bufIn = buffers.bufIn = webcl.createBuffer(bufSize, "r");
+                    bufOut = buffers.bufOut = webcl.createBuffer(bufSize, "w");
 
                 }
 
-                kernel.setArg(0, bufIn);
-                kernel.setArg(1, bufOut);
-                kernel.setArg(2, new Uint32Array([width]));
-                kernel.setArg(3, new Uint32Array([height]));
-                kernel.setArg(4, new Uint32Array([6]));
+                kernelManager.setArgs(kernel, bufIn, bufOut,
+                    new Uint32Array([width]), new Uint32Array([height]),
+                    new Uint32Array([6]));
 
                 // Write the buffer to OpenCL device memory
                 cmdQueue.enqueueWriteBuffer(bufIn, false, 0, bufSize, image.data, []);
