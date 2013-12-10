@@ -22,7 +22,7 @@
         	android:layout_height="0dp"
         	android:paddingTop="8dp"
         	android:paddingBottom="8dp"
-        	android:background="@drawable/border"/>
+        	android:background="#1F001F"/>
     </ScrollView>
     
     <!-- Footer starts here -->
@@ -46,14 +46,14 @@
         		style="?android:attr/buttonBarButtonStyle" 
         		android:text="@string/event_button_reset_title"
         		android:textColor="#ffffff"
-        		android:textSize="20dp" />
+        		android:textSize="20sp" />
         	<Button android:id="@+id/event_toggle_button"
         		android:layout_width="wrap_content"
         		android:layout_height="wrap_content"
         		style="?android:attr/buttonBarButtonStyle" 
         		android:text="@string/event_button_toggle_start_title"
         		android:textColor="#ffffff"
-        		android:textSize="20dp" />
+        		android:textSize="20sp" />
      </LinearLayout>
 
 </LinearLayout>
