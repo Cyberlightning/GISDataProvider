@@ -24,10 +24,11 @@ public class Actuator implements Serializable {
 	/**
 	 * 
 	 */
-	public HashMap<String,Object> parameters = new HashMap<String,Object>();
+	public ArrayList<HashMap<String,Object>> configuration = new ArrayList<HashMap<String,Object>>();
 	/**
 	 * 
 	 */
-	public ArrayList<HashMap<String,Object>> variables = new ArrayList<HashMap<String,Object>>();
+	public ArrayList<HashMap<String,Object>> actions = new ArrayList<HashMap<String,Object>>();
+	public ArrayList<HashMap<String,Object>> callbacks = new ArrayList<HashMap<String,Object>>();
 	
 }

@@ -21,103 +21,144 @@ import com.cyberlightning.webserver.entities.Sensor;
 public abstract class TranslationService {
 	
 	/*Sample JSON string from sensors
-	 * 
-	 * {
-    "550e8400-e29b-41d4-a716-446655440000": {
-        "sensors": [
-            {
-                "values": [
-                    {
-                        "unit": "3DPoint",
-                        "time": "YY-MM-DD HH:MM",
-                        "value": [12,13,14]
+	 
+	 {
+	 "440cd2d8c18d7d3a": {
+        "440cd2d8c18d7d3a": {
+            "sensors": [
+                {
+                    "value": {
+                        "unit": "rads",
+                        "primitive": "3DPoint",
+                        "time": "2013-12-10 10:07:30",
+                        "values": [
+                            21.117462158203125,
+                            -0.9801873564720154,
+                            -0.6045787930488586
+                        ]
                     },
-                    {
-                        "unit": "Celcius",
-                        "time": "YY-MM-DD HH:MM",
-                        "value": 13
-                    },
-                    {
-                        "unit": "Celcius",
-                        "time": "YY-MM-DD HH:MM",
-                        "value": 13
-                    },
-                    {
-                        "unit": "Celcius",
-                        "time": "YY-MM-DD HH:MM",
-                        "value": 13
-                    },
-                    {
-                        "unit": "Celcius",
-                        "time": "YY-MM-DD HH:MM",
-                        "value": 13
-                    },
-                    {
-                        "unit": "Celcius",
-                        "time": "YY-MM-DD HH:MM",
-                        "value": 13
-                    },
-                    {
-                        "unit": "Celcius",
-                        "time": "YY-MM-DD HH:MM",
-                        "value": 13
-                    },
-                    {
-                        "unit": "Celcius",
-                        "time": "YY-MM-DD HH:MM",
-                        "value": 13
-                    },
-                    {
-                        "unit": "Celcius",
-                        "time": "YY-MM-DD HH:MM",
-                        "value": 13
-                    },
-                    {
-                        "unit": "Celcius",
-                        "time": "YY-MM-DD HH:MM",
-                        "value": 13
-                    },
-                    {
-                        "unit": "Celcius",
-                        "time": "YY-MM-DD HH:MM",
-                        "value": 13
+                    "configuration": [
+                        {
+                            "interval": "ms",
+                            "toggleable": "boolean"
+                        }
+                    ],
+                    "attributes": {
+                        "type": "gyroscope",
+                        "power": 0.5,
+                        "vendor": "Invensense",
+                        "name": "MPL Gyro"
                     }
-                ],
-                "parameters": {
-                    "callback": false,
-                    "options": null
                 },
-                "attributes": {
-                    "callback": false,
-                    "options": null
+                {
+                    "value": {
+                        "unit": "ms2",
+                        "primitive": "3DPoint",
+                        "time": "2013-12-10 10:07:30",
+                        "values": [
+                            149.10000610351562,
+                            420.20001220703125,
+                            -1463.9000244140625
+                        ]
+                    },
+                    "configuration": [
+                        {
+                            "interval": "ms",
+                            "toggleable": "boolean"
+                        }
+                    ],
+                    "attributes": {
+                        "type": "accelerometer",
+                        "power": 0.5,
+                        "vendor": "Invensense",
+                        "name": "MPL accel"
+                    }
                 },
-                "uuid": null
-            }
-        ],
-        "attributes": {
-            "name": "Power wall outlet"
+                {
+                    "value": {
+                        "unit": "uT",
+                        "primitive": "3DPoint",
+                        "time": "2013-12-10 10:07:30",
+                        "values": [
+                            -0.08577163517475128,
+                            0.16211289167404175,
+                            9.922416687011719
+                        ]
+                    },
+                    "configuration": [
+                        {
+                            "interval": "ms",
+                            "toggleable": "boolean"
+                        }
+                    ],
+                    "attributes": {
+                        "type": "magneticfield",
+                        "power": 0.5,
+                        "vendor": "Invensense",
+                        "name": "MPL magnetic field"
+                    }
+                },
+                {
+                    "value": {
+                        "unit": "orientation",
+                        "primitive": "3DPoint",
+                        "time": "2013-12-10 10:07:30",
+                        "values": [
+                            -0.004261057823896408,
+                            -0.017044231295585632,
+                            0.019174760207533836
+                        ]
+                    },
+                    "configuration": [
+                        {
+                            "interval": "ms",
+                            "toggleable": "boolean"
+                        }
+                    ],
+                    "attributes": {
+                        "type": "orientation",
+                        "power": 9.699999809265137,
+                        "vendor": "Invensense",
+                        "name": "MPL Orientation (android deprecated format)"
+                    }
+                }
+            ],
+            "actuators": [
+                {
+                    "configuration": [
+                        {
+                            "value": "100",
+                            "unit": "percent",
+                            "name": "viewsize"
+                        }
+                    ],
+                    "actions": [
+                        {
+                            "value": "[marker1,marker2,marker3,marker4,marker6,marker7,marker8,marker9,marker10,marker11,marker12,marker13,marker14,marker15,marker15,marker16,marker17,marker18,marker19]",
+                            "primitive": "array",
+                            "unit": "string",
+                            "parameter": "viewstate"
+                        }
+                    ],
+                    "callbacks": [
+                        {
+                            "target": "viewstate",
+                            "return_type": "boolean"
+                        }
+                    ],
+                    "attributes": {
+                        "dimensions": "[480,800]"
+                    }
+                }
+            ]
         },
-        "actuators": [
-            {
-                "parameters": {
-                    "callback": false,
-                    "options": null
-                },
-                "attributes": {
-                    "callback": false,
-                    "options": null
-                },
-                "uuid": null,
-                "variables": [
-                    {
-                        "relay": null,
-                        "type": null
-                    }
-                ]
-            }
-        ]
+        "attributes": {
+            "name": "Android device"
+        }
     }
-}*/
+}
+
+*/
 	
 	
 	/**Serialize sensor event in JSON form in to a list of entity objects.
@@ -141,8 +182,8 @@ public abstract class TranslationService {
 				e.uuid = key;
 				JSONObject content = (JSONObject) entity.get(key);
 				
-				if (content.containsKey("attributes")) {
-					JSONObject attributes = (JSONObject) content.get("attributes");
+				if (entity.containsKey("attributes")) {
+					JSONObject attributes = (JSONObject) entity.get("attributes");
 					Iterator<?> i = attributes.keySet().iterator();
 					while (i.hasNext()) {
 						String attrKey = (String)i.next();
@@ -174,31 +215,59 @@ public abstract class TranslationService {
 								String actKey = (String)i.next();	
 								actuator.attributes.put(actKey, actAttrs.get(actKey));
 							}
-						} if (act.containsKey("parameters")) {
-							JSONObject actParams = (JSONObject) act.get("parameters");
-							Iterator<?> i = actParams.keySet().iterator();
-								
-							while (i.hasNext()) {
-								String paramsKey = (String)i.next();	
-								actuator.parameters.put(paramsKey, actParams.get(paramsKey));
-							}
-						} if (act.containsKey("variables")) {
-							JSONArray variables  = (JSONArray) act.get("variables");
-							int n = 0;
-							HashMap<String,Object> variable = new HashMap<String,Object>();
-							
-							while (n < variables.size()) {
-								JSONObject variableJson = (JSONObject) variables.get(n);
-								Iterator<?> o = variableJson.keySet().iterator();
-								
-								while (o.hasNext()) {
-									String varKey = (String)o.next();
-									variable.put(varKey, variable.get(varKey));
+						} if (act.containsKey("configuration")) {
+							JSONArray configurations = (JSONArray) act.get("configuration");
+							int k = 0;
+							while (k < configurations.size()) {
+								JSONObject param = (JSONObject)configurations.get(k);
+								Iterator<?> paramKeys = param.keySet().iterator();
+								HashMap<String,Object> parameter = new HashMap<String,Object>();
+								while (paramKeys.hasNext()) {
+									String paramsKey = (String)paramKeys.next();	
+									parameter.put(paramsKey, param.get(paramsKey));
 								}
-								n++;
-								actuator.variables.add(variable);
+								actuator.configuration.add(parameter);
+								k++;
 							}
-						}
+	
+						} if (act.containsKey("actions")) {
+							JSONArray actions = (JSONArray) act.get("actions");
+							int m = 0;
+							while (m < actions.size()) {
+								JSONObject actionJson = (JSONObject)actions.get(m);
+								Iterator<?> actionKeys = actionJson.keySet().iterator();
+								HashMap<String,Object> action = new HashMap<String,Object>();
+								while (actionKeys.hasNext()) {
+									String actionKey = (String)actionKeys.next();	
+									action.put(actionKey, actionJson.get(actionKey));
+								}
+								actuator.actions.add(action);
+								m++;
+							}
+	
+						}if (act.containsKey("callbacks")) {
+							JSONArray callbacks = (JSONArray) act.get("callbacks");
+							int n = 0;
+							while (n < callbacks.size()) {
+								JSONObject callbackJson = (JSONObject)callbacks.get(n);
+								Iterator<?> callbackKeys = callbackJson.keySet().iterator();
+								HashMap<String,Object> callback = new HashMap<String,Object>();
+								while (callbackKeys.hasNext()) {
+									String callbackKey = (String)callbackKeys.next();	
+									callback.put(callbackKey, callbackJson.get(callbackKey));
+								}
+								actuator.callbacks.add(callback);
+								n++;
+							}
+	
+						} if (act.containsKey("attributes")) {
+							JSONObject actuatorsAttrs = (JSONObject) act.get("attributes");
+							Iterator<?> actuatorAttrKeys = actuatorsAttrs.keySet().iterator();	
+							while (actuatorAttrKeys.hasNext()) {
+								String actuatorAttrKey = (String)actuatorAttrKeys.next();	
+								actuator.attributes.put(actuatorAttrKey, actuatorsAttrs.get(actuatorAttrKey));
+							}
+						} 
 						
 						e.actuators.add(actuator);
 					}
@@ -221,15 +290,21 @@ public abstract class TranslationService {
 								String attrsKey = (String)i.next();	
 								sensor.attributes.put(attrsKey, senAttrs.get(attrsKey));
 							}
-						} if (sen.containsKey("parameters")) {
-							JSONObject senParams = (JSONObject) sen.get("parameters");
-							Iterator<?> i = senParams.keySet().iterator();	
-				
-							while (i.hasNext()) {
-								String paramsKey = (String)i.next();	
-								sensor.parameters.put(paramsKey, senParams.get(paramsKey));
-
+						}if (sen.containsKey("configuration")) {
+							JSONArray configurations = (JSONArray) sen.get("configuration");
+							int k = 0;
+							while (k < configurations.size()) {
+								JSONObject param = (JSONObject)configurations.get(k);
+								Iterator<?> paramKeys = param.keySet().iterator();
+								HashMap<String,Object> parameter = new HashMap<String,Object>();
+								while (paramKeys.hasNext()) {
+									String paramsKey = (String)paramKeys.next();	
+									parameter.put(paramsKey, param.get(paramsKey));
+								}
+								sensor.configuration.add(parameter);
+								k++;
 							}
+	
 						} if (sen.containsKey("value")) {
 							JSONObject value =(JSONObject)sen.get("value");
 							String primitive = (String)value.get("primitive");
@@ -288,49 +363,83 @@ public abstract class TranslationService {
 				attributeJson.put(attrKey, entity.attributes.get(attrKey));
 			}
 			entityJson.put("attributes", attributeJson);
+			
+			
 			JSONArray actuatorsJson = new JSONArray();
+			
 			for (Actuator actuator : entity.actuators) {
 				JSONObject actuatorJson = new JSONObject();
-				actuatorJson.put("uuid", actuator.uuid);
+
 				
-				Iterator<String> actAttrsKeys = actuator.parameters.keySet().iterator();
+				Iterator<String> actAttrsKeys = actuator.attributes.keySet().iterator();
 				JSONObject actuatorAttrsJson = new JSONObject();
 				while (actAttrsKeys.hasNext()) {
 					String attrKey = actAttrsKeys.next();
-					actuatorAttrsJson.put(attrKey, actuator.parameters.get(attrKey));
+					actuatorAttrsJson.put(attrKey, actuator.attributes.get(attrKey));
 				}
 				actuatorJson.put("attributes", actuatorAttrsJson);
 				
-				Iterator<String> paramsKeys = actuator.parameters.keySet().iterator();
-				JSONObject actuatorParamsJson = new JSONObject();
-				while (paramsKeys.hasNext()) {
-					String paramKey = paramsKeys.next();
-					actuatorParamsJson.put(paramKey, actuator.parameters.get(paramKey));
-				}
-				actuatorJson.put("parameters", actuatorParamsJson);
-				JSONArray actuatorVarsJson = new JSONArray();
-				for (int i = 0 ; i < actuator.variables.size(); i ++) {
+				JSONArray configuration = new JSONArray();
+				
+				for (int i = 0; i < actuator.configuration.size(); i++) {
 					
-					HashMap<String,Object > variable = actuator.variables.get(i);
-					Iterator<String> j = variable.keySet().iterator();
-					JSONObject actuatorVarJson = new JSONObject();
-					while (j.hasNext()) {
-						String varKey = j.next();
-						actuatorVarJson.put(varKey, variable.get(varKey));
+					HashMap<String,Object> param = actuator.configuration.get(i);
+					Iterator<String> paramsKeys = param.keySet().iterator();
+					JSONObject parameter = new JSONObject();
+					
+					while (paramsKeys.hasNext()) {
+						String paramKey = paramsKeys.next();
+						parameter.put(paramKey, param.get(paramKey));
 					}
-					
-					actuatorVarsJson.add(actuatorVarJson);
+					configuration.add(parameter);
 				}
-				actuatorJson.put("variables", actuatorVarsJson);
+				
+				actuatorJson.put("configuration", configuration);
+				
+				JSONArray actions = new JSONArray();
+				
+				for (int j = 0; j < actuator.actions.size(); j++) {
+					
+					HashMap<String,Object> actuatorActions = actuator.actions.get(j);
+					Iterator<String> actionKeys = actuatorActions.keySet().iterator();
+					JSONObject action = new JSONObject();
+					
+					while (actionKeys.hasNext()) {
+						String actionKey = actionKeys.next();
+						action.put(actionKey, actuatorActions.get(actionKey));
+					}
+					actions.add(action);
+				}
+				
+				actuatorJson.put("actions", actions);
+				
+				
+				JSONArray callbacks = new JSONArray();
+				
+				for (int k = 0; k < actuator.callbacks.size(); k++) {
+					
+					HashMap<String,Object> actuatorCallbacks = actuator.callbacks.get(k);
+					Iterator<String> callbackKeys = actuatorCallbacks.keySet().iterator();
+					JSONObject callback = new JSONObject();
+					
+					while (callbackKeys.hasNext()) {
+						String callbackKey = callbackKeys.next();
+						callback.put(callbackKey, actuatorCallbacks.get(callbackKey));
+					}
+					callbacks.add(callback);
+				}
+				
+				actuatorJson.put("callbacks", callbacks);
 				actuatorsJson.add(actuatorJson);
-			
 			}
+			
 			if (!actuatorsJson.isEmpty())entityJson.put("actuators", actuatorsJson);
 			
 			JSONArray sensorsJson = new JSONArray();
+			
 			for (Sensor sensor : entity.sensors) {
 				JSONObject sensorJson = new JSONObject();
-				sensorJson.put("uuid", sensor.uuid);
+			
 				
 				Iterator<String> senAttrsKeys = sensor.attributes.keySet().iterator();
 				JSONObject sensorAttrsJson = new JSONObject();
@@ -340,13 +449,23 @@ public abstract class TranslationService {
 				}
 				sensorJson.put("attributes", sensorAttrsJson);//here
 				
-				Iterator<String> paramsKeys = sensor.parameters.keySet().iterator();
-				JSONObject sensorParamsJson = new JSONObject();
-				while (paramsKeys.hasNext()) {
-					String paramKey = paramsKeys.next();
-					sensorParamsJson.put(paramKey, sensor.parameters.get(paramKey));
+				JSONArray configuration = new JSONArray();
+				
+				for (int k = 0; k < sensor.configuration.size(); k++) {
+					
+					HashMap<String,Object> param = sensor.configuration.get(k);
+					Iterator<String> paramsKeys = param.keySet().iterator();
+					JSONObject parameter = new JSONObject();
+					
+					while (paramsKeys.hasNext()) {
+						String paramKey = paramsKeys.next();
+						parameter.put(paramKey, param.get(paramKey));
+					}
+					configuration.add(parameter);
 				}
-				sensorJson.put("parameters", sensorParamsJson);
+				
+				sensorJson.put("configuration", configuration);
+				
 				JSONArray sensorValuesJson = new JSONArray();
 				int count = 1;
 				for (int i = (sensor.values.size()-1) ; i > -1; i--) { //return latest value first;
@@ -365,14 +484,10 @@ public abstract class TranslationService {
 				}
 				sensorJson.put("values", sensorValuesJson);
 				sensorsJson.add(sensorJson);	
-			}
-			
+			}	
 			entityJson.put("sensors", sensorsJson);
 			content.put(entity.uuid, entityJson);
 		}
-		
 		return content.toJSONString();
 	}
-	
-
 }
