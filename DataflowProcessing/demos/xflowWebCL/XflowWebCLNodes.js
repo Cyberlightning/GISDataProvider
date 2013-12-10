@@ -171,4 +171,96 @@
         });
     }());
 
+    (function () {
+        webcl.kernels.register("clBlur",
+            ["__kernel void clBlur(__global const uchar4* src, __global uchar4* dst, uint width, uint height, uint blurSize)",
+                "{",
+                "const float m[9] = {0.05f, 0.09f, 0.12f, 0.15f, 0.16f, 0.15f, 0.12f, 0.09f, 0.05f};",
+
+                "int x = get_global_id(0);",
+                "int y = get_global_id(1);",
+
+                "if (x >= width || y >= height) return;",
+                "int i = y * width + x;",
+
+                "float3 sum = {0.0f, 0.0f, 0.0f};",
+                "uchar3 result;",
+                "int currentCoord;",
+
+                "for(int j = 0; j < 9; j++) {",
+                   "currentCoord = convert_int(i - (4-j)*blurSize);",
+                   "if(currentCoord >= 0 || currentCoord <= width*height) {",
+                      "sum.x += convert_float_rte(src[currentCoord].x) * m[j];",
+                      "sum.y += convert_float_rte(src[currentCoord].y) * m[j];",
+                      "sum.z += convert_float_rte(src[currentCoord].z) * m[j];",
+                   "}",
+                "}",
+
+                "result = convert_uchar3_rte(sum);",
+                "dst[i] = (uchar4)(result.x, result.y, result.z, 255);",
+                "}"].join("\n"));
+
+        var kernel = webcl.kernels.getKernel("clBlur"),
+            oldBufSize = 0,
+            buffers = {bufIn: null, bufOut: null};
+
+
+        Xflow.registerOperator("xflow.clBlurImage", {
+            outputs: [
+                {type: 'texture', name: 'result', sizeof: 'image'}
+            ],
+            params: [
+                {type: 'texture', source: 'image'}
+            ],
+            evaluate: function (result, image) {
+                //passing xflow operators input data
+                var width = image.width,
+                    height = image.height,
+                    imgSize = width * height,
+
+                // Setup buffers
+                    bufSize = imgSize * 4,
+                    bufIn = buffers.bufIn,
+                    bufOut = buffers.bufOut;
+
+                if (bufSize !== oldBufSize) {
+                    oldBufSize = bufSize;
+
+                    if (bufIn && bufOut) {
+                        bufIn.releaseCLResources();
+                        bufOut.releaseCLResources();
+                    }
+
+                    // Setup WebCL context using the default device of the first available platform
+                    bufIn = buffers.bufIn = ctx.createBuffer(WebCL.CL_MEM_READ_ONLY, bufSize);
+                    bufOut = buffers.bufOut = ctx.createBuffer(WebCL.CL_MEM_WRITE_ONLY, bufSize);
+
+                }
+
+                kernel.setArg(0, bufIn);
+                kernel.setArg(1, bufOut);
+                kernel.setArg(2, new Uint32Array([width]));
+                kernel.setArg(3, new Uint32Array([height]));
+                kernel.setArg(4, new Uint32Array([6]));
+
+                // Write the buffer to OpenCL device memory
+                cmdQueue.enqueueWriteBuffer(bufIn, false, 0, bufSize, image.data, []);
+
+                // Init ND-range
+                var localWS = [16, 4], globalWS = [Math.ceil(width / localWS[0]) * localWS[0],
+                    Math.ceil(height / localWS[1]) * localWS[1]];
+
+                // Execute (enqueue) kernel
+                cmdQueue.enqueueNDRangeKernel(kernel, globalWS.length, [], globalWS, localWS, []);
+
+                // Read the result buffer from OpenCL device
+                cmdQueue.enqueueReadBuffer(bufOut, false, 0, bufSize, result.data, []);
+
+                cmdQueue.finish(); //Finish all the operations
+
+                return true;
+            }
+        });
+    }());
+
 }());
