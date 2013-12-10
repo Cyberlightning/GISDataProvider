@@ -181,7 +181,7 @@ import android.widget.Toast;
         fragmentTransaction.replace(R.id.fragment_content, this.settingsFragment);
         fragmentTransaction.commit();
         
-        if(this.mainViewFragment.isPause) this.showToast(getString(R.string.toast_sensorlistener_stopped));
+        if(this.mainViewFragment.isPause && !this.markerViewFragment.isInLayout()) this.showToast(getString(R.string.toast_sensorlistener_stopped));
     }
     
     /**

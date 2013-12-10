@@ -6,7 +6,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Locale;
 import java.util.Observable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -90,58 +89,9 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 		}
 		
 
-		String[] result = request.split("\n");
-		int fromIndex =  result[0].indexOf("?");
-		int toIndex = result[0].indexOf("HTTP");
-		
-		/* Passes the urlencoded query string to appropriate http method handlers*/
-		String method = result[0].trim().toUpperCase(Locale.ROOT);
-		if (method.contains("POST")) {
-			
-			fromIndex =  result[0].indexOf("/");
-			String content = result[0].substring(fromIndex, toIndex);
-			if (content.trim().contentEquals("/")) {
-				this.handlePOSTMethod(result[result.length-1].toString(), false);
-			} else {
-				this.handlePOSTMethod(content, true);
-			}
-			
-		}
-		else if (method.contains("PUT")) {
-			//this.handlePUTMethod(result[result.length-1].toString());
-		}
-		else if (method.contains("DELETE")) {
-			//this.handleDELETEMethod(result[result.length-1].toString());
-		} else {
-			this.handlePOSTMethod(request, false);
-		}
+		String[] queries = request.split("&");
 		
 		
-		
-	}
-    
-    private void propagateMessage(String _msg, Boolean _sendToUi) {
-    	
-    	Message msg = Message.obtain(null, MainActivity.MESSAGE_FROM_SERVER, _msg);
-    	setChanged();
-    	notifyObservers(msg);
-    	
-    	if (_sendToUi) {
-    		msg.setTarget(this.application.getTarget());
-        	msg.sendToTarget();
-    	}
-	}
-    
-	/**
-	 * 
-	 * @param _content
-	 * @param _isFile
-	 */
-	private void handlePOSTMethod(String _content, boolean _isFile) {
-		
-		String[] queries = _content.split("&");
-		
-	
 		for (String attr : queries) {
 			if(attr.contains("action")) {
 				String[] action = attr.split("=");
@@ -194,11 +144,28 @@ public class ClientSocket extends Observable implements Runnable, IClientSocket 
 				} 
 				
 			} else {
-				this.propagateMessage(_content, true); 
+				this.propagateMessage(request, true); 
 			}
 			break;
 		}
+		
+		
+		
 	}
+    
+    private void propagateMessage(String _msg, Boolean _sendToUi) {
+    	
+    	Message msg = Message.obtain(null, MainActivity.MESSAGE_FROM_SERVER, _msg);
+    	setChanged();
+    	notifyObservers(msg);
+    	
+    	if (_sendToUi) {
+    		msg.setTarget(this.application.getTarget());
+        	msg.sendToTarget();
+    	}
+	}
+    
+	
 
 	public class SocketSender implements Runnable {
 		private boolean suspendFlag = true;
