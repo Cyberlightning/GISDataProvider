@@ -1,6 +1,6 @@
 
 //FIware_wp13.Device = function(localurl, resturl, localport, restport, wsp) 
-var dAPI = new FIware_wp13.Device("dev.cyberlightning.com" ,"dev.cyberlightning.com", "9090", "17324","17323");
+var dAPI = new FIware_wp13.Device("dev.cyberlightning.com" ,"dev.cyberlightning.com", "9090", "17321","17322");
 //var dAPI = new FIware_wp13.Device("localhost","localhost", "8080" , "17324" ,"17323");
 
 function startVideoClicked() {	
@@ -37,9 +37,11 @@ function handleRotation(r) {
 }
 
 function onLocationSearchSuccess(pos,coords){
+	
 }
 
 function onLocationSearchSuccess123(pos){
+	dAPI.log("current location retrieved");
 }
 
 function onLocationServiceSearchError(){

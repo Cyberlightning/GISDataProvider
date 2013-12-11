@@ -1,45 +1,17 @@
 /**
- * USE THIS FOR DEVELOPMENTS
+ * #########################################################
+ * ####### THIS PART INCLUDES SUPPORTING JS CLASSES#########
+ * ####### SCROLL DOWN FOR UNIT TESTING MODULES ############
+ * #########################################################
  */
+var defaultmapoptions = {
+		  enableHighAccuracy: true,
+		  timeout: 27000,
+		  maximumAge: 30000
+		};
 
-/**
- * Java script API for HTML5 device motion, device orientation, 
- * location and camera feeds. This API is a simple extension for 
- * existing APIs so that one single doc provides means to test 
- * availability and the extraction of the information from GPS 
- * locator, accelerometer, Gyroscope for the usage of browser 
- * applications.
- * 
- * Author : Tharanga Wijethilake
- * copyrights : Cyberlightning
- * Project: FI-ware
- * 
- */
-
-/**
- * This library is focused to run on Firefox and Chrome. Some functionalities are tested on 
- * Safari mobile browser
- */
-
-;(function (FIware_wp13, undefined) {
-
-/**
- * Private function to extract the user agent string
- */
-var getUAString = function(){
-	 var uagent = navigator.userAgent.toLowerCase();
-	 return  uagent;
-};
-
-/**PRIVATE OBJECT
- * This is a part of the device and will hold browser specific parameters 
- */
 var Browser = function(){
 }; 
-
-/**
- * 
- */
 Browser.prototype = {
 		
 		/**
@@ -159,11 +131,6 @@ Browser.prototype = {
 		},
 };
 
-
-/**
- * PRIVATE OBJECT
- * Sensor represent sensor that is supported by the browser of a device.Each sensor has a name set of past values and latest values
- */
 var Sensor = function(name){
 	this.name = name;
 	this.array =new Array();
@@ -297,20 +264,11 @@ Sensor.prototype = {
 		//END OF SENSOR
 };
 
-/**
- * Device Represent a collection of functions that is used to check support obtain access and record data from sensors. It provides access to each 
- * indivual sensor or all the supported sensors can be activated at once.
- * @param localurl url of the server which the mobile client is deployed
- * @param resturl url of the rest service
- * @param localport access port of the local application Eg Tomcat server port
- * @param restport If any..If the REST service is accessed via a specific port
- * @param wsp Web socket port of the image tagging service.
- */
-FIware_wp13.Device = function(localurl, resturl, localport, wsp ,restport ) {
+Device = function(localurl, resturl, localport, wsp ,restport ) {
 	this.tomcatPORT = localport;
 	this.localURL = localurl;
 	this.websocketport = wsp;
-	this.serverURL = resturl;
+	this.serverURL = resturl;	
 	if(restport)
 		this.serverPORT = restport;
 	this.userAgentString = navigator.userAgent.toLowerCase();
@@ -320,49 +278,39 @@ FIware_wp13.Device = function(localurl, resturl, localport, wsp ,restport ) {
 	 }else if (this.userAgentString.search("windows") != -1){
 		dos = "Windows";
 	} else if(this.userAgentString.search("linux") != -1){
-		 device = "Linux";
-	 }else  {
+		dos = "Linux";		 
+	 }else {
 		 dos = "Unditected";
 	}
-	
-	var deviceType="";
-	 if(this.userAgentString.search("mobile") != -1){
-		 deviceType = "Mobile";
-	 }else{
-		deviceType = "Desktop";
-	 }
 	
 	var b = new Browser();	
 	var list = b.supportedMediaList();
 	var temp= [];
+	var count = 0;
 	if(list["GPS"]==="Supported"){
+		count ++;
 		temp.push(new Sensor("GPS"));
 	}
 	if(list["Compass"] === "Supported"){
+		count ++;
 		temp.push(new Sensor("Compass"));
 	}
 	if(list["Accelerometer"]==="Supported"){
+		count ++;
 		temp.push(new Sensor("Accelerometer"));
 	}
 	if(list["Video"]==="Supported") {
+		count ++;
 		temp.push(new Sensor("Video"));
-	}	
+	}
 	this.OS = dos;
 	this.sensorList = temp;
 	this.browser = b;
-	this.Type = deviceType;
 };
 
-/**
- * This is used for the GPS location service.
- */
-var defaultmapoptions = {
-		  enableHighAccuracy: true,
-		  timeout: 27000,
-		  maximumAge: 30000
-		};
+var watchPositionID;
 
-FIware_wp13.Device.prototype = {
+Device.prototype = {
 		
 		/**
 		 * Creates a debugging logger on the side of the screen.
@@ -416,8 +364,10 @@ FIware_wp13.Device.prototype = {
 			var gamma=0;
 			var mode=null;
 			var lon;
+			//log("Time "+time);
 			try{
 				var list = this.getSensorList();
+				//log("Sensor list "+list.length);
 				var count;
 				for(count = 0 ; count < list.length; count++ ){
 					var sn = list[count].getName();
@@ -702,7 +652,7 @@ FIware_wp13.Device.prototype = {
 					count++;
 				};
 			}
-			console.log("FULL BUFFER LENGTH "+fullBuffer.length);
+			console.log(fullBuffer.length);
 			return fullBuffer;
 		},
 
@@ -770,7 +720,7 @@ FIware_wp13.Device.prototype = {
 			var r = confirm("Confirm" +message) ;
 			if(r){
 				var formdata = { command : "post", server : this.serverURL ,imagedata : fullBuffer};
-				//alert(jQuery.isPlainObject( formdata ));
+				alert(jQuery.isPlainObject( formdata ));
 	
 				xhr = new XMLHttpRequest();
 				xhr.open('POST', "http://"+this.localURL+":"+this.tomcatPORT+"/RestClient/ClientRequestMultiplexer", true);
@@ -803,7 +753,7 @@ FIware_wp13.Device.prototype = {
 		*/
 		registerDeviceMotionEvents : function(handlacceleration, handleAccelerationWithGravity, handleRotation){
 			if(this.browser.isDeviceMotionSupported()){
-				window.addEventListener("devicemotion", function(event) {
+				window.addEventListener("devicemotion", this.motionHandler = function(event) {
 					var rotationRate = event.rotationRate;		
 					var acceleration = event.acceleration;
 					var accelerationWithGravity = event.accelerationIncludingGravity;
@@ -848,19 +798,20 @@ FIware_wp13.Device.prototype = {
 //								var a =s.getValues();
 								break;
 							}
-						}				
+						}
+						if (typeof handleAccelerationWithGravity === "function"){
+							handleAccelerationWithGravity(tempEvent.accelerationWithGravity);
+						}
+						if (typeof handlacceleration === "function"){
+							handlacceleration(tempEvent.acceleration);
+						}
+						if (typeof handleRotation === "function"){
+							handleRotation(tempEvent.rotationRate);
+						}
 					} catch(error){
-					    log(error.message);
+					    //log(error.message);
 					};
-					if (typeof handleAccelerationWithGravity === "function"){
-						handleAccelerationWithGravity(tempEvent.accelerationWithGravity);
-					}
-					if (typeof handlacceleration === "function"){
-						handlacceleration(tempEvent.acceleration);
-					}
-					if (typeof handleRotation === "function"){
-						handleRotation(tempEvent.rotationRate);
-					}
+						
 				}.bind(this), true);
 			} else {
 				alert("Device browser does not support this event..!");
@@ -880,7 +831,7 @@ FIware_wp13.Device.prototype = {
 		 */
 		registerDeviceOrentationEvent : function(eventHandlingFunction){
 			if (this.browser.isDeviceOrientationSupported()) {
-			    window.addEventListener("deviceorientation", function( event ) {
+			    window.addEventListener("deviceorientation", this.orientationHandler = function( event ) {
 					if(!event.alpha)
 						event.alpha = 400.0;
 					if(!event.beta)
@@ -899,6 +850,8 @@ FIware_wp13.Device.prototype = {
 								var a =s.getValues();
 //								log("Rot->"+a[0][0] + ":" +a[1][0]+ ":" +a[2][0]);						
 								eventHandlingFunction(event.alpha, event.beta, event.gamma );
+								//Added for testing purposes
+								window.addEventListener("deviceorientation", this);
 								break;
 							}							
 						}
@@ -937,15 +890,6 @@ FIware_wp13.Device.prototype = {
 		//END OF DEVICE METHODS
 };
 
-function log(text){	
-	var logcanvas = document.getElementById("consolelog");
-	if(logcanvas)
-		document.getElementById("consolelog").value = document.getElementById("consolelog").value + "\n"+text;
-	else 
-		console.log(text);
-	
-}
-
 function locationFindingerror(err) {
 	  alert("An Error Occured"+ err.data);
 };
@@ -956,9 +900,9 @@ function locationFindingSuccess(pos) {
 };
 
 
-/**This method tries to stabalise the values generated by the accelerometer
-* to identify in which direction the divice may be moving.
-*/
+///**This method tries to stabalise the values generated by the accelerometer
+//* to identify in which direction the divice may be moving.
+	//*/
 var processAccelerationValues= function(acceleration){
 	var count = 0;	
 	var accx = new Array();
@@ -976,7 +920,7 @@ var processAccelerationValues= function(acceleration){
 	temp.x = adjustedAX;
 	temp.y = adjustedAY;
 	temp.z = adjustedAZ;
-	log("processAccelerationValues2"+temp.x+":"+temp.y+":"+temp.z);
+	//log("processAccelerationValues2"+temp.x+":"+temp.y+":"+temp.z);
 	return temp;
 	
 };
@@ -1005,7 +949,7 @@ var processAccelerationDueToGravity= function(acceleration){
 	temp.x = adjustedGAX;
 	temp.y = adjustedGAY;
 	temp.z = adjustedGAZ;
-	log("processAccelerationDueToGravity 2 "+temp.x+":"+temp.y+":"+temp.z);
+	//log("processAccelerationDueToGravity 2 "+temp.x+":"+temp.y+":"+temp.z);
 	return temp;	
 };
 
@@ -1024,7 +968,7 @@ var adjust = function(value,cutoff){
 
 /**
 * Calculates the average value of the array of values
-	*/
+*/
 var average = function(values) {
 	var ave= 0.0;
 	var sum = 0.0;
@@ -1034,26 +978,29 @@ var average = function(values) {
 		var oneBefore = 0;
 		var oneAfter = 0;
 		var limit = values.length;
-		for(count = 1 ; count < limit ; count ++) {			
-			oneBefore= values[count-1];
-			oneAfter = values[count+1];
-			if(((oneBefore <= 0)&&(values[count] <= 0)&&(oneAfter <=0)) || ((oneBefore >= 0)&&(values[count] >= 0)&&(oneAfter >= 0))) {
-				if(count == 1){
-					sum = values[0] +values[1];
+		var positiveCount=0;		
+		var negativeCount=0;
+		for(count = 0 ; count < limit ; count++){
+			if(values[count] <0){
+				negativeCount++;
+			} else {
+				positiveCount++;			
+			}		
+		}
+		count = 0;
+		for(count = 0; count< limit ;count++){
+			if(positiveCount > negativeCount){
+				if(values[count] >=0){
+					sum = sum + values[count] ;
+					devideBy= devideBy +1;
 				}
-				else if(count == (limit-2)){
-					sum = sum +values[limit-1]+values[limit-2];
-				}else{
-					sum = sum + values[count];
-				}				
-				if(count == 1 || count ==  (limit-2)){
-					devideBy= devideBy +2;
-				}else {
-					devideBy ++;
+			}else {
+				if(values[count] <0){
+					sum = sum + values[count] ;
+					devideBy= devideBy +1;
 				}
 			}
 		}
-		
 		if(devideBy > 0){
 			ave = sum/devideBy;
 		}
@@ -1062,11 +1009,9 @@ var average = function(values) {
 	return ave;
 };
 
-
-
 /**
- * Returns avarage of the most recent 10 values from the device compus
- */
+* Returns avarage of the most recent 10 values from the device compus
+*/
 processOrientationEvent = function (alphaValues,betaValues,gammaValues){
 	var adjustedAlpha = 0;
 	var adjustedBeta = 0;
@@ -1086,14 +1031,374 @@ processOrientationEvent = function (alphaValues,betaValues,gammaValues){
 };
 
 /**
- * Private function. Value is rounded to 4 decimal values. Used for GPS and rotation angle of orientation.
- */
+* Private function. Value is rounded to 4 decimal values. Used for GPS and rotation angle of orientation.
+*/
 var adjustAngle = function(value){
 	value = Math.round(value * 10000) / 10000 ;		
 	return value;
 };
+/**
+ * #############################################
+ * ####### THIS PART CONCLUDED SUPPORTING JS CLASSES##########
+ * ####### BELOW CODE IS THE PROCEDURE TEST CASES ###########
+ * #############################################
+ */
 
 
+function onLocationsearchSuccess(pos,coords){
+	ok(pos.coords.latitude===coords.latitude,"Read value from the sensor and the current value of the object are equal");
+	navigator.geolocation.clearWatch(watchPositionID);
+}
 
-})(window.FIware_wp13 = window.FIware_wp13 || {});
+
+function onLocationSearchError() {
+	ok(true, "Location serch Error Occured. Message ");
+	navigator.geolocation.clearWatch(watchPositionID);
+}
+
+function getCurrentLocationSuccess(pos){
+	ok(true,"Callback function is trigerd on succesull position retrieval.");	
+}
+
+function getCurrentLocationError(pos){
+	ok(true,"Accurate call back function is triggered on an error in location retrieval.");	
+}
+module("Testcase 3 Testing Preliminary setup for device sensor data ");
+test ("Testing Object Device" , function() {
+	var d = new Device("localhost" ,"dev.cyberlightning.com", "9090", "17321","17322");
+	ok((d.OS ==="Android") ||(d.OS ==="Windows") ||( d.OS ==="Linux" )||(d.OS ==="Android") ||(d.OS ==="Unditected"), "Device Os Is Ditected and it is one of the set values");
+	ok(d.serverPORT==="17322","Divice object is created and the server port is set");
+	ok(d.tomcatPORT==="9090","Divice object is created and the local proxy server port is set");
+	ok(d.serverURL ==="dev.cyberlightning.com" , "Divice object is created and the remote servet URL is set.");
+	ok(d.localURL ==="localhost", "Local Proxy server is set");
+	ok(d.websocketport==="17321", "Web Socket port is set");
+	ok((d.browser.getBrowserType()==="FireFox") || (d.browser.getBrowserType()==="Chrome") || (d.browser.getBrowserType()==="Opera") || (d.browser.getBrowserType()==="IE")|| (d.browser.getBrowserType()==="Unditected"), "Browser Type is set");
+});
+
+test ("Testing Supporting functions. Testing Functions -> average() Adjust()" , function() {
+	var testArray1= new Array();
+	for(var i = 0 ; i < 100 ; i++ ){
+		testArray1.push(1);
+	}
+	equal(average(testArray1), 1 , "Average of 100 1s is 1.");
+	var testArray2= new Array();
+	for(var i = 1 ; i <=100 ; i++ ){
+		testArray2.push(i);
+	}
+	equal(average(testArray2),50.5 , "Average of  sum of from 1 to 100 is 50.5");
+	var testArray3 = new Array();
+	testArray3[0]= 1;
+	testArray3[1]= 1;
+	testArray3[2]= -1;
+	testArray3[3]= 1;
+	testArray3[4]= 1;
+	testArray3[5]= 1;
+	testArray3[6]= 1;
+	testArray3[7]= 1;
+	testArray3[8]= 1;
+	testArray3[9]= 1;
+	equal(average(testArray3), 1 , "Average of  sum of 10 numbers where 9 are 1s and one -1is 1.");
+	
+	
+	testArray3[0]= 1;
+	testArray3[1]= 2;
+	testArray3[2]= -1;
+	testArray3[3]= 3;
+	testArray3[4]= 4;
+	testArray3[5]= 5;
+	testArray3[6]= 6;
+	testArray3[7]= 7;
+	testArray3[8]= 8;
+	testArray3[9]= 9;
+	equal(average(testArray3), 5 , "Average of  10 numbers  from 1 to 9 and 1 minus valus is 5.");
+	
+	
+	testArray3[0]= -1;
+	testArray3[1]= -2;
+	testArray3[2]= +1;
+	testArray3[3]=- 3;
+	testArray3[4]= -4;
+	testArray3[5]= -5;
+	testArray3[6]= -6;
+	testArray3[7]= -7;
+	testArray3[8]=- 8;
+	testArray3[9]= -9;
+	equal(average(testArray3), -5 , "Average of  10 numbers  from -1 to -9 and 1 plus valus is -5.");
+	
+	testArray3[0]= -1;
+	testArray3[1]= -2;
+	testArray3[2]= +1;
+	testArray3[3]= +3;
+	testArray3[4]= -4;
+	testArray3[5]= -5;
+	testArray3[6]= -6;
+	testArray3[7]= +7;
+	testArray3[8]= -8;
+	testArray3[9]= -9;
+	equal(average(testArray3), (-35/7) , "Average of  10 numbers  from 1 to 9 and 1 minus valus is -5.");
+	
+	equal(adjust(1.12345678) ,1.12,"adjust() -> 1.12345678 rounded to 2 decimals is 1.12");
+	equal(adjust(-56.788978772347197) ,-56.79,"adjust() -> -56.788978772347197 rounded to 2 decimals is -56.79");
+	equal(adjust(1.12345678,4) ,0.0,"adjust() -> 1.12345678 subjected to cutoff of 4 is 0.0");
+	equal(adjust(-56.788978772347197,4) ,-56.79,"adjust() ->-56.788978772347197 subjected to cutoff of 4 is -56.79");
+	
+	var acceleration = new Array();
+	for(var i = 0 ; i < 20 ; i++) {
+		var temp = new Object();
+		temp.x = 9.123456789;
+		temp.y = 9.123456789;
+		temp.z = 9.123456789;
+		acceleration[i] = temp;
+	}
+	var testSubject = processAccelerationValues(acceleration);
+	equal(testSubject.x ,9.12 ,"processAccelerationValues() -> Average should not differ from 9.123456789 when all are same ");
+	equal(testSubject.y ,9.12 ,"processAccelerationValues() -> Average should not differ from 9.123456789 when all are same ");
+	equal(testSubject.z ,9.12 ,"processAccelerationValues() -> Average should not differ from 9.123456789 when all are same ");
+	
+	for(var i = 0 ; i < 20 ; i++) {
+		var temp = new Object();
+		temp.x = 0.0123456789;
+		temp.y = 0.0123456789;
+		temp.z = 0.323456789;
+		acceleration[i] = temp;
+	}
+	testSubject = processAccelerationValues(acceleration);
+	equal(testSubject.x ,0.0 ,"processAccelerationValues() ->x component Average should adjusted to 0.0  when they are set to,lower than 0.1 ");
+	equal(testSubject.y ,0.0 ,"processAccelerationValues() -> y component Average should adjusted to 0.0  when they are set to,lower than 0.1  ");
+	equal(testSubject.z ,0.0 ,"processAccelerationValues() ->  z component Average should adjusted to 0.0  when they are set to,lower than 0.1  ");
+	
+	for(var i = 0 ; i < 20 ; i++) {
+		var temp = new Object();	
+		if(i == 2 || i ==5) {
+			temp.x = -8.123456789;
+			temp.y = 0.0123456789;
+			temp.z = 0.323456789;
+		}else{
+			temp.x = 9.123456789;
+			temp.y = 0.0123456789;
+			temp.z = 0.323456789;
+		} 
+		acceleration[i] = temp;
+	}
+	testSubject = processAccelerationValues(acceleration);
+	equal(testSubject.x ,9.12 ,"processAccelerationValues() -> x component Test pass for diference xyz values  x > 9 and y &z <0.1");
+	equal(testSubject.y ,0.0 ,"processAccelerationValues() -> y component Test pass for diference xyz values  x > 9 and y &z <0.1 ");
+	equal(testSubject.z ,0.0 ,"processAccelerationValues() -> z component Test pass for diference xyz values  x > 9 and y &z <0.1 ");
+	
+	for(var i = 0 ; i < 20 ; i++) {
+		var temp = new Object();
+	
+		if(i == 2 || i ==5) {
+			temp.x = 9.123456789;
+			temp.y = -5.0123456789;
+			temp.z = 0.323456789;
+		}else{
+			temp.x = -8.123456789;
+			temp.y = 6.0123456789;
+			temp.z = 0.323456789;
+		} 
+		acceleration[i] = temp;
+	}
+	testSubject = processAccelerationValues(acceleration);
+	equal(testSubject.x ,-8.12 ,"processAccelerationValues() -> Negative x test passed ");
+	equal(testSubject.y ,6.01 ,"processAccelerationValues() -> Testing for positive Y   ");
+	equal(testSubject.z ,0.0 ,"processAccelerationValues() -> Testing for adjusted 0.0 Z component  ");
+});
+
+module("Testcase 4 -Feature Testing 3 ");
+test ("FIWARE.Feature.MiWi.2D-3DCapture.Browser.SupportingInterfaces. Testing Functions -> getSensorList" , function() {
+	var d = new Device("localhost" ,"dev.cyberlightning.com", "9090", "17321","17322");
+	var list  = d.getSensorList();
+	var browserSup = d.browser.supportedMediaList();
+	var counter = 0;
+	if(list!=null)
+		ok(true,"Device List available");
+	else
+		ok(false, "Device has not found the supporting interfaces. Test Failed");
+	if(browserSup["GPS"] != null){
+		if(browserSup["GPS"] ==="Supported")
+			counter++;
+		ok((browserSup["GPS"]==="Supported" || browserSup["GPS"]==="Not Supported"), "GPS support  detected");
+	}
+	if(browserSup["Compass"] != null){
+		if(browserSup["Compass"] ==="Supported")
+			counter++;
+		ok((browserSup["Compass"]==="Supported" || browserSup["Compass"]==="Not Supported"), "Compass support  detected");
+	}
+	if(browserSup["Accelerometer"] != null){
+		if(browserSup["Accelerometer"] ==="Supported")
+			counter++;
+		ok((browserSup["Accelerometer"]==="Supported" || browserSup["Accelerometer"]==="Not Supported"), "Accelerometer support  detected");
+	}
+	if(browserSup["Video"] != null){
+		if(browserSup["Video"] ==="Supported")
+			counter++;
+		ok((browserSup["Video"]==="Supported" || browserSup["Video"]==="Not Supported"), "Video support  detected");
+	}
+	equal(list.length, counter, "Supporting sensor interfaces and setup sensor arrays are equal");
+});
+
+module("Testcase 4 -Feature Testing 4 ");
+asyncTest( " FIWARE.Feature.MiWi.2D-3DCapture.Browser.GPS : Testing functions -> registerForDeviceMovements(), getCurrentLocation",4,
+	function () {		
+		var mapoptions = {
+				  enableHighAccuracy: true,
+				  timeout: 27000,
+				  maximumAge: 30000
+				};
+		//if (typeof onLocationSuccess === "function" && typeof onLocationError === "function") {
+		/**
+		 * This is for the GPS watch position
+		 */
+		watchPositionID = navigator.geolocation.watchPosition(
+				function(pos) {//Success function
+					start();
+					ok(pos, "Callback function is invoked by watch position");
+					var Coordinates= new Object();
+					coords = pos.coords;					
+					if(coords.latitude)
+						Coordinates.latitude = coords.latitude;
+					else
+						Coordinates.latitude = 100.00;
+					if(coords.longitude)
+						Coordinates.longitude = coords.longitude;
+					else
+						Coordinates.longitude = 181.00;
+					if(coords.altitude)
+						Coordinates.altitude = coords.altitude;
+					else
+						Coordinates.altitude = -1000;
+					if(coords.accuracy)
+						Coordinates.accuracy = coords.accuracy;
+					else
+						Coordinates.accuracy = 0;
+					if(coords.altitudeAccuracy)
+						Coordinates.altitudeAccuracy = coords.altitudeAccuracy;
+					else
+						Coordinates.altitudeAccuracy = 0;
+					if(coords.speed) {
+						Coordinates.speed = coords.speed;
+						Coordinates.heading = coords.heading;
+					}else {
+						Coordinates.speed = 0;
+						Coordinates.heading = 400;
+					}
+					
+					try{
+						var list = this.getSensorList();
+						var count;
+						for(count = 0 ; count < list.length; count++ ){
+							var sn = list[count].getName();
+							if(sn ==="GPS"){
+								var s =list[count];
+								s.setCurrentValue(Coordinates);
+								s.addValue(Coordinates);
+								var a =s.getValues();
+								Coordinates =s.getCurrentValue();
+								ok(Coordinates.latitude ===pos.coords.latitude,"Obtained Position and set value are equal by the watch position method.");
+//								log(Coordinates.longitude +":"+Coordinates.latitude);
+//								Coordinates =a.pop();
+								break;
+							}
+						}
+					} catch(error){
+//						log("error message "+error.message);
+					};
+					onLocationsearchSuccess(pos,Coordinates);
+//					onLocationSuccess(pos,Coordinates);					
+					}.bind(this),
+					function(){
+						start();
+						ok(true,"Location Finding call back is trigered with an Error by watch position method.");
+						//onLocationError();
+						onLocationSearchError();
+					}.bind(this),
+					mapoptions);
+		/**
+		 * This section represent the Get Current posistion method
+		 */
+//		getCurrentLocation : function (callback,options){
+//			var mapoptions;
+//			if (options) {
+//				mapoptions = options;
+//			} else {
+//				mapoptions = defaultmapoptions;
+//			}
+			navigator.geolocation.getCurrentPosition(
+				function (pos){
+					ok(pos, "Non Negative value is returned on succesfull location retrieval by Get Current location method.");
+//					if (typeof callback === "function") {				    
+//					        callback(pos);
+//					    }
+					getCurrentLocationSuccess(pos);
+				}.bind(this), function() {
+					getCurrentLocationError();
+				}.bind(this), mapoptions);
+//		}
+//		};
+//	}
+
+	
+});
+
+module("Testcase 4 -Feature Testing 5 ");
+var orientationvaluecounter = 0;
+asyncTest("FIWARE.Feature.MiWi.2D-3DCapture.Browser.Compass Testing registerDeviceOrentationEvent", 2,function (){
+	var d = new Device("dev.cyberlightning.com" ,"dev.cyberlightning.com", "9090", "17321","17322");
+	d.registerDeviceOrentationEvent(function(alpha, beta, gamma) {		
+		if(orientationvaluecounter ==0){
+			start();
+			ok(true,"Orientation call back function is getting called");
+			if(alpha != null){
+				ok(true, "raw values are passed to the call back function " + alpha +":"+beta+":"+ gamma);
+			} else {
+				ok(true, "This test passed if the event. alpha is null");
+			}
+			window.removeEventListener("deviceorientation", d.orientationHandler );
+		}
+		orientationvaluecounter++;
+	});
+});
+
+var accelerationvaluecountera = 0;
+var accelerationvaluecounterb = 0;
+var accelerationvaluecounterc = 0;
+
+module("Testcase 4 -Feature Testing 6 ");
+asyncTest(" FIWARE.Feature.MiWi.2D-3DCapture.Browser.Accelerometer testing function registerDeviceMotionEvents", 5 ,function (){
+	var d = new Device("localhost" ,"dev.cyberlightning.com", "9090", "17321","17322");
+	d.registerDeviceMotionEvents(function(handlacceleration){
+		if (accelerationvaluecountera == 0 && accelerationvaluecounterb == 0 && accelerationvaluecounterc == 0)
+			start();
+		if(accelerationvaluecountera ==0){
+			ok(true,"Call back function for Acceleration is getting called.");
+			if(handlacceleration == null)
+				ok(true, "Acceleration value is not passed properly");
+			else
+				ok(true,"Acceleration value is passed to the call back function "+handlacceleration.x);
+		}
+		accelerationvaluecountera++;
+	},
+	function(handleAccelerationWithGravity){
+		if (accelerationvaluecountera == 0 && accelerationvaluecounterb == 0 && accelerationvaluecounterc == 0)
+			start();
+		if(accelerationvaluecounterb ==0){
+			ok(true,"Call back function for Acceleration with gravity is getting called.");
+			if(handleAccelerationWithGravity == null)
+				ok(true,"Acceletaion with gravity is null");
+			else
+				ok(true , "Acceleration with gravity value is passed to the call back function "+handleAccelerationWithGravity.x);
+		}
+		accelerationvaluecounterb++;
+	},
+	function( handleRotation){
+		if (accelerationvaluecountera == 0 && accelerationvaluecounterb == 0 && accelerationvaluecounterc == 0)
+			start();
+		if(accelerationvaluecounterc ==0){
+			ok(true,"Call back function for rotation values from accelerometer is getting called");
+		}
+		accelerationvaluecounterc++;
+	});
+});
+
 
