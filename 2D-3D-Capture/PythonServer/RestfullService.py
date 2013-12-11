@@ -25,14 +25,14 @@ import thread
 import httplib
 import urllib
 
+global wsrunning
 wsrunning = False
 tomcatport = "9090"
 wsport = 17324
 restport = 17323
-#lhost = "localhost"
+#lhost = "192.168.11.3"
 lhost = "dev.cyberlightning.com"
 app = Flask(__name__)
-
 
 @app.route('/')
 def index():
@@ -66,19 +66,30 @@ def distance_calc(origin, destination):
     d = radius * c
     return d
 
-
 @app.route('/postImage', methods = ['POST'])
 def startWSServer():
-    logging.debug("POST CALLED")
+    logging.debug("POST CALLED TO START SERVER...")
+    global wsthread
     global wsrunning
     if wsrunning== False :
-        logging.debug("Running the Server")
+        logging.debug("Starting the server ....")
         wsthread = WebSocketServer('',wsport,'127.0.0.1')
-        wsthread.start()
+        wsthread.setRunning(True)
         wsrunning = True
     elif wsrunning ==True :
         logging.debug("Server is Running")
     return "READY" 
+
+@app.route('/closewebsocketserver', methods = ['GET'])
+def shutDownWSServer():
+    logging.debug("WEB SOCKET SERVER SHUTTING DOWN")
+    global wsrunning
+    if wsrunning == True :
+        wsthread.closeConnection();
+        wsrunning = False
+        return "CLOSED"
+    else :     
+        return "ALREDY_CLODED"
 
 def saveData(jsondata):
     dbconn = MySQLdb.connect (host = "localhost",
@@ -87,7 +98,7 @@ def saveData(jsondata):
                             db = "2d3dcapture")
     cursor = dbconn.cursor ()
     filename = jsondata["type"]+"_"+jsondata["time"]+"."+jsondata["ext"]
-    heading = str(jsondata["device"]["ax"]);
+    #heading = str(jsondata["device"]["ax"]);
     width = jsondata["vwidth"]
     height =jsondata["vheight"]
     if width > height :
@@ -120,9 +131,9 @@ def saveData(jsondata):
 
 @app.route('/postBinaryImage', methods = ['POST'])
 def saveBinaryImage():
-    logging.debug("POST BINARY CALLED")
+    logging.debug("POST BINARY IMAGE CALLED")
     if request.headers['Content-Type'] == 'binary/octet-stream':        
-    	logging.info("Post Request Arrived. Content length %s"%(request.headers['Content-Length']))      
+        logging.info("Post Request Arrived. Content length %s"%(request.headers['Content-Length']))
         payload = request.data
         jsonlen = payload[0:3]
         logging.debug("Tag Length %s"%(jsonlen))
@@ -137,9 +148,10 @@ def saveBinaryImage():
             img = Image.frombuffer('RGBA', size, payload[headerlen:],'raw','RGBA',0,1)
             filename= jsonmetadata["type"]+"_"+jsonmetadata["time"]+"_temp."+jsonmetadata["ext"]
             img.save("../public_html/images/%s"%(filename))
+            #img.save("./%s"%(filename))
             saveData(jsonmetadata);
             logging.info('Sending the tagging Request..!')
-            headers = {"Content-type": "application/x-www-form-urlencoded","Accept": "text/plain"}	
+            headers = {"Content-type": "application/x-www-form-urlencoded","Accept": "text/plain"}
             tagconn = httplib.HTTPConnection("localhost:%s"%(tomcatport))
             print jsonmetadata
             params = urllib.urlencode({'data': metadata})
@@ -149,10 +161,9 @@ def saveBinaryImage():
             print response.status, response.reason
             data = response.read()
             logging.debug(data)
-        except RuntimeError :
+        except RuntimeError as e:
             logging.critical("Error %d: %s" % (e.args[0],e.args[1]))
             return "415 Unsupported Media Type "
-        
         return "READY"
     else:
         return "415 Unsupported Media Type "
@@ -218,7 +229,7 @@ def getClosestImages(lat, lon, radius):
     return photoList
             
 @app.route('/getAllImageData' , methods= ['GET'])
-def markPhotos():
+def getAllImageData():
     sqlstring = "SELECT imagename,X(location) as latitude, Y(location) as longitude,rotationalpha, rotationbeta, rotationgamma,screenorientation, deviceorientation, Browser,accelerationgx,accelerationgy,accelerationgz FROM Imagedata"    
     gpsList = dbRead(sqlstring);
     photoList = []
@@ -245,19 +256,16 @@ def markPhotos():
             url = "http://dev.cyberlightning.com/~twijethilake/images/%s"%(row[0])
             imagedata = {'imagename' : row[0], 'pitch' : pitch,'roll' : roll , 'yaw' : yaw ,'latitude' : row[1] , 'longitude' :row[2] , 'url' : url , 'alpha' :row[3] ,'beta' : row[4],'gamma' : row[5] , 'deviceorientation' : row[7]  }            
             photoList.append(json.dumps(imagedata))
-       # print photoList
-            #logging.debug("Imagename=%s : Latitude=%s : Longitude : %s"%(imagename,row[0],row[1]))            
     return jsonify(imageList=photoList)
 
 class RequestHandler(threading.Thread): 
     
-    def __init__(self,conn, addr):
+    def __init__(self):
         threading.Thread.__init__(self)
-        self.conn = conn
-        self.addr = addr
         self.response_header =('HTTP/1.1 101 Switching Protocols','Upgrade: websocket','Connection: Upgrade','Sec-WebSocket-Accept: {key}\r\n\r\n',)
         self.magic_string = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
-    
+        self.wsAccepted = False
+
     def encodeMessage( self ,message):
         message = b64encode(message)
         b1 =0x80 | 0x1 & 0x0f
@@ -267,6 +275,8 @@ class RequestHandler(threading.Thread):
         return message
     
     def saveData(self ,jsondata):
+        #HEADING PARAMETER CAN BE REMOVED.SPEED IS NOT USED
+        
         dbconn = MySQLdb.connect (host = "localhost",
                             user = "twijethilake",
                             passwd = "twj1672$1",
@@ -283,11 +293,7 @@ class RequestHandler(threading.Thread):
         alt = str(jsondata["position"]["alt"]);
         if alt=="None":
             alt = '0';
-#        heading = str(jsondata["motion"]["heading"])        
-#        if heading=="None":
         heading = '0';
- #       speed = str(jsondata["motion"]["speed"])    
-  #      if speed=="None":
         speed = '0';
         sqlstring1 = "INSERT INTO Imagedata values (\'"+filename+"\',GeomFromText ('POINT("+ str(jsondata["position"]["lat"])+" "+str(jsondata["position"]["lon"])+")'),"+alt+","+str(jsondata["position"]["acc"])
         sqlstring2 =","+str(jsondata["device"]["gx"])+","+str(jsondata["device"]["gy"])+","+str(jsondata["device"]["gz"])
@@ -306,7 +312,7 @@ class RequestHandler(threading.Thread):
         
     def run(self):
         logging.debug("This might work")
-        processConnection(self.conn, self.addr)
+        self.processConnection(self.conn, self.addr)
         
         
     def handShakeResponse(self,key):
@@ -316,169 +322,178 @@ class RequestHandler(threading.Thread):
             response = '\r\n'.join(self.response_header).format(key=response_key)
             logging.debug('##################################### \n %s \n %s \n #####################################',response,len(response))
         return response
-            
                         
-    def processConnection( self , conn, addr):
+    def processConnection( self ,conn, addr):
+        self.conn = conn
+        self.addr = addr
         filename= ""
         BUFFER = ""
         done=""             
-        logging.info(  'Connected with %s : %s',  addr[0] , str(addr[1]))
+        logging.info(  'Connected with %s : %s',  self.addr[0] , str(self.addr[1]))
         while True:
             try:
-                data = conn.recv(4096)
+                data = self.conn.recv(4096)
                 BUFFER += data   
                 buf = BUFFER  
                 logging.debug("recived data length %s",len(data))               
                 if len(data) == 0:
                     return            
                 key = re.search('Sec-WebSocket-Key:\s+(.*?)[\n\r]+', data)
-                if key is not None:
+                if key is not None  and self.wsAccepted== False:
                     response = self.handShakeResponse(key)
-                    conn.send(response)
+                    self.conn.send(response)
                     message = "SERVER_READY"
-                    conn.send(self.encodeMessage(message))
+                    self.conn.send(self.encodeMessage(message))
+                    self.wsAccepted = True
                     key = ""
-                    BUFFER = ""                
+                    BUFFER = ""
                 else :
-                    payload_start = 2
-                    b1 = ord(buf[0])
-                    fin = b1 & 0x80
-                    opcode = b1 & 0x0f
-                    b2 = ord(buf[1])
-                    mask = b2 & 0x80 
-                    length = b2 & 0x7f
-                    logging.debug("OPCODE %s",opcode)
-                    logging.debug("Length %s", length)                
-                    logging.debug("FIN %s", fin)
-                    if len(buf) < payload_start + 4:
+                    if(self.wsAccepted==False):
+                        logging.info("CONNECTION REJECTED")
+                        self.conn.send("CONNECTION_REJECTED")
+                        self.conn.close()
                         return
-                    elif length == 126:
-                        length, = struct.unpack_from('>xxH', buf)
-                        payload_start += 2
-                    elif length == 127:
-                        length, = struct.unpack_from('>xxQ', buf)
-                        payload_start += 8
-                    logging.debug ("LENGTH OF THE PAYLOAD :%s",length)        
-                    if mask:
-                        mask_bytes = [ord(b) for b in buf[payload_start:payload_start + 4]]
-                        payload_start += 4
-                    full_len = payload_start + length
-                    logging.debug("FULL LENGTH :%s", full_len)
-                
-                    if len(buf) < full_len:
-                        sys.stdout.write('-')
-                    else:
-                        sys.stdout.write('-|\n')                                
-                        payload = buf[payload_start:full_len]
+                    elif(self.wsAccepted==True):
+                        payload_start = 2
+                        b1 = ord(buf[0])
+                        fin = b1 & 0x80
+                        opcode = b1 & 0x0f
+                        b2 = ord(buf[1])
+                        mask = b2 & 0x80 
+                        length = b2 & 0x7f
+                        logging.debug("OPCODE %s",opcode)
+                        logging.debug("Length %s", length)                
+                        logging.debug("FIN %s", fin)
+                        if len(buf) < payload_start + 4:
+                            return
+                        elif length == 126:
+                            length, = struct.unpack_from('>xxH', buf)
+                            payload_start += 2
+                        elif length == 127:
+                            length, = struct.unpack_from('>xxQ', buf)
+                            payload_start += 8
+                        logging.debug ("LENGTH OF THE PAYLOAD :%s",length)        
                         if mask:
-                            unmasked = [mask_bytes[i % 4] ^ ord(b) for b, i in zip(payload, range(len(payload)))]
-                            payload = "".join([chr(c) for c in unmasked])
-                                        
-                            if opcode == 1:
-                                if done=="":                                
-                                    s = payload.decode("UTF8")
-                                    logging.info("Decodded payleoad :%s", s)
-                                    jsonmetadata = json.loads(s)
+                            mask_bytes = [ord(b) for b in buf[payload_start:payload_start + 4]]
+                            payload_start += 4
+                        full_len = payload_start + length
+                        logging.debug("FULL LENGTH :%s", full_len)
+
+                        if len(buf) < full_len:
+                            sys.stdout.write('-')
+                        else:
+                            sys.stdout.write('-|\n')                                
+                            payload = buf[payload_start:full_len]
+                            if mask:
+                                unmasked = [mask_bytes[i % 4] ^ ord(b) for b, i in zip(payload, range(len(payload)))]
+                                payload = "".join([chr(c) for c in unmasked])
+                                if opcode == 1:
+                                    if done=="":                                
+                                        s = payload.decode("UTF8")
+                                        logging.info("Decodded payleoad :%s", s)
+                                        jsonmetadata = json.loads(s)
+                                        filename= jsonmetadata["type"]+"_"+jsonmetadata["time"]+"_temp."+jsonmetadata["ext"]
+                                        logging.debug("File name %s", filename)
+                                        logging.debug("Position ->logitude %s ", str(jsonmetadata["position"]["lon"]))
+                                        message= "FILENAME"                            
+                                        sent = self.conn.send(self.encodeMessage(message))                           
+                                        logging.debug("Message %s sent.Length %s", message, sent)
+                                        BUFFER=""
+                                        buf= ""                                
+                                        done="true"
+                                    else :
+                                        splitplace=payload.find(",")
+                                        payload= payload[splitplace+1:]
+                                        logging.debug("printing Payload %s", payload)
+                                        try :
+                                            payload = b64decode(payload)
+                                            file_like = StringIO(payload)
+                                            i = Image.open(file_like)
+                                            i.save("../public_html/images/%s"%(filename))
+                                            self.saveData(jsonmetadata);
+                                        except RuntimeError as e:
+                                            self.conn.close();
+                                            logging.critical( "Runtime error in decoding bnary system exit %s", e.strerror)                                    
+                                            sys.exit(0)
+                                        self.conn.send(self.encodeMessage("SAVED"))                               
+                                        self.conn.close()
+                                        BUFFER=""
+                                        buf= ""
+                                        filename= ""
+                                        jsonmetadata =""
+                                        done= ""
+                                        break 
+                                elif opcode == 2:                        
+                                    logging.debug('Handling binary data' )
+                                    #logging.debug(payload[0:3])
+                                    jsonlen = payload[0:3]
+                                    logging.debug(jsonlen)
+                                    headerlen = int(jsonlen)+3
+                                    logging.debug(headerlen)
+                                    logging.debug("**************************")
+                                    metadata = payload[3:headerlen]
+                                    jsonmetadata = json.loads(metadata)
+                                    logging.debug(jsonmetadata["vwidth"])
+                                    logging.debug(jsonmetadata["vheight"])
+                                    size = (int(jsonmetadata["vwidth"]) ,int(jsonmetadata["vheight"]))
+                                    img = Image.frombuffer('RGBA', size, payload[headerlen:],'raw','RGBA',0,1)
                                     filename= jsonmetadata["type"]+"_"+jsonmetadata["time"]+"_temp."+jsonmetadata["ext"]
-                                    logging.debug("File name %s", filename)
-                                    logging.debug("Position ->logitude %s ", str(jsonmetadata["position"]["lon"]))
-                                    message= "FILENAME"                            
-                                    sent = conn.send(self.encodeMessage(message))                           
-                                    logging.debug("Message %s sent.Length %s", message, sent)
-                                    BUFFER=""
-                                    buf= ""                                
-                                    done="true"
-                                else :
-                                    splitplace=payload.find(",")
-                                    payload= payload[splitplace+1:]
-                                    logging.debug("printing Payload %s", payload)
+                                    img.save("../public_html/images/%s"%(filename))
+                                    #img.save("./%s"%(filename))
                                     try :
-                                        payload = b64decode(payload)
-                                        file_like = StringIO(payload)
-                                        i = Image.open(file_like)
-                                        i.save("../public_html/images/%s"%(filename))
                                         self.saveData(jsonmetadata);
-                                    except RuntimeError as e:
-                                        conn.close();
-                                        logging.critical( "Runtime error in decoding bnary system exit %s", e.strerror)                                    
-                                        sys.exit(0)
-                                    conn.send(self.encodeMessage("SAVED"))                               
-                                    conn.close()
-                                    BUFFER=""
-                                    buf= ""
-                                    filename= ""
-                                    jsonmetadata =""
-                                    done= ""
-                                    break 
-                            elif opcode == 2:                        
-                                logging.debug('Handling binary data' )
-    	                        #logging.debug(payload[0:3])
-       				jsonlen = payload[0:3]
-       				logging.debug(jsonlen)
-       				headerlen = int(jsonlen)+3
-       				logging.debug(headerlen)
-       				logging.debug("**************************")
-				metadata = payload[3:headerlen]
-       				jsonmetadata = json.loads(metadata)
-       				logging.debug(jsonmetadata["vwidth"])
-	                        logging.debug(jsonmetadata["vheight"])
-		                size = (int(jsonmetadata["vwidth"]) ,int(jsonmetadata["vheight"]))
-               			img = Image.frombuffer('RGBA', size, payload[headerlen:],'raw','RGBA',0,1)
-		                filename= jsonmetadata["type"]+"_"+jsonmetadata["time"]+"_temp."+jsonmetadata["ext"]
-		                img.save("../public_html/images/%s"%(filename))
-				try :
-				    self.saveData(jsonmetadata);
-			            headers = {"Content-type": "application/x-www-form-urlencoded","Accept": "text/plain"}
-			            tagconn = httplib.HTTPConnection("localhost:%s"%(tomcatport))
-				    print jsonmetadata
-				    params = urllib.urlencode({'data': metadata})
-	                	    print params
-		                    tagconn.request("POST", "/RestClient/ImageTaggingServlet", params, headers)
-			            response = tagconn.getresponse()
-			            print response.status, response.reason
-		        	    data = response.read()
-		                    logging.debug(data)
-                                    conn.send(self.encodeMessage("SAVED"))
-                                    logging.debug('Closing the connection')
-                                    conn.close()
-			            BUFFER=""
-			            buf= ""
-			            filename = ""
-		        	    jsonmetadata =""
-		                    done= ""
-			            return
-				except :
-			            logging.critical("Error ")
-				    conn.send(self.encodeMessage("ERROR"))
-                                    logging.debug('Closing the connection')
-                                    conn.close()
-            			    return
+                                        headers = {"Content-type": "application/x-www-form-urlencoded","Accept": "text/plain"}
+                                        tagconn = httplib.HTTPConnection("localhost:%s"%(tomcatport))
+                                        print jsonmetadata
+                                        params = urllib.urlencode({'data': metadata})
+                                        print params
+                                        tagconn.request("POST", "/RestClient/ImageTaggingServlet", params, headers)
+                                        response = tagconn.getresponse()
+                                        print response.status, response.reason
+                                        data = response.read()
+                                        logging.debug(data)
+                                        self.conn.send(self.encodeMessage("SAVED"))
+                                        logging.debug('Closing the connection')
+                                        self.conn.close()
+                                        BUFFER=""
+                                        buf= ""
+                                        filename = ""
+                                        jsonmetadata =""
+                                        done= ""
+                                        return
+                                    except :
+                                        logging.critical("Error ")
+                                        self.conn.send(self.encodeMessage("ERROR"))
+                                        logging.debug('Closing the connection')
+                                        self.conn.close()
+                                        return
             except KeyboardInterrupt :
-                conn.close();
+                self.conn.close();
                 logging.critical(" keyboard Interuption. Program exiting.")
                 sys.exit(0) 
             
 
-class WebSocketServer(threading.Thread) :      
-  
+class WebSocketServer(threading.Thread) :
     
     def frameHanlder(self)  :
         print 'this is not implemented yet'
         
-       
     def closeConnection(self):
-        sock.close()
+        self.running = False
                  
     def __init__(self, s, p, l):
         threading.Thread.__init__(self)
         self.SERVER = s
         self.PORT = p
-        self.LOCALHOST = l    
+        self.LOCALHOST = l
 #         SERVER = ''
 #         PORT = wsport
 #         LOCALHOST = "127.0.0.1"
     def setRunning(self, value):
+        logging.debug("SETTING THE STARTING PARAMETERS..")
         self.running = value
+        if(self.running) :
+            self.start()
 
     def run(self):
         try:
@@ -486,22 +501,19 @@ class WebSocketServer(threading.Thread) :
             sock.bind((self.SERVER,self.PORT))
             sock.listen(500)
             logging.info("Web Socket server lunched%s : %s"%(self.SERVER,self.PORT))
-            while True:
-            #wait to accept a connection - blocking call
-                logging.info("Request handler lunched 1" )
+            while self.running:
+                logging.info("Wating For Requets...." )
                 conn, addr = sock.accept()
-                logging.info("Request handler lunched 2")
-                rh = RequestHandler(conn, addr)
+                logging.info("Request Arrived..")
+                rh = RequestHandler()
                 thread.start_new_thread(rh.processConnection, (conn, addr))
-                
-#                 gevent.spawn(self.processConnection, conn, addr)
+
         except socket.error as message:
             print 'Bind failed. Error Code : '  + str(message[0]) + ' Message ' + message[1]
-            
+
 def setup_logging():
     parser = argparse.ArgumentParser(description='Log level')
     parser.add_argument('--log', help='Setting this would set the log level. Values DEBUG/INFO/WARNING/ERROR/CRITICAL')
-    
     args = parser.parse_args()    
     if args.log:
         loglevel = args.log.upper()
@@ -525,7 +537,7 @@ def main():
     setup_logging()
     logging.info("Logging Set up")
     app.run(host= lhost, port = restport , debug = True)
-    logging.info("Rest Server Running")      
+    logging.info("Rest Server Running")
         
 if __name__ == "__main__":
     main()
