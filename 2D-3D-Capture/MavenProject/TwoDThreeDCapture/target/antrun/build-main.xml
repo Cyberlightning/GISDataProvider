@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="maven-antrun-" default="main"  >
+<target name="main" unless="maven.test.skip">
+  <copy todir="src/main/webapp">
+    <fileset dir="WebContent">
+      <include name="*.html"/>
+      <include name="*.js"/>
+      <include name="*.css"/>
+    </fileset>
+  </copy>
+  <copy todir="src/main/webapp/WEB-INF/lib/">
+    <fileset dir="WebContent/WEB-INF/lib">
+      <include name="*.jar"/>
+    </fileset>
+  </copy>
+</target>
+</project>
