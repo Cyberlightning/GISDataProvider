@@ -40,7 +40,7 @@ var xmlDoc;
     }
 
     function getGeoserverCapabilities() {
-        console.log("getGeoserverCapabilities");
+        // console.log("getGeoserverCapabilities");
         var xmlhttp;
         if (window.XMLHttpRequest) {
             xmlhttp = new XMLHttpRequest();
@@ -78,7 +78,7 @@ var xmlDoc;
 
     // Traps camera movement, used for analyzing when new layer data should be requested
     $("#camera_player-camera").bind("DOMAttrModified", function() {
-        console.log("#camera_player-camera).bind(DOMAttrModified");
+        // console.log("#camera_player-camera).bind(DOMAttrModified");
         // check flag if new layer is loaded, because in this case camera height needs to be adjusted 
         // and that operation tricks this function unneseccary. We want to see only camera movements after new layer is initialized
         // if (newLayer){
