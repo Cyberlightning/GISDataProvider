@@ -10,9 +10,11 @@
     var blocklengthX, blocklengthY = 0;
 
     //Array to track which blocks of the whole layer are loaded
-    var LayerblockArray=[ [0,0,0],
-                          [0,0,0],
-                          [0,0,0] ];
+    var LayerblockArray=[ [0,0,0,0,0],
+                          [0,0,0,0,0],
+                          [0,0,0,0,0],
+                          [0,0,0,0,0],
+                          [0,0,0,0,0] ];
     var layerBlockRow, layerBlockCol = 0;
 
     var screenHeight = $(document).height()-100;
@@ -77,8 +79,8 @@
         console.log("minmax arvot BB "+LayerMinX, LayerMinY, LayerMaxX, LayerMaxY);
 
         var MinX, MinY, MaxX, MaxY;
-        blocklengthX = parseFloat((LayerMaxX-LayerMinX)/3);
-        blocklengthY = parseFloat((LayerMaxY-LayerMinY)/3);
+        blocklengthX = parseFloat((LayerMaxX-LayerMinX)/5);
+        blocklengthY = parseFloat((LayerMaxY-LayerMinY)/5);
         console.log("blocklenght X,Y "+blocklengthX, blocklengthY);
 
         MinX = LayerMinX;
@@ -120,8 +122,8 @@
         // var blocklengthX = parseInt((higherCornerX-lowerCornerX)/3);
         // var blocklengthY = parseInt((higherCornerY-lowerCornerY)/3);
 
-        CamInitCenterX = parseFloat(lowerCornerX+(blocklengthX / 3));
-        CamInitCenterY = parseFloat(lowerCornerY+(blocklengthY / 3));    
+        CamInitCenterX = parseFloat(lowerCornerX+(blocklengthX / 5));
+        CamInitCenterY = parseFloat(lowerCornerY+(blocklengthY / 5));    
         
         xml3dobject.setAttribute("width", screenWidth);
         xml3dobject.setAttribute("height", screenHeight);
@@ -136,7 +138,7 @@
                                         layerCRS);
 
 
-        var textureResolution = 1024
+        var textureResolution = 2048
        
         var texture = baseUrl+"fiware/wms?service=WMS&amp;version=1.1.0&amp;request=GetMap&amp;layers=" +
 
@@ -163,7 +165,10 @@
         console.log("createGISRequest");
         var requestUrl;
         var service = "w3ds?version=0.4&service=w3ds";
+        
         var format = "&format=model/xml3d+xml";
+        //var format = "&format=application/octet-stream";
+
         var crs = "&crs="+layerCRS;
         var request = "&request=GetScene";
 
@@ -220,12 +225,12 @@
 
     // Used only when new layer is request
     function setCameraPosition(){
-        console.log("setCameraPosition");
+        // console.log("setCameraPosition");
         // Move camera to correct debugging position
         var camera_node = document.getElementById("t_node-camera_player");
 
         // console.log("setCameraPosition"+layerCenterX+", "+layerCenterY);
-        console.log("setCameraPosition: "+parseFloat(currentTerrainElevRefPoint+camHeightOffset));
+        // console.log("setCameraPosition: "+parseFloat(currentTerrainElevRefPoint+camHeightOffset));
         // camera_node.setAttribute( "translation", 
         //                            layerCenterX+" "+
         //                            (currentTerrainElevRefPoint+camHeightOffset)+" "+
@@ -289,16 +294,16 @@
         if (newLayer) {
             getTerrainElevationRefPoint();
             setCameraPosition(); 
-            console.log("set newlayer to false: "+newlayer);   
+            // console.log("set newlayer to false: "+newlayer);   
             newLayer = false;
-            console.log("set newlayer to false: "+newlayer);
+            // console.log("set newlayer to false: "+newlayer);
         }
-        console.log("set newlayer to false: "+newlayer);
+        // console.log("set newlayer to false: "+newlayer);
     }
 
 this.calculateCurrentPosLayerBlock = function(currentX, currentY){
-        console.log("calculateCurrentPosLayerBlock");
-        console.log("calculateCurrentPosLayerBlock:currentX, currentY "+currentX, currentY);    
+        // console.log("calculateCurrentPosLayerBlock");
+        // console.log("calculateCurrentPosLayerBlock:currentX, currentY "+currentX, currentY);    
        
         var MinX, MinY, MaxX, MaxY;
 
@@ -315,52 +320,77 @@ this.calculateCurrentPosLayerBlock = function(currentX, currentY){
         X1_1 = parseFloat(blocklengthX);
         X2_1 = parseFloat(2*blocklengthX);
         X3_1 = parseFloat(3*blocklengthX);
+        X4_1 = parseFloat(4*blocklengthX);
+        X5_1 = parseFloat(5*blocklengthX);
         Y1_0 = 0;
         Y1_1 = parseFloat(-blocklengthY);
         Y2_1 = parseFloat(-(2*blocklengthY));
         Y3_1 = parseFloat(-(3*blocklengthY));
+        Y4_1 = parseFloat(-(4*blocklengthY));
+        Y5_1 = parseFloat(-(5*blocklengthY));
 
         var col=0, row=0, MinX=0, MinY=0, MaxX=0, MaxY = 0;
-        var offsetX = parseFloat(blocklengthX/3);
-        var offsetY = parseFloat(blocklengthY/3);
+        var offsetX = parseFloat(blocklengthX/5);
+        var offsetY = parseFloat(blocklengthY/5);
         var transfromX=0, transfromY=0;
         // console.log("blocklenght X,Y "+blocklengthX, blocklengthY);
         // console.log("offset: "+offset);
         // console.log("currentX+offset: "+parseInt(currentX+offset));
-        console.log("currentY-offsetY: "+currentY-offsetY);
+        // console.log("currentY-offsetY: "+currentY-offsetY);
 
         if (currentX+offsetX < X1_1){
-            console.log("currentX <= X1");
+            // console.log("currentX <= X1");
             col = 0;
             MinX = X1_0;
             MaxX = X1_1;            
         }else if (currentX+offsetX < X2_1){
-            console.log("currentX <= X2");
+            // console.log("currentX <= X2");
             col = 1;
             MinX = X1_1;
             MaxX = X2_1;            
         }else if (currentX+offsetX < X3_1){
-            console.log("currentX <= X3");
+            // console.log("currentX <= X3");
             col = 2;
             MinX = X2_1;
             MaxX = X3_1;            
+        }else if (currentX+offsetX < X4_1){
+            // console.log("currentX <= X3");
+            col = 3;
+            MinX = X3_1;
+            MaxX = X4_1;            
+        }
+        else if (currentX+offsetX < X5_1){
+            // console.log("currentX <= X3");
+            col = 4;
+            MinX = X4_1;
+            MaxX = X5_1;            
         }
 
         if (currentY-blocklengthY > Y1_1){
-            console.log("currentY <= Y1");
+            // console.log("currentY <= Y1");
             row = 0;
             MinY = Y1_0;
             MaxY = Y1_1;
         }else if (currentY-blocklengthY > Y2_1){
-            console.log("currentY <= Y2");
+            // console.log("currentY <= Y2");
             row = 1;
             MinY = Y1_1;
             MaxY = Y2_1;
         }else if (currentY-blocklengthY > Y3_1){
-            console.log("currentY <= Y3");
+            // console.log("currentY <= Y3");
             row = 2;
             MinY = Y2_1;
             MaxY = Y3_1;
+        } else if (currentY-blocklengthY > Y4_1){
+            // console.log("currentY <= Y3");
+            row = 3;
+            MinY = Y3_1;
+            MaxY = Y4_1;
+        }else if (currentY-blocklengthY > Y5_1){
+            // console.log("currentY <= Y3");
+            row = 4;
+            MinY = Y4_1;
+            MaxY = Y5_1;
         }
 
         if (LayerblockArray[row][col] == 0){
@@ -386,7 +416,7 @@ this.calculateCurrentPosLayerBlock = function(currentX, currentY){
                         MaxX+LayerMinX, (Math.abs(MaxY)+LayerMinY),
                         currentLayerCRS, col, row );
             LayerblockArray[row][col] =1;
-            console.log(LayerblockArray[0],LayerblockArray[1],LayerblockArray[2]);
+            // console.log(LayerblockArray[0],LayerblockArray[1],LayerblockArray[2]);
         }
     }
 
