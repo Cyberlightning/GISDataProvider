@@ -449,6 +449,7 @@ XML3D.Xml3dSceneController.prototype.keyHandling = function(e) {
             np.y += this.zoomSpeed;
             break;
         case 90: //down
+        case 67:
         case 34:
             var np = camera.position;
             np.y -= this.zoomSpeed;
