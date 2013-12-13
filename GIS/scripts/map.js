@@ -67,7 +67,7 @@ var xmlDoc;
             // console.log("Selection list item: "+this.options[this.selectedIndex].value);
             e.preventDefault(); // if desired...
             if (this.options[this.selectedIndex].value === 'select_layer'){
-                
+                // Select layer-option pressed, do nothing
             }
             else{
                 newLayer = true;

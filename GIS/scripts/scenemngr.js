@@ -284,7 +284,7 @@
          transformation.setAttribute('id',IdName+"transform");
          transformation.setAttribute('rotation','0.0 0.0 0.0 0.0');
          // transformation.setAttribute('translation','0 0 0');
-         transformation.setAttribute('translation',(transfromX*blocklengthX)+' 0 '+((-transfromY*blocklengthY)-200));
+         transformation.setAttribute('translation',(transfromX*blocklengthX)+' 0 '+(-transfromY*blocklengthY));
 
          $("#defs").append(transformation);
 
