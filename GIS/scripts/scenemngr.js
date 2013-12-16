@@ -3,6 +3,10 @@
 (function() {
     var baseUrl;
     var texture_layer = "fiware:NorthernFinland_texture";
+    // var texture_layer = "fiware:pallas_iso_rasteri";
+    // var texture_layer = "pallas_rasteri_group";
+    // var texture_layer = "saana_rasteri";
+    // var texture_layer = "fiware:V4132H_texture";
 
     // boolean to verify if new layer is loaded or new data fetched to already viewed layer
     var newlayer = true;
@@ -42,23 +46,23 @@
 
      // Fetches layer details from GeoServer and passes them to getElements()-function
     this.getLayerDetails = function(serverUrl, layername) {
-        //console.log("getLayerDetails");
+        // console.log("getLayerDetails");
         baseUrl = serverUrl;
         var x = xmlDoc.getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "Layer");
-        for (i=0;i<x.length;i++) { 
-            if (layername == x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue) {
-                // console.log(x[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue);
-                // console.log(x[i].getElementsByTagName("Identifier")[0].childNodes[0].nodeValue);
+        
+        for (i=0;i<x.length;i++) {
+        if (layername == x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue) {
+            // console.log(x[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue);
+            // console.log(x[i].getElementsByTagName("Identifier")[0].childNodes[0].nodeValue);
 
-                // console.log(x[i].getElementsByTagName("OutputFormat")[0].childNodes[0].nodeValue);
-                // console.log(x[i].getElementsByTagName("DefaultCRS")[0].childNodes[0].nodeValue);
+            // console.log(x[i].getElementsByTagName("OutputFormat")[0].childNodes[0].nodeValue);
+            // console.log(x[i].getElementsByTagName("DefaultCRS")[0].childNodes[0].nodeValue);
 
-                initSceneMngr(x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue,
-                              x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "LowerCorner")[0].childNodes[0].nodeValue,
-                              x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "UpperCorner")[0].childNodes[0].nodeValue,
-                              x[i].getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "DefaultCRS")[0].childNodes[0].nodeValue
-                              );
-
+            initSceneMngr(x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue,
+                          x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "LowerCorner")[0].childNodes[0].nodeValue,
+                          x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "UpperCorner")[0].childNodes[0].nodeValue,
+                          x[i].getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "DefaultCRS")[0].childNodes[0].nodeValue
+                          );
             }
         }
     }
@@ -87,13 +91,6 @@
         MinY = LayerMinY;
         MaxX = LayerMinX + blocklengthX;
         MaxY = LayerMinY + blocklengthY;
-        // console.log("MinX, MinY, MaxX, MaxY "+MinX, MinY, MaxX, MaxY);
-        // CamInitCenterX = parseInt(LayerMinX+(blocklengthX / 2));
-        // CamInitCenterY = parseInt(LayerMinY+(blocklengthY / 2));
-        // console.log(CamInitCenterX, CamInitCenterY);
-
-        // console.log(LayerblockArray[0]);
-        // LayerblockArray[0][0] = 1;
         layerBlockRow, layerBlockCol = 0;
 
 
@@ -112,6 +109,8 @@
     // layerCRS = Layer CRS
     function getElements(layerName, lowerCornerX, lowerCornerY, higherCornerX, higherCornerY, layerCRS, transfromX, transfromY){
         console.log("getElements");
+
+        startSpinner();
 
         var service = "w3ds";
         var version = "0.4.0";
@@ -137,29 +136,31 @@
                                         higherCornerY,
                                         layerCRS);
 
+           // external xml files contains all needed info, also textures. 
+           // With other layers, e.g. terrain textures needs to be downloaded separately
+        if (layerName !== "fiware:building_coordinates"){
+            var textureResolution = 1024
+            var texture = baseUrl+"fiware/wms?service=WMS&amp;version=1.1.0&amp;request=GetMap&amp;layers=" +
+                                    texture_layer + 
+                                    "&amp;styles=&amp;bbox=" + 
+                                    lowerCornerX+","+
+                                    lowerCornerY+","+
+                                    higherCornerX+","+
+                                    higherCornerY+ 
+                                    // "&amp;width="+textureResolution+"&amp;height="+textureResolution+"&amp;srs=EPSG:3067&amp;format=image%2Fpng"
+                                    "&amp;width="+textureResolution+"&amp;height="+textureResolution+"&amp;srs=EPSG:404000&amp;format=image%2Fpng";
 
-        var textureResolution = 2048
-       
-        var texture = baseUrl+"fiware/wms?service=WMS&amp;version=1.1.0&amp;request=GetMap&amp;layers=" +
+            httpRequest(terrain, layerName, transfromX, transfromY, texture, addXml3DContent);
+        }else{
+            console.log("buildings");
+            httpRequest(terrain, layerName, transfromX, transfromY, null, addXml3DContent);
+        }
 
-                                        texture_layer + 
-                                        "&amp;styles=&amp;bbox=" + 
-                                        lowerCornerX+","+
-                                        lowerCornerY+","+
-                                        higherCornerX+","+
-                                        higherCornerY + 
-
-                                        "&amp;width="+textureResolution+"&amp;height="+textureResolution+"&amp;srs=EPSG:404000&amp;format=image%2Fpng"        
-        // addTextureToShader(texture);
-
-        httpRequest(terrain, layerName, transfromX, transfromY, texture, addXml3DContent);
         
-//         // Move camera to correct debugging position
-//         var camera_node = document.getElementById("t_node-camera_player");
-
-    // LayerblockArray[layerBlockRow][layerBlockCol] = 1;
 
     }
+
+    // function getBuildings(baseUrl, )
 
     function createGISRequest(baseUrl, layer, boundingbox, layerCRS) {
         console.log("createGISRequest");
@@ -250,56 +251,116 @@
         camPagedLoadCenterY = CamInitCenterY;
     }
 
+    function parseMeshSrc(xml3dData){
+        // if ($(xml3dData).find("mesh").attr("src")!= undefined){
+        //     console.log("mesh src found: "+$(xml3dData).find("mesh").attr("src"));
+        //     var style = $(xml3dData).attr('style');
+        //     console.log(style);
+        //     parseMeshSrc($(xml3dData).find("mesh").attr("src"), style, addMeshtoHtml);
+        // }
+
+        if (window.XMLHttpRequest)
+          {
+          xhttp=new XMLHttpRequest();
+          }
+        else // for IE 5/6
+          {
+          xhttp=new ActiveXObject("Microsoft.XMLHTTP");
+          }
+
+        // remove spaces from the url
+        // meshSrc=meshSrc.replace(/\s+/g, '');
+
+        // xhttp.open("GET",meshSrc,false);
+        // xhttp.send();
+        // xmlMesh=xhttp.responseXML;
+        
+        // var meshNameArray = [];
+        // $.get(meshSrc, function(xml){
+        //     $('data', xml).each(function(i){
+        //         console.log($(this).attr('id'));
+        //         var meshName = $(this).attr('id');
+        //         if (meshName && meshName.indexOf('submesh')>=0){
+        //             console.log(meshName.indexOf('submesh'));                    
+        //             meshNameArray.push(meshSrc+"#"+meshName);
+        //         }
+        //     });
+        // console.log(meshNameArray);
+        // callback(meshNameArray, style);
+        // });        
+    }
+
+    function addMeshtoHtml(meshSrcArray, style){
+        console.log("addMeshtoHtml:  "+meshSrcArray);
+        var IdName = Math.floor(Math.random()*111);
+
+        var transformation = "<transform id=\""+IdName+"transform"+"\" rotation=\"0.0 0.0 0.0 0.0\" translation=\"1102.820000000298,-900.0,1000.0\"></transform>";
+        console.log(transformation);
+        $("#defs").append(transformation);
+        
+        // var newGroup = "<group id=\""+IdName+"\" shader=\"#phong\" style=\""+style+"\">";
+        var newGroup = "<group id=\""+IdName+"\" shader=\"#phong\" transform=\"#"+IdName+"transform\">";
+
+        for (i=0;i<meshSrcArray.length;i++){
+            var meshString = "<mesh src=\""+meshSrcArray[i]+"\"/>";
+            // $(newGroup).append(meshString);
+            newGroup+=meshString;
+        }
+        newGroup+=("</group>");
+        // console.log(newGroup);
+
+        $("#MaxScene").append(newGroup); 
+    }
+
     function addXml3DContent(xml3dData, layerName, textureUrl, transfromX, transfromY) {
         console.log("addXml3DContent");
-        // console.log(xml3dData);
+        //console.log(xml3dData);
 
-         var newGroup = document.createElement('group');
-         var IdName = layerName+transfromX+transfromY;
-         var xmlnsTagContent = 'http://www.xml3d.org/2009/xml3d';
-         newGroup.setAttribute('id',IdName);
-         newGroup.setAttribute('xmlns',xmlnsTagContent);
-         newGroup.setAttribute('shader','#'+IdName+'shader');
-         newGroup.setAttribute('transform','#'+IdName+'transform');
+        var newGroup = document.createElement('group');
+        var IdName = layerName+transfromX+transfromY;
+        var xmlnsTagContent = 'http://www.xml3d.org/2009/xml3d';
+        newGroup.setAttribute('id',IdName);
+        newGroup.setAttribute('xmlns',xmlnsTagContent);
+        newGroup.setAttribute('shader','#'+IdName+'shader');
+        newGroup.setAttribute('transform','#'+IdName+'transform');
 
-         // Create layer specific shader
-         var layerShader = document.createElement('shader');
-         layerShader.setAttribute('id',IdName+'shader');
-         layerShader.setAttribute('script','urn:xml3d:shader:phong');
-         var layerFloat3 = document.createElement('float3');
-         layerFloat3.setAttribute('name','diffuseColor');
-         $(layerFloat3).append('1.0  1.0  1.0');
-         $(layerShader).append(layerFloat3);
-         var layerFloat = document.createElement('float');
-         layerFloat.setAttribute('name','ambientIntensity');
-         $(layerFloat).append('0.1')
-         $(layerShader).append(layerFloat);
-         var texture = "<texture name=\"diffuseTexture\">\n";
-         texture += "<img src=\"" + textureUrl + "\"/>\n" + "</texture>";
-         $(layerShader).append(texture);
+        // Create layer specific shader
+        var layerShader = document.createElement('shader');
+        layerShader.setAttribute('id',IdName+'shader');
+        layerShader.setAttribute('script','urn:xml3d:shader:phong');
+        var layerFloat3 = document.createElement('float3');
+        layerFloat3.setAttribute('name','diffuseColor');
+        $(layerFloat3).append('1.0  1.0  1.0');
+        $(layerShader).append(layerFloat3);
+        var layerFloat = document.createElement('float');
+        layerFloat.setAttribute('name','ambientIntensity');
+        $(layerFloat).append('0.1')
+        $(layerShader).append(layerFloat);
+        var texture = "<texture name=\"diffuseTexture\">\n";
+        texture += "<img src=\"" + textureUrl + "\"/>\n" + "</texture>";
+        $(layerShader).append(texture);
 
-         $("#defs").append(layerShader);
+        $('#defs').append(layerShader);
 
-         var transformation = document.createElement('transform');
-         transformation.setAttribute('id',IdName+"transform");
-         transformation.setAttribute('rotation','0.0 0.0 0.0 0.0');
-         // transformation.setAttribute('translation','0 0 0');
-         transformation.setAttribute('translation',(transfromX*blocklengthX)+' 0 '+(-transfromY*blocklengthY));
+        var transformation = document.createElement('transform');
+        transformation.setAttribute('id',IdName+"transform");
+        transformation.setAttribute('rotation','0.0 0.0 0.0 0.0');
+        // transformation.setAttribute('translation','0 0 0');
+        transformation.setAttribute('translation',(transfromX*blocklengthX)+' 0 '+((-transfromY*blocklengthY)));
 
-         $("#defs").append(transformation);
+        $("#defs").append(transformation);
 
         $(newGroup).append(xml3dData);
         $("#MaxScene").append(newGroup);
 
         if (newLayer) {
-            getTerrainElevationRefPoint();
+            // getTerrainElevationRefPoint();
             setCameraPosition(); 
-            // console.log("set newlayer to false: "+newlayer);   
             newLayer = false;
-            // console.log("set newlayer to false: "+newlayer);
         }
-        // console.log("set newlayer to false: "+newlayer);
+        stopSpinner();
     }
+    
 
 this.calculateCurrentPosLayerBlock = function(currentX, currentY){
         // console.log("calculateCurrentPosLayerBlock");

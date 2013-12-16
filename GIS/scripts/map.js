@@ -1,7 +1,25 @@
 var xmlDoc;
-
+var spinner;
 
 (function() {
+    var spinOpts = {
+          lines: 30, // The number of lines to draw
+          length: 20, // The length of each line
+          width: 4, // The line thickness
+          radius: 30, // The radius of the inner circle
+          rotate: 0, // The rotation offset
+          color: '#000', // #rgb or #rrggbb
+          speed: 2, // Rounds per second
+          trail: 60, // Afterglow percentage
+          shadow: true, // Whether to render a shadow
+          hwaccel: false, // Whether to use hardware acceleration
+          className: 'spinner', // The CSS class to assign to the spinner
+          zIndex: 2e9, // The z-index (defaults to 2000000000)
+          top: 1000, // Top position relative to parent in px
+          left: 'auto' // Left position relative to parent in px
+        };
+    spinner = new Spinner(spinOpts).spin();
+
     var baseUrl = "http://localhost:9090/geoserver/";
     // var baseUrl = "http://dev.cyberlightning.com:9091/geoserver/";
     var oldCoordinates = null;
@@ -68,8 +86,12 @@ var xmlDoc;
             e.preventDefault(); // if desired...
             if (this.options[this.selectedIndex].value === 'select_layer'){
                 // Select layer-option pressed, do nothing
+                console.log("select_layer");
+                stopSpinner();
+
             }
             else{
+                startSpinner();
                 newLayer = true;
                 getLayerDetails(baseUrl, this.options[this.selectedIndex].text);
             }
@@ -99,7 +121,20 @@ var xmlDoc;
     })
 
 
-    window.onload = getGeoserverCapabilities();
+    function init(){
+        getGeoserverCapabilities();
+    }
+    window.onload = init();
 
+    
 }());
 
+function startSpinner(){
+        $("#loading").show();
+        $("#loading").append(spinner.el);    
+    };
+
+function stopSpinner(){
+    spinner.spin();
+    $("#loading").hide(true);
+};
