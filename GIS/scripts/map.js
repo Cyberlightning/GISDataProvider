@@ -2,6 +2,8 @@ var xmlDoc;
 var spinner;
 
 (function() {
+    var layerNames = [];
+
     var spinOpts = {
           lines: 30, // The number of lines to draw
           length: 20, // The length of each line
@@ -15,10 +17,12 @@ var spinner;
           hwaccel: false, // Whether to use hardware acceleration
           className: 'spinner', // The CSS class to assign to the spinner
           zIndex: 2e9, // The z-index (defaults to 2000000000)
-          top: 1000, // Top position relative to parent in px
+          top: 'auto', // Top position relative to parent in px
           left: 'auto' // Left position relative to parent in px
         };
+    
     spinner = new Spinner(spinOpts).spin();
+    $("#loading").append(spinner.el);
 
     var baseUrl = "http://localhost:9090/geoserver/";
     // var baseUrl = "http://dev.cyberlightning.com:9091/geoserver/";
@@ -30,31 +34,26 @@ var spinner;
         xmlDoc = new DOMParser().parseFromString(response,'text/xml');
         var x = xmlDoc.getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "Layer");
 
-        var combo = document.getElementById('selector');
-        var option = document.createElement('option');
-        option.text = "Select layer";
-        option.value = "select_layer";
-        try {
-            combo.add(option, null); //Standard 
-        } catch(error) {
-            combo.add(option); // IE only
-        }
 
-
-        // console.log(x);
+        $('#checkboxdiv').append(' | ');
         for (i=0;i<x.length;i++)
-        { 
-            var combo = document.getElementById("selector");
-            var option = document.createElement("option");
-            option.text = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue;
-            option.value = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue;
-            try {
-                combo.add(option, null); //Standard 
-            } catch(error) {
-                combo.add(option); // IE only
-            }
-        }
+            { 
+            var checkboxtext = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue;
+            var checkboxvalue = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Title")[0].childNodes[0].nodeValue;
+            $('#checkboxdiv').append(
+               $(document.createElement('input')).attr({
+                   id:    checkboxvalue
+                  ,name:  checkboxtext
+                  ,value: checkboxvalue
+                  ,type:  'checkbox'
+               })
+            );
+            $('#checkboxdiv').append(
+               $(document.createElement('label')).text(checkboxtext));
+            $('#checkboxdiv').append(' | ');
 
+            layerNames.push(checkboxvalue);
+        }
     }
 
     function getGeoserverCapabilities() {
@@ -81,19 +80,17 @@ var spinner;
 
     // Traps selection list click event and launch layer detail fetching funtion
      $(function() {
-        $("#selector").click(function(e) {
+        $("#checkboxdiv").click(function(e) {
             // console.log("Selection list item: "+this.options[this.selectedIndex].value);
-            e.preventDefault(); // if desired...
-            if (this.options[this.selectedIndex].value === 'select_layer'){
-                // Select layer-option pressed, do nothing
-                console.log("select_layer");
-                stopSpinner();
+            // e.preventDefault(); // if desired...
 
-            }
-            else{
-                startSpinner();
-                newLayer = true;
-                getLayerDetails(baseUrl, this.options[this.selectedIndex].text);
+            for (i=0; i<layerNames.length; i++){
+                console.log(layerNames[i]);
+                if($('#'+layerNames[i]).is(':checked')){
+                    console.log(layerNames[i]+" is checked");
+                    newLayer = true;
+                    getLayerDetails(baseUrl, layerNames[i]);
+                }
             }
         });
       });
@@ -124,17 +121,21 @@ var spinner;
     function init(){
         getGeoserverCapabilities();
     }
+
     window.onload = init();
 
     
 }());
 
 function startSpinner(){
-        $("#loading").show();
-        $("#loading").append(spinner.el);    
-    };
+
+    $("#loading").show();
+    // spinner(spinOpts).spin();
+    
+};
 
 function stopSpinner(){
-    spinner.spin();
+    // spinner.spin();
     $("#loading").hide(true);
 };
+
