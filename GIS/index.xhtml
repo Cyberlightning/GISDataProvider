@@ -24,11 +24,13 @@
   </style>
 
 </head>
-<body>
+<body onload="initsettings()">
   <div id="loading" class="wrapper"></div>
 
 <div id="checkboxdiv"></div> 
 <button id="SelecLayersButton">Load selected layer data</button>
+<select id="selectTextureRes" ></select>
+<select id="selectridRowColNumber" ></select>
 <button id="resetScreenButton" onclick="reloadPage()">Reset view</button>
 
   <div>
@@ -64,6 +66,7 @@
       {
       location.reload();
       }
+
 </script>
 
 </html>
