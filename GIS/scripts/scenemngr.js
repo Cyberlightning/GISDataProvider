@@ -11,15 +11,17 @@
 
     var blocklengthX, blocklengthY = 0;
 
+    // Amount of the grid blocks for dividing layer
+    var layerBlockGridsplit = 25;
+    var textureResolution = 512;
+
     //has to track which blocks of the layers are loaded
     var LayerBlockHash = new Object();
 
     var screenHeight = $(document).height()-100;
     var screenWidth = $(document).width();
 
-    // View radius which is used for defining how big area of the layer is fetched from the server
-    var viewAreaRadius = 10000;
-    var camHeightOffset = 1000;
+    var camHeightOffset = 500;
     var currentTerrainElevRefPoint = 0;
 
     var currentLayerName = null;
@@ -33,6 +35,16 @@
 
     // layer center coordinates for camera placement when first block of the  terrain is loaded
     var CamInitCenterX, CamInitCenterY = 0;
+
+    this.setTextureResolution = function(resolution){
+        textureResolution = resolution;
+    }
+
+    // setter function for changing layerBlockGridsplit variable on runtime
+    // NOTE: scene must be reloaded after changing this value
+    this.setGridRowCol = function(gridsplit){
+        layerBlockGridsplit = gridsplit;
+    }
 
      // Fetches layer details from GeoServer and passes them to getElements()-function
     this.getLayerDetails = function(serverUrl, selectedLayerArray) {
@@ -63,9 +75,9 @@
     function initLayerBlockArray(){
         console.log("initLayerBlockArray()");
         var twoDimArray =[];
-        for (var i=0;i<5;i++){
+        for (var i=0;i<layerBlockGridsplit;i++){
             var data = [];
-            for (var j=0;j<5;j++){
+            for (var j=0;j<layerBlockGridsplit;j++){
                 data.push(0);
             }
             twoDimArray.push(data);
@@ -139,8 +151,8 @@
         console.log("minmax arvot BB "+LayerMinX, LayerMinY, LayerMaxX, LayerMaxY);
 
         var MinX, MinY, MaxX, MaxY;
-        blocklengthX = parseFloat((LayerMaxX-LayerMinX)/5);
-        blocklengthY = parseFloat((LayerMaxY-LayerMinY)/5);
+        blocklengthX = parseFloat((LayerMaxX-LayerMinX)/layerBlockGridsplit);
+        blocklengthY = parseFloat((LayerMaxY-LayerMinY)/layerBlockGridsplit);
         console.log("blocklenght X,Y "+blocklengthX, blocklengthY);
 
         MinX = LayerMinX;
@@ -174,8 +186,8 @@
         // var blocklengthX = parseInt((higherCornerX-lowerCornerX)/3);
         // var blocklengthY = parseInt((higherCornerY-lowerCornerY)/3);
 
-        CamInitCenterX = parseFloat(lowerCornerX+(blocklengthX / 5));
-        CamInitCenterY = parseFloat(lowerCornerY+(blocklengthY / 5));    
+        CamInitCenterX = parseFloat(lowerCornerX+(blocklengthX / layerBlockGridsplit));
+        CamInitCenterY = parseFloat(lowerCornerY+(blocklengthY / layerBlockGridsplit));    
         
         xml3dobject.setAttribute("width", screenWidth);
         xml3dobject.setAttribute("height", screenHeight);
@@ -192,7 +204,6 @@
         // external xml files contains all needed info, also textures. 
         // With other layers, e.g. terrain textures needs to be downloaded separately
         if (layerName !== "fiware:building_coordinates"){
-            var textureResolution = 128
             var texture = baseUrl+"fiware/wms?service=WMS&amp;version=1.1.0&amp;request=GetMap&amp;layers=" +
                                     texture_layer + 
                                     "&amp;styles=&amp;bbox=" + 
@@ -291,11 +302,14 @@
             split = translation.split(' ');
             console.log(split[0],split[1],split[2]);
             if (transformX>0){
+                console.log("transformX>0");
                 split[0] = parseFloat(split[0]) + parseFloat(transformX*blocklengthX);
             }
             if(transformY>0){
-                split[2] = (split[2] + parseFloat(transformY*blocklengthY));
+                console.log("transformY>0");
+                split[2] = -(parseFloat(split[2]) + parseFloat(transformY*blocklengthY));
             }else{
+                console.log("transformX!>0");
                 split[2] = Math.abs(split[2]);
             }
             console.log(split[0],split[1],split[2]);
@@ -456,103 +470,74 @@ this.calculateCurrentPosLayerBlock = function(currentX, currentY){
         //     ------------
         //first block loaded is 11. Origo is upper left of the 1st block
         
-        X1_0 = 0;
-        X1_1 = parseFloat(blocklengthX);
-        X2_1 = parseFloat(2*blocklengthX);
-        X3_1 = parseFloat(3*blocklengthX);
-        X4_1 = parseFloat(4*blocklengthX);
-        X5_1 = parseFloat(5*blocklengthX);
-        Y1_0 = 0;
-        Y1_1 = parseFloat(-blocklengthY);
-        Y2_1 = parseFloat(-(2*blocklengthY));
-        Y3_1 = parseFloat(-(3*blocklengthY));
-        Y4_1 = parseFloat(-(4*blocklengthY));
-        Y5_1 = parseFloat(-(5*blocklengthY));
-
         var col=0, row=0, MinX=0, MinY=0, MaxX=0, MaxY = 0;
-        var offsetX = parseFloat(blocklengthX/5);
-        var offsetY = parseFloat(blocklengthY/5);
+        // var offsetX = parseFloat(blocklengthX/layerBlockGridsplit);
+        // var offsetY = parseFloat(blocklengthY/layerBlockGridsplit);
+        var offsetX = parseFloat(blocklengthX/2);
+        var offsetY = parseFloat(blocklengthY/2);
+
         // var transformX=0, transformY=0;
         // console.log("blocklenght X,Y "+blocklengthX, blocklengthY);
         // console.log("offset: "+offset);
         // console.log("currentX+offset: "+parseInt(currentX+offset));
         // console.log("currentY-offsetY: "+currentY-offsetY);
 
-        if (currentX+offsetX < X1_1){
-            // console.log("currentX <= X1");
-            col = 0;
-            MinX = X1_0;
-            MaxX = X1_1;            
-        }else if (currentX+offsetX < X2_1){
-            // console.log("currentX <= X2");
-            col = 1;
-            MinX = X1_1;
-            MaxX = X2_1;            
-        }else if (currentX+offsetX < X3_1){
-            // console.log("currentX <= X3");
-            col = 2;
-            MinX = X2_1;
-            MaxX = X3_1;            
-        }else if (currentX+offsetX < X4_1){
-            // console.log("currentX <= X3");
-            col = 3;
-            MinX = X3_1;
-            MaxX = X4_1;            
-        }
-        else if (currentX+offsetX < X5_1){
-            // console.log("currentX <= X3");
-            col = 4;
-            MinX = X4_1;
-            MaxX = X5_1;            
+        // check northing block
+        for (gridSplit=0;gridSplit<layerBlockGridsplit;gridSplit++){
+            if (currentX+offsetX < parseFloat(gridSplit*blocklengthX)){
+                // console.log("currentX <= X1");
+                col = gridSplit-1;
+                MinX = parseFloat((gridSplit-1)*blocklengthX);
+                MaxX = parseFloat(gridSplit*blocklengthX); 
+                break;           
+            }
         }
 
-        if (currentY-blocklengthY > Y1_1){
-            // console.log("currentY <= Y1");
-            row = 0;
-            MinY = Y1_0;
-            MaxY = Y1_1;
-        }else if (currentY-blocklengthY > Y2_1){
-            // console.log("currentY <= Y2");
-            row = 1;
-            MinY = Y1_1;
-            MaxY = Y2_1;
-        }else if (currentY-blocklengthY > Y3_1){
-            // console.log("currentY <= Y3");
-            row = 2;
-            MinY = Y2_1;
-            MaxY = Y3_1;
-        } else if (currentY-blocklengthY > Y4_1){
-            // console.log("currentY <= Y3");
-            row = 3;
-            MinY = Y3_1;
-            MaxY = Y4_1;
-        }else if (currentY-blocklengthY > Y5_1){
-            // console.log("currentY <= Y3");
-            row = 4;
-            MinY = Y4_1;
-            MaxY = Y5_1;
+        // check easting block
+        for (gridSplit=0;gridSplit<layerBlockGridsplit;gridSplit++){
+            if (currentY-blocklengthY > parseFloat(-(gridSplit*blocklengthY))){
+                // console.log("currentY <= Y1");
+                row = gridSplit-1;
+                MinY = parseFloat(-((gridSplit-1)*blocklengthY))
+                MaxY = parseFloat(-(gridSplit*blocklengthY));
+                break;
+            }
         }
 
-        // checkIfLayerBlockIsLoaded(currentLayerName, row, col);
 
-        // if (LayerblockArray[row][col] == 0){
-        for (i=0; i<layerToBeLoaded.length;i++){
-            if (checkIfLayerBlockIsLoaded(layerToBeLoaded[i], row, col)===false){    
-                console.log("load new block. row:"+row+", col: "+col );   
-                console.log("load new block. min:"+MinX+":"+MinY+", Max: "+MaxX+":"+MaxY ); 
-                console.log("load new block. (Math.abs(MinY)+LayerMinY):"+(Math.abs(MinY)+LayerMinY) );
+    //     for (i=0; i<layerToBeLoaded.length;i++){
+    //         if (checkIfLayerBlockIsLoaded(layerToBeLoaded[i], row, col)===false){    
+    //             console.log("load new block. row:"+row+", col: "+col );   
+    //             console.log("load new block. min:"+MinX+":"+MinY+", Max: "+MaxX+":"+MaxY ); 
+    //             console.log("load new block. (Math.abs(MinY)+LayerMinY):"+(Math.abs(MinY)+LayerMinY) );
 
-                getElements(layerToBeLoaded[i],
-                            MinX+LayerMinX, (Math.abs(MinY)+LayerMinY)+0,
-                            MaxX+LayerMinX, (Math.abs(MaxY)+LayerMinY),
-                            currentLayerCRS, col, row );
-            }else{
-                // console.log('dont load new block' );
-            }    
-        }
-        
+    //             getElements(layerToBeLoaded[i],
+    //                         MinX+LayerMinX, (Math.abs(MinY)+LayerMinY)+0,
+    //                         MaxX+LayerMinX, (Math.abs(MaxY)+LayerMinY),
+    //                         currentLayerCRS, col, row );
+    //         }else{
+    //             // console.log('dont load new block' );
+    //         }    
+    //     }
+    // }
+
+        if (checkIfLayerBlockIsLoaded(layerToBeLoaded[0], row, col)===false){    
+            console.log("load new block. row:"+row+", col: "+col );   
+            console.log("load new block. min:"+MinX+":"+MinY+", Max: "+MaxX+":"+MaxY ); 
+            console.log("load new block. (Math.abs(MinY)+LayerMinY):"+(Math.abs(MinY)+LayerMinY) );
+
+            getElements(layerToBeLoaded[0],
+                        MinX+LayerMinX, (Math.abs(MinY)+LayerMinY)+0,
+                        MaxX+LayerMinX, (Math.abs(MaxY)+LayerMinY),
+                        currentLayerCRS, col, row );
+            getElements(layerToBeLoaded[1],
+                        MinX+LayerMinX, (Math.abs(MinY)+LayerMinY)+0,
+                        MaxX+LayerMinX, (Math.abs(MaxY)+LayerMinY),
+                        currentLayerCRS, col, row );
+        }else{
+            // console.log('dont load new block' );
+        }    
     }
-
 }());
 
 

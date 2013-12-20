@@ -105,6 +105,35 @@ var spinner;
         });
       });
 
+     $(function() {
+        $("#selectTextureRes").click(function(e) {
+            console.log("Selection list item: "+this.options[this.selectedIndex].value);
+            e.preventDefault(); // if desired...
+            if (this.options[this.selectedIndex].value === 'select_texture_resolution'){
+                // Select layer-option pressed, do nothing
+                console.log("select_texture_resolution");
+            }
+            else{
+                setTextureResolution(this.options[this.selectedIndex].text);
+            }
+        });
+      });
+
+    $(function() {
+            $("#selectridRowColNumber").click(function(e) {
+                console.log("Selection list item: "+this.options[this.selectedIndex].value);
+                e.preventDefault(); // if desired...
+                if (this.options[this.selectedIndex].value === 'select_grid_block_division'){
+                    // Select layer-option pressed, do nothing
+                    console.log("select_grid_block_division");
+                }
+                else{
+                    setGridRowCol(this.options[this.selectedIndex].text);
+                }
+            });
+          });
+     setGridRowCol
+
     // Traps camera movement, used for analyzing when new layer data should be requested
     $("#camera_player-camera").bind("DOMAttrModified", function() {
         // console.log("#camera_player-camera).bind(DOMAttrModified");
@@ -130,6 +159,8 @@ var spinner;
 
     function init(){
         getGeoserverCapabilities();
+        initTexttureSelection();
+        initGridBlockSelection();
     }
 
     window.onload = init();
@@ -149,3 +180,50 @@ function stopSpinner(){
     $("#loading").hide(true);
 };
 
+function initTexttureSelection(){
+    var combo = document.getElementById('selectTextureRes');
+    var option = document.createElement('option');
+    option.text = "Select texture resolution";
+    option.value = "select_texture_resolution";
+    try {
+        combo.add(option, null); //Standard 
+    } catch(error) {
+        combo.add(option); // IE only
+    }
+
+    for (i=64;i<=4096;i=i*2){ 
+        var combo = document.getElementById("selectTextureRes");
+        var option = document.createElement("option");
+        option.text = i;
+        option.value = i;
+        try {
+            combo.add(option, null); //Standard 
+        } catch(error) {
+            combo.add(option); // IE only
+        }
+    }
+};
+
+function initGridBlockSelection(){
+    var combo = document.getElementById('selectridRowColNumber');
+    var option = document.createElement('option');
+    option.text = "Select grid block division";
+    option.value = "select_grid_block_division";
+    try {
+        combo.add(option, null); //Standard 
+    } catch(error) {
+        combo.add(option); // IE only
+    }
+
+    for (i=5;i<=50;i=i+5){ 
+        var combo = document.getElementById("selectridRowColNumber");
+        var option = document.createElement("option");
+        option.text = i;
+        option.value = i;
+        try {
+            combo.add(option, null); //Standard 
+        } catch(error) {
+            combo.add(option); // IE only
+        }
+    }
+};
