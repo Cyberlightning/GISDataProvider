@@ -80,18 +80,28 @@ var spinner;
 
     // Traps selection list click event and launch layer detail fetching funtion
      $(function() {
-        $("#checkboxdiv").click(function(e) {
+        $("#SelecLayersButton").click(function(e) {
+            console.log("SelecLayersButton clicked");
             // console.log("Selection list item: "+this.options[this.selectedIndex].value);
             // e.preventDefault(); // if desired...
+
+            var selectedLayers = [];
+            console.log(selectedLayers.length);
 
             for (i=0; i<layerNames.length; i++){
                 console.log(layerNames[i]);
                 if($('#'+layerNames[i]).is(':checked')){
                     console.log(layerNames[i]+" is checked");
                     newLayer = true;
-                    getLayerDetails(baseUrl, layerNames[i]);
+                    selectedLayers.push(layerNames[i]);
+                    
                 }
             }
+            // Send selected layer information to scenemanager for further processing
+            console.log(selectedLayers.length);
+            if (selectedLayers.length > 0){
+                getLayerDetails(baseUrl, selectedLayers);
+            }            
         });
       });
 

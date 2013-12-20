@@ -27,7 +27,9 @@
 <body>
   <div id="loading" class="wrapper"></div>
 
-<div id="checkboxdiv"></div>
+<div id="checkboxdiv"></div> 
+<button id="SelecLayersButton">Load selected layer data</button>
+<button id="resetScreenButton" onclick="reloadPage()">Reset view</button>
 
   <div>
     <xml3d id="xml3dContent" xmlns="http://www.xml3d.org/2009/xml3d">
@@ -57,5 +59,11 @@
 </body>
   <script type="text/javascript" src="scripts/scenemngr.js"></script>
   <script type="text/javascript" src="scripts/map.js"></script>
+  <script>
+    function reloadPage()
+      {
+      location.reload();
+      }
+</script>
 
 </html>
