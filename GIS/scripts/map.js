@@ -1,8 +1,12 @@
-var xmlDoc;
+var xmlDocW3DS;
 var spinner;
+var baseUrl = "http://localhost:9090/geoserver/";
 
 (function() {
     var layerNames = [];
+
+    var selectedTerrainTextureName = null;
+    var selectedTerrainTextureCRS = null;
 
     var spinOpts = {
           lines: 30, // The number of lines to draw
@@ -24,15 +28,15 @@ var spinner;
     spinner = new Spinner(spinOpts).spin();
     $("#loading").append(spinner.el);
 
-    var baseUrl = "http://localhost:9090/geoserver/";
+    // var baseUrl = "http://localhost:9090/geoserver/";
     // var baseUrl = "http://dev.cyberlightning.com:9091/geoserver/";
     var oldCoordinates = null;
 
     function parseServerCapabilities(response) {
         // console.log(response);
 
-        xmlDoc = new DOMParser().parseFromString(response,'text/xml');
-        var x = xmlDoc.getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "Layer");
+        xmlDocW3DS = new DOMParser().parseFromString(response,'text/xml');
+        var x = xmlDocW3DS.getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "Layer");
 
 
         $('#checkboxdiv').append(' | ');
@@ -77,14 +81,12 @@ var spinner;
         xmlhttp.send();
     }
 
-
     // Traps selection list click event and launch layer detail fetching funtion
      $(function() {
         $("#SelecLayersButton").click(function(e) {
             console.log("SelecLayersButton clicked");
             // console.log("Selection list item: "+this.options[this.selectedIndex].value);
-            // e.preventDefault(); // if desired...
-
+            
             var selectedLayers = [];
             console.log(selectedLayers.length);
 
@@ -100,15 +102,27 @@ var spinner;
             // Send selected layer information to scenemanager for further processing
             console.log(selectedLayers.length);
             if (selectedLayers.length > 0){
-                getLayerDetails(baseUrl, selectedLayers);
+                getLayerDetails(baseUrl, selectedLayers, selectedTerrainTextureName, selectedTerrainTextureCRS);
             }            
+            e.preventDefault(); // if desired...
         });
       });
 
+    $(function() {
+        $("#selectTexture").change(function(){
+           // alert( this.options[this.selectedIndex].id )
+           // alert($("#selectTexture option:selected").text());
+           selectedTerrainTextureName = $("#selectTexture option:selected").text();
+           selectedTerrainTextureCRS = $("#selectTexture option:selected").val();
+           console.log("select_texture: "+selectedTerrainTextureName, selectedTerrainTextureCRS);
+        });
+    });
+
+     // user selected resolution for terrain texture
      $(function() {
         $("#selectTextureRes").click(function(e) {
             console.log("Selection list item: "+this.options[this.selectedIndex].value);
-            e.preventDefault(); // if desired...
+            e.preventDefault();
             if (this.options[this.selectedIndex].value === 'select_texture_resolution'){
                 // Select layer-option pressed, do nothing
                 console.log("select_texture_resolution");
@@ -119,20 +133,21 @@ var spinner;
         });
       });
 
+     // gets user selected value for grid division
     $(function() {
-            $("#selectridRowColNumber").click(function(e) {
-                console.log("Selection list item: "+this.options[this.selectedIndex].value);
-                e.preventDefault(); // if desired...
-                if (this.options[this.selectedIndex].value === 'select_grid_block_division'){
-                    // Select layer-option pressed, do nothing
-                    console.log("select_grid_block_division");
-                }
-                else{
-                    setGridRowCol(this.options[this.selectedIndex].text);
-                }
-            });
-          });
-     setGridRowCol
+        $("#selectGridRowColNumber").click(function(e) {
+            console.log("Selection list item: "+this.options[this.selectedIndex].value);
+            e.preventDefault(); // if desired...
+            if (this.options[this.selectedIndex].value === 'select_grid_block_division'){
+                // Select layer-option pressed, do nothing
+                console.log("select_grid_block_division");
+            }
+            else{
+                setGridRowCol(this.options[this.selectedIndex].text);
+            }
+        });
+      });
+     
 
     // Traps camera movement, used for analyzing when new layer data should be requested
     $("#camera_player-camera").bind("DOMAttrModified", function() {
@@ -161,6 +176,7 @@ var spinner;
         getGeoserverCapabilities();
         initTexttureSelection();
         initGridBlockSelection();
+        initTextureSelection();
     }
 
     window.onload = init();
@@ -204,8 +220,59 @@ function initTexttureSelection(){
     }
 };
 
+function initTextureSelection(){
+    var xmlhttp;
+        if (window.XMLHttpRequest) {
+            xmlhttp = new XMLHttpRequest();
+        } else {
+            xmlhttp = new XDomainRequest();
+        }
+
+            xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+                // console.log(xmlhttp.responseText);
+
+                var combo = document.getElementById('selectTexture');
+                var option = document.createElement('option');
+                option.text = "Select layer texture";
+                option.value = "select_layer_texture";
+                try {
+                    combo.add(option, null); //Standard 
+                } catch(error) {
+                    combo.add(option); // IE only
+                }
+
+                var xmlDoc = new DOMParser().parseFromString(xmlhttp.responseText,'text/xml');
+                var x = xmlDoc.getElementsByTagNameNS("http://www.opengis.net/wms", "Layer");
+
+                for (i=0;i<x.length;i++)
+                    { 
+                    var textureName = x[i].getElementsByTagNameNS("http://www.opengis.net/wms", "Name")[0].childNodes[0].nodeValue;
+                    var textureCRS = x[i].getElementsByTagNameNS("http://www.opengis.net/wms", "CRS")[0].childNodes[0].nodeValue;
+                    if (textureName.indexOf('texture')!=-1 && textureCRS.indexOf('AUTO')==-1){                        
+                        console.log(textureName);
+                        console.log(textureCRS);
+                        var combo = document.getElementById("selectTexture");
+                        var option = document.createElement("option");
+                        option.text = textureName;
+                        option.value = textureCRS;
+                        try {
+                            combo.add(option, null); //Standard 
+                        } catch(error) {
+                            combo.add(option); // IE only
+                        }
+                    }
+                }
+            }
+        }
+
+        xmlhttp.open("GET", baseUrl + "ows?service=wms&version=1.3.0&request=GetCapabilities" , true);
+        xmlhttp.send();
+
+};
+
 function initGridBlockSelection(){
-    var combo = document.getElementById('selectridRowColNumber');
+    var combo = document.getElementById('selectGridRowColNumber');
     var option = document.createElement('option');
     option.text = "Select grid block division";
     option.value = "select_grid_block_division";
@@ -215,8 +282,8 @@ function initGridBlockSelection(){
         combo.add(option); // IE only
     }
 
-    for (i=5;i<=50;i=i+5){ 
-        var combo = document.getElementById("selectridRowColNumber");
+    for (i=5;i<=25;i=i+5){ 
+        var combo = document.getElementById("selectGridRowColNumber");
         var option = document.createElement("option");
         option.text = i;
         option.value = i;

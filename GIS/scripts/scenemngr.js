@@ -1,19 +1,22 @@
 (function() {
     var baseUrl;
-    // var texture_layer = "fiware:NorthernFinland_texture";
-    var texture_layer = "fiware:pallas_iso_rasteri";
-    // var texture_layer = "saana_rasteri";
-    // var texture_layer = "fiware:V4132H_texture";
-    // var texture_layer = "fiware:S5231B_mustavaara";
+    var TerrainTextureName = null;
+    var TerrainTextureCRS = null;
+    // var texture_layer = "fiware:V4132H-34B-41G-43A_texture";
+    // var texture_layer = "fiware:aerial_view";
 
     // Array which contains all layer names which data is loaded
     var layerToBeLoaded = [];
 
+    // Variables where each block dimensions are stored in the grid. 
+    // NOTE: Terrain bounding box defines maximun and minimun values for area,
+    // objects can be fetched only within max&min area.
     var blocklengthX, blocklengthY = 0;
 
     // Amount of the grid blocks for dividing layer
-    var layerBlockGridsplit = 25;
+    var layerBlockGridsplit = 5;
     var textureResolution = 512;
+    var terrainTextureCRS = 0;
 
     //has to track which blocks of the layers are loaded
     var LayerBlockHash = new Object();
@@ -28,10 +31,10 @@
     var currentLayerCRS = null;
 
     // Currently loaded layer bounding box min and max values    
-    var LayerMinX = 0;
-    var LayerMinY = 0;
-    var LayerMaxX = 0;
-    var LayerMaxY = 0;
+    var LayerMinX = null;
+    var LayerMinY = null;
+    var LayerMaxX = null;
+    var LayerMaxY = null;
 
     // layer center coordinates for camera placement when first block of the  terrain is loaded
     var CamInitCenterX, CamInitCenterY = 0;
@@ -47,14 +50,17 @@
     }
 
      // Fetches layer details from GeoServer and passes them to getElements()-function
-    this.getLayerDetails = function(serverUrl, selectedLayerArray) {
-        console.log("getLayerDetails(): "+serverUrl, selectedLayerArray);
+    this.getLayerDetails = function(serverUrl, selectedLayerArray, selectedTerrainTextureName, selectedTerrainTextureCRS) {
+        console.log("getLayerDetails(): "+serverUrl, selectedLayerArray, selectedTerrainTextureName, selectedTerrainTextureCRS);
+        TerrainTextureName = selectedTerrainTextureName;
+        TerrainTextureCRS = selectedTerrainTextureCRS;
         baseUrl = serverUrl;
-        var x = xmlDoc.getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "Layer");
+        var x = xmlDocW3DS.getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "Layer");
 
         for (k=0; k<selectedLayerArray.length;k++){
             for (i=0;i<x.length;i++) {
                 if (selectedLayerArray[k] === x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Title")[0].childNodes[0].nodeValue) {
+                    console.log(selectedLayerArray[k]);
                     // console.log(x[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue);
                     // console.log(x[i].getElementsByTagName("Identifier")[0].childNodes[0].nodeValue);
 
@@ -124,11 +130,10 @@
         LayerblockHashDoesntExist = true;
         console.log(LayerblockHashDoesntExist);
         for (var k in LayerBlockHash) {
-        // use hasOwnProperty to filter out keys from the Object.prototype
             if (LayerBlockHash.hasOwnProperty(k)) {
                 console.log("initSceneMngr: "+k);
                 if (k===Identifier){
-                    console.log('löytyi jo olemassa oleva layerblock!!!');
+                    console.log('There is already layerBlockhash for terrain');
                     LayerblockHashDoesntExist = false;
                 }
             }
@@ -141,24 +146,33 @@
             console.log("initSceneMngr: DONT create new LayerBlockHash object");
         }
 
-        //Store layer bounding box values for later usage
+        // Check each layer bounding box (BB) values. 
+        // Purpose is to adjust scene BB area during initializing phase so that scene BB covers all loaded layers area.
         var lowerCornerSplit = LowerCorner.split(" ");
         var higherCornerSplit = UpperCorner.split(" ");                
-        LayerMinX = parseFloat(lowerCornerSplit[0]);
-        LayerMinY = parseFloat(lowerCornerSplit[1]);
-        LayerMaxX = parseFloat(higherCornerSplit[0]);
-        LayerMaxY = parseFloat(higherCornerSplit[1]);
+        if (LayerMinX>parseFloat(lowerCornerSplit[0]) || LayerMinX===null ){
+            LayerMinX = parseFloat(lowerCornerSplit[0]);
+        }
+        if (LayerMinY>parseFloat(lowerCornerSplit[1]) || LayerMinY===null){
+            LayerMinY = parseFloat(lowerCornerSplit[1]);
+        }
+        if (LayerMaxX < parseFloat(higherCornerSplit[0]) || LayerMaxX ===null){
+            LayerMaxX = parseFloat(higherCornerSplit[0]);
+        }
+        if (LayerMaxY < parseFloat(higherCornerSplit[1]) || LayerMaxX ===null){
+            LayerMaxY = parseFloat(higherCornerSplit[1]);
+        }
         console.log("minmax arvot BB "+LayerMinX, LayerMinY, LayerMaxX, LayerMaxY);
 
-        var MinX, MinY, MaxX, MaxY;
         blocklengthX = parseFloat((LayerMaxX-LayerMinX)/layerBlockGridsplit);
         blocklengthY = parseFloat((LayerMaxY-LayerMinY)/layerBlockGridsplit);
+        
         console.log("blocklenght X,Y "+blocklengthX, blocklengthY);
 
-        MinX = LayerMinX;
-        MinY = LayerMinY;
-        MaxX = LayerMinX + blocklengthX;
-        MaxY = LayerMinY + blocklengthY;
+        var MinX = LayerMinX;
+        var MinY = LayerMinY;
+        var MaxX = LayerMinX + blocklengthX;
+        var MaxY = LayerMinY + blocklengthY;
 
         getElements(Identifier,
             MinX, MinY, MaxX, MaxY, //custom size for layer min/max boundaries
@@ -203,17 +217,21 @@
 
         // external xml files contains all needed info, also textures. 
         // With other layers, e.g. terrain textures needs to be downloaded separately
-        if (layerName !== "fiware:building_coordinates"){
+        if ((TerrainTextureName != null) && (TerrainTextureCRS != null)){
+            console.log("load texture");
             var texture = baseUrl+"fiware/wms?service=WMS&amp;version=1.1.0&amp;request=GetMap&amp;layers=" +
-                                    texture_layer + 
-                                    "&amp;styles=&amp;bbox=" + 
-                                    lowerCornerX+","+
-                                    lowerCornerY+","+
-                                    higherCornerX+","+
-                                    higherCornerY+ 
-                                    "&amp;width="+textureResolution+"&amp;height="+textureResolution+"&amp;srs=EPSG:3067&amp;format=image%2Fpng"
-                                    // "&amp;width="+textureResolution+"&amp;height="+textureResolution+"&amp;srs=EPSG:404000&amp;format=image%2Fpng";
+                                TerrainTextureName + 
+                                "&amp;styles=&amp;bbox=" + 
+                                lowerCornerX+","+
+                                lowerCornerY+","+
+                                higherCornerX+","+
+                                higherCornerY+ 
+                                "&amp;width="+textureResolution+"&amp;height="+textureResolution+"&amp;srs="+TerrainTextureCRS+"&amp;format=image%2Fpng";
 
+            
+
+        }
+        if (layerName !== "fiware:building_coordinates"){
             httpRequest(xml3drequest, layerName, transformX, transformY, texture, addXml3DContent);
         }else{
             console.log("buildings");
@@ -302,14 +320,14 @@
             split = translation.split(' ');
             console.log(split[0],split[1],split[2]);
             if (transformX>0){
-                console.log("transformX>0");
                 split[0] = parseFloat(split[0]) + parseFloat(transformX*blocklengthX);
             }
             if(transformY>0){
-                console.log("transformY>0");
-                split[2] = -(parseFloat(split[2]) + parseFloat(transformY*blocklengthY));
+                // GeoServer sends object coordinates so that y-axis is measured from the top level of the block.
+                // scenemanager handles grids from down to up in y-axis, therefore y-axis transfomation is needed.
+                var object_grid_location = -(blocklengthY + parseFloat(split[2]));
+                split[2] = -(parseFloat(object_grid_location) + parseFloat(transformY*blocklengthY));
             }else{
-                console.log("transformX!>0");
                 split[2] = Math.abs(split[2]);
             }
             console.log(split[0],split[1],split[2]);
@@ -429,9 +447,13 @@
         layerFloat.setAttribute('name','ambientIntensity');
         $(layerFloat).append('0.1')
         $(layerShader).append(layerFloat);
-        var texture = "<texture name=\"diffuseTexture\">\n";
-        texture += "<img src=\"" + textureUrl + "\"/>\n" + "</texture>";
-        $(layerShader).append(texture);
+
+        console.log(textureUrl);
+        if (textureUrl!==undefined){
+            var texture = "<texture name=\"diffuseTexture\">\n";
+            texture += "<img src=\"" + textureUrl + "\"/>\n" + "</texture>";
+            $(layerShader).append(texture);    
+        }        
 
         $('#defs').append(layerShader);
 
@@ -470,11 +492,11 @@ this.calculateCurrentPosLayerBlock = function(currentX, currentY){
         //     ------------
         //first block loaded is 11. Origo is upper left of the 1st block
         
-        var col=0, row=0, MinX=0, MinY=0, MaxX=0, MaxY = 0;
+        var col=-1, row=-1, MinX=0, MinY=0, MaxX=0, MaxY = 0;
         // var offsetX = parseFloat(blocklengthX/layerBlockGridsplit);
         // var offsetY = parseFloat(blocklengthY/layerBlockGridsplit);
-        var offsetX = parseFloat(blocklengthX/2);
-        var offsetY = parseFloat(blocklengthY/2);
+        var offsetX = parseFloat(blocklengthX/3);
+        var offsetY = parseFloat(blocklengthY/3);
 
         // var transformX=0, transformY=0;
         // console.log("blocklenght X,Y "+blocklengthX, blocklengthY);
@@ -504,39 +526,22 @@ this.calculateCurrentPosLayerBlock = function(currentX, currentY){
             }
         }
 
+        if (col>=0 && row>=0){
+            if (checkIfLayerBlockIsLoaded(layerToBeLoaded[0], row, col)===false){    
+                console.log("load new block. row:"+row+", col: "+col );   
+                console.log("load new block. min:"+MinX+":"+MinY+", Max: "+MaxX+":"+MaxY ); 
+                console.log("load new block. (Math.abs(MinY)+LayerMinY):"+(Math.abs(MinY)+LayerMinY) );
 
-    //     for (i=0; i<layerToBeLoaded.length;i++){
-    //         if (checkIfLayerBlockIsLoaded(layerToBeLoaded[i], row, col)===false){    
-    //             console.log("load new block. row:"+row+", col: "+col );   
-    //             console.log("load new block. min:"+MinX+":"+MinY+", Max: "+MaxX+":"+MaxY ); 
-    //             console.log("load new block. (Math.abs(MinY)+LayerMinY):"+(Math.abs(MinY)+LayerMinY) );
-
-    //             getElements(layerToBeLoaded[i],
-    //                         MinX+LayerMinX, (Math.abs(MinY)+LayerMinY)+0,
-    //                         MaxX+LayerMinX, (Math.abs(MaxY)+LayerMinY),
-    //                         currentLayerCRS, col, row );
-    //         }else{
-    //             // console.log('dont load new block' );
-    //         }    
-    //     }
-    // }
-
-        if (checkIfLayerBlockIsLoaded(layerToBeLoaded[0], row, col)===false){    
-            console.log("load new block. row:"+row+", col: "+col );   
-            console.log("load new block. min:"+MinX+":"+MinY+", Max: "+MaxX+":"+MaxY ); 
-            console.log("load new block. (Math.abs(MinY)+LayerMinY):"+(Math.abs(MinY)+LayerMinY) );
-
-            getElements(layerToBeLoaded[0],
-                        MinX+LayerMinX, (Math.abs(MinY)+LayerMinY)+0,
-                        MaxX+LayerMinX, (Math.abs(MaxY)+LayerMinY),
-                        currentLayerCRS, col, row );
-            getElements(layerToBeLoaded[1],
-                        MinX+LayerMinX, (Math.abs(MinY)+LayerMinY)+0,
-                        MaxX+LayerMinX, (Math.abs(MaxY)+LayerMinY),
-                        currentLayerCRS, col, row );
-        }else{
-            // console.log('dont load new block' );
-        }    
+                for (i=0;i<layerToBeLoaded.length;i++){
+                    getElements(layerToBeLoaded[i],
+                            MinX+LayerMinX, (Math.abs(MinY)+LayerMinY)+0,
+                            MaxX+LayerMinX, (Math.abs(MaxY)+LayerMinY),
+                            currentLayerCRS, col, row );
+                }
+            }else{
+                // console.log('dont load new block' );
+            }        
+        }        
     }
 }());
 

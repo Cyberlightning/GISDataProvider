@@ -26,12 +26,19 @@
 </head>
 <body onload="initsettings()">
   <div id="loading" class="wrapper"></div>
+<p>Scene initialization values needs to be set first. Layer selection is mandatory. Additionally number of terrain grids and used texture and texture resolution can be changed. After selections are done, terrain can be loaded by pressing "<i>Load selected layer data</i>"-button. Before changing initialization values "<i>Reset view</i>"-button needs to be used first.</p>
 
-<div id="checkboxdiv"></div> 
+
+
+<div id="checkboxdiv">Select layer: </div> 
+<select id="selectTexture"></select>
+<select id="selectTextureRes"></select>
+<select id="selectGridRowColNumber"></select>
+
+<div id="submitReset">
 <button id="SelecLayersButton">Load selected layer data</button>
-<select id="selectTextureRes" ></select>
-<select id="selectridRowColNumber" ></select>
 <button id="resetScreenButton" onclick="reloadPage()">Reset view</button>
+</div>
 
   <div>
     <xml3d id="xml3dContent" xmlns="http://www.xml3d.org/2009/xml3d">
