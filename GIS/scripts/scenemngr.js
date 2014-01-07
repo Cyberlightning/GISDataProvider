@@ -27,17 +27,11 @@
     var camHeightOffset = 500;
     var currentTerrainElevRefPoint = 0;
 
-    var currentLayerName = null;
-    var currentLayerCRS = null;
-
     // Currently loaded layer bounding box min and max values    
     var LayerMinX = null;
     var LayerMinY = null;
     var LayerMaxX = null;
     var LayerMaxY = null;
-
-    // layer center coordinates for camera placement when first block of the  terrain is loaded
-    var CamInitCenterX, CamInitCenterY = 0;
 
     this.setTextureResolution = function(resolution){
         textureResolution = resolution;
@@ -76,6 +70,20 @@
                 }
             }
         }            
+        var MinX = LayerMinX;
+        var MinY = LayerMinY;
+        var MaxX = LayerMinX + blocklengthX;
+        var MaxY = LayerMinY + blocklengthY;
+
+        for (i=0;i<layerToBeLoaded.length;i++){
+            getElements(layerToBeLoaded[i],
+            MinX, MinY, MaxX, MaxY, //custom size for layer min/max boundaries
+            // LayerMinX, LayerMinY, LayerMaxX, LayerMaxY, // Whole layer boundaries
+            LayerBlockHash[layerToBeLoaded[i]+"_CRS"], 0, 0
+            );
+
+        }
+        
     }
 
     function initLayerBlockArray(){
@@ -120,9 +128,7 @@
 
     this.initSceneMngr = function(Identifier, LowerCorner, UpperCorner, DefaultCRS ){
         console.log("initSceneMngr");
-        currentLayerName = Identifier;
-        currentLayerCRS = DefaultCRS;
-        // console.log("initSceneMngr LowerCorner: "+LowerCorner+" UpperCorner: "+UpperCorner);
+        console.log("initSceneMngr LowerCorner: "+LowerCorner+" UpperCorner: "+UpperCorner);
         // console.log("initSceneMngr,LayerBlockHash: "+ LayerBlockHash);
 
         // Check if layerblockhash for the layer already exists.
@@ -145,6 +151,10 @@
         }else{
             console.log("initSceneMngr: DONT create new LayerBlockHash object");
         }
+
+        //Store layer CRS for later use
+        LayerBlockHash[Identifier+"_CRS"] = DefaultCRS;
+        console.log(LayerBlockHash);
 
         // Check each layer bounding box (BB) values. 
         // Purpose is to adjust scene BB area during initializing phase so that scene BB covers all loaded layers area.
@@ -169,16 +179,16 @@
         
         console.log("blocklenght X,Y "+blocklengthX, blocklengthY);
 
-        var MinX = LayerMinX;
-        var MinY = LayerMinY;
-        var MaxX = LayerMinX + blocklengthX;
-        var MaxY = LayerMinY + blocklengthY;
+        // var MinX = LayerMinX;
+        // var MinY = LayerMinY;
+        // var MaxX = LayerMinX + blocklengthX;
+        // var MaxY = LayerMinY + blocklengthY;
 
-        getElements(Identifier,
-            MinX, MinY, MaxX, MaxY, //custom size for layer min/max boundaries
-            // LayerMinX, LayerMinY, LayerMaxX, LayerMaxY, // Whole layer boundaries
-            DefaultCRS, 0, 0
-        );
+        // getElements(Identifier,
+        //     MinX, MinY, MaxX, MaxY, //custom size for layer min/max boundaries
+        //     // LayerMinX, LayerMinY, LayerMaxX, LayerMaxY, // Whole layer boundaries
+        //     DefaultCRS, 0, 0
+        // );
         
     }
 
@@ -197,11 +207,8 @@
         var xml3dobject = document.getElementById("xml3dContent");
         console.log("getElements transformX, transformY :"+ transformX, transformY);
 
-        // var blocklengthX = parseInt((higherCornerX-lowerCornerX)/3);
-        // var blocklengthY = parseInt((higherCornerY-lowerCornerY)/3);
-
-        CamInitCenterX = parseFloat(lowerCornerX+(blocklengthX / layerBlockGridsplit));
-        CamInitCenterY = parseFloat(lowerCornerY+(blocklengthY / layerBlockGridsplit));    
+        // CamInitCenterX = parseFloat(lowerCornerX+(blocklengthX / layerBlockGridsplit));
+        // CamInitCenterY = parseFloat(lowerCornerY+(blocklengthY / layerBlockGridsplit));    
         
         xml3dobject.setAttribute("width", screenWidth);
         xml3dobject.setAttribute("height", screenHeight);
@@ -272,12 +279,7 @@
         // Set callback function
         xmlhttp.onreadystatechange = function() {
             if (xmlhttp.readyState==4 && xmlhttp.status==200) {       
-                if (callback === "parseMeshSrc"){
-                    // REMOVE; THIS DIDN'T WORK
-                    callback(xmlhttp.responseText, transformX, transformY);
-                }else{
-                    callback(xmlhttp.responseText, layerName, texture, transformX, transformY);
-                }
+                callback(xmlhttp.responseText, layerName, texture, transformX, transformY);
             }
         }
         xmlhttp.open("GET", requestUrl , true);
@@ -325,14 +327,15 @@
             if(transformY>0){
                 // GeoServer sends object coordinates so that y-axis is measured from the top level of the block.
                 // scenemanager handles grids from down to up in y-axis, therefore y-axis transfomation is needed.
-                var object_grid_location = -(blocklengthY + parseFloat(split[2]));
-                split[2] = -(parseFloat(object_grid_location) + parseFloat(transformY*blocklengthY));
+                var object_grid_location = (blocklengthY + parseFloat(split[2]));
+                console.log("object_grid_location "+object_grid_location)
+                split[2] = (parseFloat(object_grid_location) - parseFloat(transformY*blocklengthY));
             }else{
-                split[2] = Math.abs(split[2]);
+                split[2] = parseFloat(split[2])+blocklengthY;
             }
-            console.log(split[0],split[1],split[2]);
+            console.log("split[0],split[1],split[2]: "+split[0],split[1],split[2]);
             translation = split[0]+" "+split[1]+" "+(split[2]);
-            console.log(translation);
+            console.log("translation: "+translation);
 
             var xmlhttp;
             if (window.XMLHttpRequest) {
@@ -402,7 +405,7 @@
 
     function addMeshtoHtml(meshSrcArray, translation){
         console.log("addMeshtoHtml:  "+meshSrcArray);
-        var IdName = "foo"+Math.floor(Math.random()*111);
+        var IdName = "Object"+Math.floor(Math.random()*1111);
 
         var transformation = "<transform id=\""+IdName+"transform"+"\" rotation=\"0.0 0.0 0.0 0.0\" translation=\""+translation+"\"></transform>";
         console.log(transformation);
@@ -536,7 +539,8 @@ this.calculateCurrentPosLayerBlock = function(currentX, currentY){
                     getElements(layerToBeLoaded[i],
                             MinX+LayerMinX, (Math.abs(MinY)+LayerMinY)+0,
                             MaxX+LayerMinX, (Math.abs(MaxY)+LayerMinY),
-                            currentLayerCRS, col, row );
+                            // currentLayerCRS, col, row );
+                            LayerBlockHash[layerToBeLoaded[i]+"_CRS"], col, row );
                 }
             }else{
                 // console.log('dont load new block' );
