@@ -104,6 +104,10 @@ var baseUrl = "http://localhost:9090/geoserver/";
             if (selectedLayers.length > 0){
                 getLayerDetails(baseUrl, selectedLayers, selectedTerrainTextureName, selectedTerrainTextureCRS);
             }            
+
+            // Unfocus button to prevent accidental buttons pressing
+            $(this).blur();
+
             e.preventDefault(); // if desired...
         });
       });
