@@ -238,11 +238,11 @@
             
 
         }
-        if (layerName !== "fiware:building_coordinates"){
-            httpRequest(xml3drequest, layerName, transformX, transformY, texture, addXml3DContent);
-        }else{
-            console.log("buildings");
+        // Assumption is that if layer contains external 3D object references, layer name contains "building_coordinates".
+        if (layerName.indexOf("building_coordinates")>=0){
             httpRequest3dObjects(xml3drequest, layerName, transformX, transformY, parseMeshSrc);
+        }else{
+            httpRequest(xml3drequest, layerName, transformX, transformY, texture, addXml3DContent);
         }
 
         
@@ -285,7 +285,8 @@
         xmlhttp.open("GET", requestUrl , true);
         xmlhttp.send();
     }
-        function httpRequest3dObjects(requestUrl, layerName, transformX, transformY, callback) {
+    
+    function httpRequest3dObjects(requestUrl, layerName, transformX, transformY, callback) {
         console.log("httpRequest3dObjects(): "+requestUrl, layerName, transformX, transformY);
         var xmlhttp;
         if (window.XMLHttpRequest) {
