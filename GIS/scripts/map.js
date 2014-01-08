@@ -211,7 +211,7 @@ function initTexttureSelection(){
         combo.add(option); // IE only
     }
 
-    for (i=64;i<=4096;i=i*2){ 
+    for (i=64;i<=2048;i=i*2){ 
         var combo = document.getElementById("selectTextureRes");
         var option = document.createElement("option");
         option.text = i;
@@ -286,7 +286,7 @@ function initGridBlockSelection(){
         combo.add(option); // IE only
     }
 
-    for (i=5;i<=25;i=i+5){ 
+    for (i=5;i<=15;i=i+5){ 
         var combo = document.getElementById("selectGridRowColNumber");
         var option = document.createElement("option");
         option.text = i;
