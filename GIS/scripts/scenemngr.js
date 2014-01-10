@@ -45,7 +45,7 @@
 
      // Fetches layer details from GeoServer and passes them to getElements()-function
     this.getLayerDetails = function(serverUrl, selectedLayerArray, selectedTerrainTextureName, selectedTerrainTextureCRS) {
-        console.log("getLayerDetails(): "+serverUrl, selectedLayerArray, selectedTerrainTextureName, selectedTerrainTextureCRS);
+        // console.log("getLayerDetails(): "+serverUrl, selectedLayerArray, selectedTerrainTextureName, selectedTerrainTextureCRS);
         TerrainTextureName = selectedTerrainTextureName;
         TerrainTextureCRS = selectedTerrainTextureCRS;
         baseUrl = serverUrl;
@@ -54,7 +54,7 @@
         for (k=0; k<selectedLayerArray.length;k++){
             for (i=0;i<x.length;i++) {
                 if (selectedLayerArray[k] === x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Title")[0].childNodes[0].nodeValue) {
-                    console.log(selectedLayerArray[k]);
+                    // console.log(selectedLayerArray[k]);
                     // console.log(x[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue);
                     // console.log(x[i].getElementsByTagName("Identifier")[0].childNodes[0].nodeValue);
 
@@ -75,6 +75,8 @@
         var MaxX = LayerMinX + blocklengthX;
         var MaxY = LayerMinY + blocklengthY;
 
+        createLayerGuideBlock();
+
         for (i=0;i<layerToBeLoaded.length;i++){
             getElements(layerToBeLoaded[i],
             MinX, MinY, MaxX, MaxY, //custom size for layer min/max boundaries
@@ -82,12 +84,27 @@
             LayerBlockHash[layerToBeLoaded[i]+"_CRS"], 0, 0
             );
 
-        }
-        
+        }        
     }
 
+    // Creates square below terrain to give guidance what is the maximum area for the terrain to be loaded
+    function createLayerGuideBlock(){
+        var transform = "<transform id=\"layerguideTransform\" rotation=\"0.0 0.0 0.0 0.0\" translation=\"0 0 "+blocklengthY+"\"></transform>"
+        $("#defs").append(transform);
+
+        var layerBorder = "<group id=\"layerguide\" xmlns=\"http://www.xml3d.org/2009/xml3d\" shader=\"#phong\"  transform=\"#layerguideTransform\">";
+
+        layerBorder += "<mesh type=\"triangles\" transform=\"#layerguideTransform\"> <int name=\"index\">0 1 2  1 2 3</int>";
+        layerBorder += "<float3 name=\"position\"> 0 20 0 "+(blocklengthX*layerBlockGridsplit)+" 20 0 0 20 "+(-(blocklengthY*layerBlockGridsplit))+" "+(blocklengthX*layerBlockGridsplit)+" 20 "+(-(blocklengthY*layerBlockGridsplit))+"</float3>";
+        layerBorder += "<float3 name=\"normal\">0 0 1  0 0 1  0 0 1  0 0 1</float3>";
+        layerBorder += "<float2 name=\"texcoord\">0.0 0.0 1.0 0.0 0.0 1.0 1.0 1.0</float2>";
+        layerBorder += "</mesh></group>";
+        $("#MaxScene").append(layerBorder);
+    }
+
+
     function initLayerBlockArray(){
-        console.log("initLayerBlockArray()");
+        // console.log("initLayerBlockArray()");
         var twoDimArray =[];
         for (var i=0;i<layerBlockGridsplit;i++){
             var data = [];
@@ -127,34 +144,34 @@
     }
 
     this.initSceneMngr = function(Identifier, LowerCorner, UpperCorner, DefaultCRS ){
-        console.log("initSceneMngr");
-        console.log("initSceneMngr LowerCorner: "+LowerCorner+" UpperCorner: "+UpperCorner);
+        // console.log("initSceneMngr");
+        // console.log("initSceneMngr LowerCorner: "+LowerCorner+" UpperCorner: "+UpperCorner);
         // console.log("initSceneMngr,LayerBlockHash: "+ LayerBlockHash);
 
         // Check if layerblockhash for the layer already exists.
         var LayerblockHashDoesntExist = new Boolean();
         LayerblockHashDoesntExist = true;
-        console.log(LayerblockHashDoesntExist);
+        // console.log(LayerblockHashDoesntExist);
         for (var k in LayerBlockHash) {
             if (LayerBlockHash.hasOwnProperty(k)) {
                 console.log("initSceneMngr: "+k);
                 if (k===Identifier){
-                    console.log('There is already layerBlockhash for terrain');
+                    // console.log('There is already layerBlockhash for terrain');
                     LayerblockHashDoesntExist = false;
                 }
             }
         }
 
         if (LayerblockHashDoesntExist){
-            console.log("initSceneMngr: create NEW LayerBlockHash object");
+            // console.log("initSceneMngr: create NEW LayerBlockHash object");
             LayerBlockHash[Identifier] = initLayerBlockArray();  
         }else{
-            console.log("initSceneMngr: DONT create new LayerBlockHash object");
+            // console.log("initSceneMngr: DONT create new LayerBlockHash object");
         }
 
         //Store layer CRS for later use
         LayerBlockHash[Identifier+"_CRS"] = DefaultCRS;
-        console.log(LayerBlockHash);
+        // console.log(LayerBlockHash);
 
         // Check each layer bounding box (BB) values. 
         // Purpose is to adjust scene BB area during initializing phase so that scene BB covers all loaded layers area.
@@ -172,24 +189,10 @@
         if (LayerMaxY < parseFloat(higherCornerSplit[1]) || LayerMaxX ===null){
             LayerMaxY = parseFloat(higherCornerSplit[1]);
         }
-        console.log("minmax arvot BB "+LayerMinX, LayerMinY, LayerMaxX, LayerMaxY);
+        // console.log("minmax arvot BB "+LayerMinX, LayerMinY, LayerMaxX, LayerMaxY);
 
         blocklengthX = parseFloat((LayerMaxX-LayerMinX)/layerBlockGridsplit);
         blocklengthY = parseFloat((LayerMaxY-LayerMinY)/layerBlockGridsplit);
-        
-        console.log("blocklenght X,Y "+blocklengthX, blocklengthY);
-
-        // var MinX = LayerMinX;
-        // var MinY = LayerMinY;
-        // var MaxX = LayerMinX + blocklengthX;
-        // var MaxY = LayerMinY + blocklengthY;
-
-        // getElements(Identifier,
-        //     MinX, MinY, MaxX, MaxY, //custom size for layer min/max boundaries
-        //     // LayerMinX, LayerMinY, LayerMaxX, LayerMaxY, // Whole layer boundaries
-        //     DefaultCRS, 0, 0
-        // );
-        
     }
 
 
@@ -199,13 +202,13 @@
     // lowerCornerX, lowerCornerY, higherCornerX, higherCornerY = BoundingBox lower and higher corners, area for GIS request
     // layerCRS = Layer CRS
     function getElements(layerName, lowerCornerX, lowerCornerY, higherCornerX, higherCornerY, layerCRS, transformX, transformY){
-        console.log("getElements(): "+layerName, lowerCornerX, lowerCornerY, higherCornerX, higherCornerY, layerCRS, transformX, transformY);
+        // console.log("getElements(): "+layerName, lowerCornerX, lowerCornerY, higherCornerX, higherCornerY, layerCRS, transformX, transformY);
 
         var service = "w3ds";
         var version = "0.4.0";
 
         var xml3dobject = document.getElementById("xml3dContent");
-        console.log("getElements transformX, transformY :"+ transformX, transformY);
+        // console.log("getElements transformX, transformY :"+ transformX, transformY);
 
         // CamInitCenterX = parseFloat(lowerCornerX+(blocklengthX / layerBlockGridsplit));
         // CamInitCenterY = parseFloat(lowerCornerY+(blocklengthY / layerBlockGridsplit));    
@@ -213,7 +216,7 @@
         xml3dobject.setAttribute("width", screenWidth);
         xml3dobject.setAttribute("height", screenHeight);
         
-        console.log("getElements: "+lowerCornerX+", "+lowerCornerY+", "+higherCornerX+", "+higherCornerY);
+        // console.log("getElements: "+lowerCornerX+", "+lowerCornerY+", "+higherCornerX+", "+higherCornerY);
         var xml3drequest = createGISRequest( baseUrl, 
                                         layerName, 
                                         lowerCornerX+","+
@@ -225,7 +228,6 @@
         // external xml files contains all needed info, also textures. 
         // With other layers, e.g. terrain textures needs to be downloaded separately
         if ((TerrainTextureName != null) && (TerrainTextureCRS != null)){
-            console.log("load texture");
             var texture = baseUrl+"fiware/wms?service=WMS&amp;version=1.1.0&amp;request=GetMap&amp;layers=" +
                                 TerrainTextureName + 
                                 "&amp;styles=&amp;bbox=" + 
@@ -233,7 +235,7 @@
                                 lowerCornerY+","+
                                 higherCornerX+","+
                                 higherCornerY+ 
-                                "&amp;width="+textureResolution+"&amp;height="+textureResolution+"&amp;srs="+TerrainTextureCRS+"&amp;format=image%2Fpng";
+                                "&amp;width="+textureResolution+"&amp;height="+textureResolution+"&amp;srs="+TerrainTextureCRS+"&amp;format=image%2Fjpeg";
 
             
 
@@ -250,7 +252,7 @@
     }
 
     function createGISRequest(baseUrl, layer, boundingbox, layerCRS) {
-        console.log("createGISRequest");
+        // console.log("createGISRequest");
         var requestUrl;
         var service = "w3ds?version=0.4&service=w3ds";
         
@@ -261,12 +263,12 @@
         var request = "&request=GetScene";
 
         requestUrl = baseUrl + service + request + crs + format+"&layers="+layer+"&boundingbox="+boundingbox;
-        console.log(requestUrl);
+        // console.log(requestUrl);
         return requestUrl;
     }
 
     function httpRequest(requestUrl, layerName, transformX, transformY, texture, callback) {
-        console.log("httpRequest(): "+requestUrl, layerName, transformX, transformY, texture);
+        // console.log("httpRequest(): "+requestUrl, layerName, transformX, transformY, texture);
         startSpinner();
 
         var xmlhttp;
@@ -287,7 +289,7 @@
     }
     
     function httpRequest3dObjects(requestUrl, layerName, transformX, transformY, callback) {
-        console.log("httpRequest3dObjects(): "+requestUrl, layerName, transformX, transformY);
+        // console.log("httpRequest3dObjects(): "+requestUrl, layerName, transformX, transformY);
         var xmlhttp;
         if (window.XMLHttpRequest) {
             xmlhttp = new XMLHttpRequest();
@@ -306,22 +308,22 @@
     }
 
     function parseMeshSrc(xml3dData, transformX, transformY){
-            console.log("parseMeshSrc(xml3dData): transformX, transformY: "+transformX, transformY);
-            console.log(xml3dData);
+            // console.log("parseMeshSrc(xml3dData): transformX, transformY: "+transformX, transformY);
+            // console.log(xml3dData);
             var style, meshSrc;
         if ($(xml3dData).find("mesh").attr("src")!= undefined){
             
             startSpinner();
 
             meshSrc = $(xml3dData).find("mesh").attr("src");
-            console.log("mesh src found: "+$(xml3dData).find("mesh").attr("src"));
+            // console.log("mesh src found: "+$(xml3dData).find("mesh").attr("src"));
             translation = $(xml3dData).attr('translation');
-            console.log('parseMeshSrc:translation: '+translation);
-            console.log('parseMeshSrc:blocklengthX & blocklengthY: '+blocklengthX, blocklengthY);
+            // console.log('parseMeshSrc:translation: '+translation);
+            // console.log('parseMeshSrc:blocklengthX & blocklengthY: '+blocklengthX, blocklengthY);
 
             //HOX: change translation according to used grid
             split = translation.split(' ');
-            console.log(split[0],split[1],split[2]);
+            // console.log(split[0],split[1],split[2]);
             if (transformX>0){
                 split[0] = parseFloat(split[0]) + parseFloat(transformX*blocklengthX);
             }
@@ -329,14 +331,14 @@
                 // GeoServer sends object coordinates so that y-axis is measured from the top level of the block.
                 // scenemanager handles grids from down to up in y-axis, therefore y-axis transfomation is needed.
                 var object_grid_location = (blocklengthY + parseFloat(split[2]));
-                console.log("object_grid_location "+object_grid_location)
+                // console.log("object_grid_location "+object_grid_location)
                 split[2] = (parseFloat(object_grid_location) - parseFloat(transformY*blocklengthY));
             }else{
                 split[2] = parseFloat(split[2])+blocklengthY;
             }
-            console.log("split[0],split[1],split[2]: "+split[0],split[1],split[2]);
+            // console.log("split[0],split[1],split[2]: "+split[0],split[1],split[2]);
             translation = split[0]+" "+split[1]+" "+(split[2]);
-            console.log("translation: "+translation);
+            // console.log("translation: "+translation);
 
             var xmlhttp;
             if (window.XMLHttpRequest) {
@@ -356,11 +358,11 @@
                             console.log($(this).attr('id'));
                             var meshName = $(this).attr('id');
                             if (meshName && meshName.indexOf('submesh')>=0){
-                                console.log(meshName.indexOf('submesh'));                    
+                                // console.log(meshName.indexOf('submesh'));                    
                                 meshNameArray.push(meshSrc+"#"+meshName);
                             }
                         });
-                    console.log(meshNameArray);
+                    // console.log(meshNameArray);
                     addMeshtoHtml(meshNameArray, translation);
                     });
                 }
@@ -373,12 +375,12 @@
 
     // parse XML3D object and fetch first elevation point to be used as reference elevation for camera
     function getTerrainElevationRefPoint(){
-        console.log("getTerrainElevationRefPoint");
+        // console.log("getTerrainElevationRefPoint");
         var meshObjects = document.getElementsByTagName("mesh");
         //Get elev data from last node
         elevRefpoint = document.getElementsByTagName("mesh")[meshObjects.length-1].childNodes[1].value[10];
-        console.log(meshObjects.length);
-        console.log("getTerrainElevationRefPoint: "+ elevRefpoint);
+        // console.log(meshObjects.length);
+        // console.log("getTerrainElevationRefPoint: "+ elevRefpoint);
         if (elevRefpoint > 0){
             currentTerrainElevRefPoint = elevRefpoint;
         }
@@ -390,7 +392,7 @@
 
     // Used only when new layer is request
     function setCameraPosition(){
-        console.log("setCameraPosition");
+        // console.log("setCameraPosition");
         // Move camera to correct debugging position
         var camera_node = document.getElementById("t_node-camera_player");
 
@@ -405,11 +407,11 @@
     }
 
     function addMeshtoHtml(meshSrcArray, translation){
-        console.log("addMeshtoHtml:  "+meshSrcArray);
+        // console.log("addMeshtoHtml:  "+meshSrcArray);
         var IdName = "Object"+Math.floor(Math.random()*1111);
 
         var transformation = "<transform id=\""+IdName+"transform"+"\" rotation=\"0.0 0.0 0.0 0.0\" translation=\""+translation+"\"></transform>";
-        console.log(transformation);
+        // console.log(transformation);
         $("#defs").append(transformation);
         
         var newGroup = "<group id=\""+IdName+"\" shader=\"#phong\" transform=\"#"+IdName+"transform\">";
@@ -428,7 +430,7 @@
     }
 
     function addXml3DContent(xml3dData, layerName, textureUrl, transformX, transformY) {
-        console.log("addXml3DContent");
+        // console.log("addXml3DContent");
         //console.log(xml3dData);
 
         var newGroup = document.createElement('group');
@@ -438,6 +440,9 @@
         newGroup.setAttribute('xmlns',xmlnsTagContent);
         newGroup.setAttribute('shader','#'+IdName+'shader');
         newGroup.setAttribute('transform','#'+IdName+'transform');
+
+        $(newGroup).append(xml3dData);
+        $("#MaxScene").append(newGroup);
 
         // Create layer specific shader
         var layerShader = document.createElement('shader');
@@ -452,14 +457,22 @@
         $(layerFloat).append('0.1')
         $(layerShader).append(layerFloat);
 
-        console.log(textureUrl);
+        // console.log(textureUrl);
+
         if (textureUrl!==undefined){
             var texture = "<texture name=\"diffuseTexture\">\n";
             texture += "<img src=\"" + textureUrl + "\"/>\n" + "</texture>";
             $(layerShader).append(texture);    
-        }        
 
-        $('#defs').append(layerShader);
+            // var layerTex = document.createElement('texture');
+            // layerTex.setAttribute('name', 'diffuseTexture');
+            // var layerTexImg = document.createElement('img');
+            // layerTexImg.setAttribute('src',"http://localhost:9090/geoserver/fiware/wms?service=WMS&version=1.1.0&request=GetMap&layers=fiware:terrain_texture_orto&styles=&bbox=374000,7548000,375202,7549200&width=512&height=512&srs=EPSG:3067&format=image%2Fpng");
+            // $(layerTex).append(layerTexImg);
+            // $(layerShader).append(layerTex);    
+        }   
+
+        // $('#defs').append(layerShader);
 
         var transformation = document.createElement('transform');
         transformation.setAttribute('id',IdName+"transform");
@@ -467,10 +480,10 @@
         // transformation.setAttribute('translation','0 0 0');
         transformation.setAttribute('translation',(transformX*blocklengthX)+' 0 '+((-transformY*blocklengthY)));
 
-        $("#defs").append(transformation);
+        $('#defs').append(layerShader,transformation);
+        // $("#defs").append(transformation);
 
-        $(newGroup).append(xml3dData);
-        $("#MaxScene").append(newGroup);
+        
 
         if (newLayer) {
             // getTerrainElevationRefPoint();
@@ -509,7 +522,7 @@ this.calculateCurrentPosLayerBlock = function(currentX, currentY){
         // console.log("currentY-offsetY: "+currentY-offsetY);
 
         // check northing block
-        for (gridSplit=0;gridSplit<layerBlockGridsplit;gridSplit++){
+        for (gridSplit=0;gridSplit<=layerBlockGridsplit;gridSplit++){
             if (currentX+offsetX < parseFloat(gridSplit*blocklengthX)){
                 // console.log("currentX <= X1");
                 col = gridSplit-1;
@@ -520,7 +533,7 @@ this.calculateCurrentPosLayerBlock = function(currentX, currentY){
         }
 
         // check easting block
-        for (gridSplit=0;gridSplit<layerBlockGridsplit;gridSplit++){
+        for (gridSplit=0;gridSplit<=layerBlockGridsplit;gridSplit++){
             if (currentY-blocklengthY > parseFloat(-(gridSplit*blocklengthY))){
                 // console.log("currentY <= Y1");
                 row = gridSplit-1;
@@ -532,9 +545,9 @@ this.calculateCurrentPosLayerBlock = function(currentX, currentY){
 
         if (col>=0 && row>=0){
             if (checkIfLayerBlockIsLoaded(layerToBeLoaded[0], row, col)===false){    
-                console.log("load new block. row:"+row+", col: "+col );   
-                console.log("load new block. min:"+MinX+":"+MinY+", Max: "+MaxX+":"+MaxY ); 
-                console.log("load new block. (Math.abs(MinY)+LayerMinY):"+(Math.abs(MinY)+LayerMinY) );
+                // console.log("load new block. row:"+row+", col: "+col );   
+                // console.log("load new block. min:"+MinX+":"+MinY+", Max: "+MaxX+":"+MaxY ); 
+                // console.log("load new block. (Math.abs(MinY)+LayerMinY):"+(Math.abs(MinY)+LayerMinY) );
 
                 for (i=0;i<layerToBeLoaded.length;i++){
                     getElements(layerToBeLoaded[i],
