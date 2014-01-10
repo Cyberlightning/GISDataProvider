@@ -1,6 +1,6 @@
 var xmlDocW3DS;
 var spinner;
-var baseUrl = "http://localhost:9090/geoserver/";
+var baseUrl = "http://dev.cyberlightning.com:9091/geoserver/";
 var spinnerCounter = 0;
 
 (function() {
@@ -78,7 +78,7 @@ var spinnerCounter = 0;
             }
         }
 
-        xmlhttp.open("GET", baseUrl + "ows?service=w3ds&version=0.4.0&request=GetCapabilities" , true);
+        xmlhttp.open("GET", baseUrl + "ows?service=w3ds&version=0.4.0&request=GetCapabilities", true);
         xmlhttp.send();
     }
 
@@ -138,6 +138,21 @@ var spinnerCounter = 0;
         });
       });
 
+     // user selected LOD level
+     $(function() {
+        $("#selectLodLevel").click(function(e) {
+            console.log("Selection list item: "+this.options[this.selectedIndex].value);
+            e.preventDefault();
+            if (this.options[this.selectedIndex].value === 'select_LOD_level'){
+                // Select layer-option pressed, do nothing
+                console.log("select_LOD_level");
+            }
+            else{
+                setLODlevel(this.options[this.selectedIndex].text);
+            }
+        });
+      });
+
      // gets user selected value for grid division
     $(function() {
         $("#selectGridRowColNumber").click(function(e) {
@@ -182,6 +197,7 @@ var spinnerCounter = 0;
         initTexttureSelection();
         initGridBlockSelection();
         initTextureSelection();
+        initLODSelection();
     }
 
     window.onload = init();
@@ -221,7 +237,7 @@ function initTexttureSelection(){
         combo.add(option); // IE only
     }
 
-    for (i=64;i<=1028;i=i*2){ 
+    for (i=64;i<=1024;i=i*2){ 
         var combo = document.getElementById("selectTextureRes");
         var option = document.createElement("option");
         option.text = i;
@@ -298,6 +314,30 @@ function initGridBlockSelection(){
 
     for (i=5;i<=10;i=i+5){ 
         var combo = document.getElementById("selectGridRowColNumber");
+        var option = document.createElement("option");
+        option.text = i;
+        option.value = i;
+        try {
+            combo.add(option, null); //Standard 
+        } catch(error) {
+            combo.add(option); // IE only
+        }
+    }
+};
+
+function initLODSelection(){
+    var combo = document.getElementById('selectLodLevel');
+    var option = document.createElement('option');
+    option.text = "Select LOD level";
+    option.value = "select_LOD_level";
+    try {
+        combo.add(option, null); //Standard 
+    } catch(error) {
+        combo.add(option); // IE only
+    }
+
+    for (i=4;i<=10;i++){ 
+        var combo = document.getElementById("selectLodLevel");
         var option = document.createElement("option");
         option.text = i;
         option.value = i;

@@ -17,6 +17,7 @@
     var layerBlockGridsplit = 5;
     var textureResolution = 512;
     var terrainTextureCRS = 0;
+    var LodLevel = 10;
 
     //has to track which blocks of the layers are loaded
     var LayerBlockHash = new Object();
@@ -35,6 +36,10 @@
 
     this.setTextureResolution = function(resolution){
         textureResolution = resolution;
+    }
+
+    this.setLODlevel = function(LODlevel){
+        LodLevel = LODlevel;
     }
 
     // setter function for changing layerBlockGridsplit variable on runtime
@@ -262,7 +267,7 @@
         var crs = "&crs="+layerCRS;
         var request = "&request=GetScene";
 
-        requestUrl = baseUrl + service + request + crs + format+"&layers="+layer+"&boundingbox="+boundingbox;
+        requestUrl = baseUrl + service + request + crs + format+"&layers="+layer+"&boundingbox="+boundingbox+"&LOD="+LodLevel;
         // console.log(requestUrl);
         return requestUrl;
     }
