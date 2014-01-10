@@ -1,6 +1,7 @@
 var xmlDocW3DS;
 var spinner;
 var baseUrl = "http://localhost:9090/geoserver/";
+var spinnerCounter = 0;
 
 (function() {
     var layerNames = [];
@@ -184,20 +185,29 @@ var baseUrl = "http://localhost:9090/geoserver/";
     }
 
     window.onload = init();
-
     
 }());
 
-function startSpinner(){
+$( document ).ready(function() {
+    console.log( "ready!" );
+});
 
-    $("#loading").show();
-    // spinner(spinOpts).spin();
+function startSpinner(){    
+    if (spinnerCounter === 0){
+        $("#loading").show();
+    }
+    spinnerCounter += 1;
+    console.log("startSpinner()"+spinnerCounter);
     
 };
 
 function stopSpinner(){
-    // spinner.spin();
-    $("#loading").hide(true);
+    spinnerCounter -= 1;
+    if (spinnerCounter === 0){
+        $("#loading").hide(true);
+    }
+    console.log("stopSpinner()"+spinnerCounter);
+    
 };
 
 function initTexttureSelection(){
@@ -211,7 +221,7 @@ function initTexttureSelection(){
         combo.add(option); // IE only
     }
 
-    for (i=64;i<=2048;i=i*2){ 
+    for (i=64;i<=1028;i=i*2){ 
         var combo = document.getElementById("selectTextureRes");
         var option = document.createElement("option");
         option.text = i;
@@ -253,7 +263,7 @@ function initTextureSelection(){
                     { 
                     var textureName = x[i].getElementsByTagNameNS("http://www.opengis.net/wms", "Name")[0].childNodes[0].nodeValue;
                     var textureCRS = x[i].getElementsByTagNameNS("http://www.opengis.net/wms", "CRS")[0].childNodes[0].nodeValue;
-                    if (textureName.indexOf('texture')!=-1 && textureCRS.indexOf('AUTO')==-1){                        
+                    if (textureName.indexOf('texture')!=-1 && textureCRS.indexOf('AUTO')==-1){
                         console.log(textureName);
                         console.log(textureCRS);
                         var combo = document.getElementById("selectTexture");
@@ -286,7 +296,7 @@ function initGridBlockSelection(){
         combo.add(option); // IE only
     }
 
-    for (i=5;i<=15;i=i+5){ 
+    for (i=5;i<=10;i=i+5){ 
         var combo = document.getElementById("selectGridRowColNumber");
         var option = document.createElement("option");
         option.text = i;
