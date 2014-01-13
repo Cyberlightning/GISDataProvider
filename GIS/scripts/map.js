@@ -6,8 +6,8 @@ var spinnerCounter = 0;
 (function() {
     var layerNames = [];
 
-    var selectedTerrainTextureName = null;
-    var selectedTerrainTextureCRS = null;
+    // var selectedTerrainTextureName = null;
+    // var selectedTerrainTextureCRS = null;
 
     var spinOpts = {
           lines: 30, // The number of lines to draw
@@ -103,7 +103,8 @@ var spinnerCounter = 0;
             // Send selected layer information to scenemanager for further processing
             console.log(selectedLayers.length);
             if (selectedLayers.length > 0){
-                getLayerDetails(baseUrl, selectedLayers, selectedTerrainTextureName, selectedTerrainTextureCRS);
+                // getLayerDetails(baseUrl, selectedLayers, selectedTerrainTextureName, selectedTerrainTextureCRS);
+                getLayerDetails(baseUrl, selectedLayers);
             }            
 
             // Unfocus button to prevent accidental buttons pressing
@@ -117,8 +118,10 @@ var spinnerCounter = 0;
         $("#selectTexture").change(function(){
            // alert( this.options[this.selectedIndex].id )
            // alert($("#selectTexture option:selected").text());
-           selectedTerrainTextureName = $("#selectTexture option:selected").text();
-           selectedTerrainTextureCRS = $("#selectTexture option:selected").val();
+           var selectedTerrainTextureName = $("#selectTexture option:selected").text();
+           var selectedTerrainTextureCRS = $("#selectTexture option:selected").val();
+           setTextureInfo(selectedTerrainTextureName, selectedTerrainTextureCRS);
+
            console.log("select_texture: "+selectedTerrainTextureName, selectedTerrainTextureCRS);
         });
     });

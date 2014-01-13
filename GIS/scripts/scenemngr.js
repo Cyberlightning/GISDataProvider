@@ -18,6 +18,8 @@
     var textureResolution = 512;
     var terrainTextureCRS = 0;
     var LodLevel = 10;
+    var selectedTerrainTextureName = null;
+    var selectedTerrainTextureCRS = null;
 
     //has to track which blocks of the layers are loaded
     var LayerBlockHash = new Object();
@@ -42,6 +44,11 @@
         LodLevel = LODlevel;
     }
 
+    this.setTextureInfo = function(texture, textureCRS){
+        TerrainTextureName = texture;
+        TerrainTextureCRS = textureCRS;
+    }
+
     // setter function for changing layerBlockGridsplit variable on runtime
     // NOTE: scene must be reloaded after changing this value
     this.setGridRowCol = function(gridsplit){
@@ -49,10 +56,11 @@
     }
 
      // Fetches layer details from GeoServer and passes them to getElements()-function
-    this.getLayerDetails = function(serverUrl, selectedLayerArray, selectedTerrainTextureName, selectedTerrainTextureCRS) {
+    // this.getLayerDetails = function(serverUrl, selectedLayerArray, selectedTerrainTextureName, selectedTerrainTextureCRS) {
+    this.getLayerDetails = function(serverUrl, selectedLayerArray) {
         // console.log("getLayerDetails(): "+serverUrl, selectedLayerArray, selectedTerrainTextureName, selectedTerrainTextureCRS);
-        TerrainTextureName = selectedTerrainTextureName;
-        TerrainTextureCRS = selectedTerrainTextureCRS;
+        // TerrainTextureName = selectedTerrainTextureName;
+        // TerrainTextureCRS = selectedTerrainTextureCRS;
         baseUrl = serverUrl;
         var x = xmlDocW3DS.getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "Layer");
 
