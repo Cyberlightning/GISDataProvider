@@ -6,7 +6,7 @@
     <script type="text/javascript" src="deps/jquery.min.js"></script>
     <script type="text/javascript" src="deps/spin.min.js"></script>
 
-    <title>XML3D map service</title>
+    <title>GIS Data Provider test client</title>
 
     <style type="text/css">
     body, html {
@@ -26,21 +26,25 @@
 </head>
 <body onload="initsettings()">
   <div id="loading" class="wrapper"></div>
-<p>Scene initialization values needs to be set first. Layer selection is mandatory. Additionally number of terrain grids and used texture and texture resolution can be changed. After selections are done, terrain can be loaded by pressing "<i>Load selected layer data</i>"-button. Before changing initialization values "<i>Reset view</i>"-button needs to be used first.</p>
 
-
-
-<div id="checkboxdiv">Select layer: </div> 
+<div id="first" style="background-color:#FFD700;height:100%;width:15%;float:left;">
+  <p>Scene initialization values needs to be set first. At least layer selection needs to be done. After selections are done, terrain can be loaded by pressing "<i>Load selected layer data</i>"-button. </p>
+<div id="checkboxdiv"><b>Select layer:</b> </div> 
 <select id="selectTexture"></select>
 <select id="selectTextureRes"></select>
-<select id="selectGridRowColNumber"></select>
 <select id="selectLodLevel"></select>
+<br/>
+"<i>Reset view</i>"-button needs to be used before modifying grid block value
+<select id="selectGridRowColNumber"></select>
 
 <div id="submitReset">
-<button id="SelecLayersButton">Load selected layer data</button>
-<button id="resetScreenButton" onclick="reloadPage()">Reset view</button>
+<br/>
+<button id="SelecLayersButton" style="background-color:#33FF00">Load selected layer data</button>
+<button id="resetScreenButton" style="background-color:#FF6600" onclick="reloadPage()">Reset view</button>
 </div>
+</div> 
 
+<div id="content" style="height:100%;width:85%;float:right;">
   <div>
     <xml3d id="xml3dContent" xmlns="http://www.xml3d.org/2009/xml3d">
         <defs id="defs" xmlns="http://www.xml3d.org/2009/xml3d">
@@ -66,6 +70,7 @@
         </group>
     </xml3d>
   </div>
+  </div> 
 </body>
   <script type="text/javascript" src="scripts/scenemngr.js"></script>
   <script type="text/javascript" src="scripts/map.js"></script>

@@ -40,7 +40,7 @@ var spinnerCounter = 0;
         var x = xmlDocW3DS.getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "Layer");
 
 
-        $('#checkboxdiv').append(' | ');
+        $('#checkboxdiv').append('<br/>');
         for (i=0;i<x.length;i++)
             { 
             var checkboxtext = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue;
@@ -55,7 +55,7 @@ var spinnerCounter = 0;
             );
             $('#checkboxdiv').append(
                $(document.createElement('label')).text(checkboxtext));
-            $('#checkboxdiv').append(' | ');
+            $('#checkboxdiv').append('<br/>');
 
             layerNames.push(checkboxvalue);
         }
