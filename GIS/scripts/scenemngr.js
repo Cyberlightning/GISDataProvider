@@ -1,5 +1,5 @@
 (function() {
-    var baseUrl;
+    // var baseUrl;
     var TerrainTextureName = null;
     var TerrainTextureCRS = null;
     // var texture_layer = "fiware:V4132H-34B-41G-43A_texture";
@@ -24,7 +24,7 @@
     //has to track which blocks of the layers are loaded
     var LayerBlockHash = new Object();
 
-    var screenHeight = $(document).height()-100;
+    var screenHeight = $(document).height();
     var screenWidth = $(document).width();
 
     var camHeightOffset = 500;
@@ -56,11 +56,8 @@
     }
 
      // Fetches layer details from GeoServer and passes them to getElements()-function
-    // this.getLayerDetails = function(serverUrl, selectedLayerArray, selectedTerrainTextureName, selectedTerrainTextureCRS) {
     this.getLayerDetails = function(serverUrl, selectedLayerArray) {
-        // console.log("getLayerDetails(): "+serverUrl, selectedLayerArray, selectedTerrainTextureName, selectedTerrainTextureCRS);
-        // TerrainTextureName = selectedTerrainTextureName;
-        // TerrainTextureCRS = selectedTerrainTextureCRS;
+        // console.log("getLayerDetails(): "+serverUrl, selectedLayerArray);
         baseUrl = serverUrl;
         var x = xmlDocW3DS.getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "Layer");
 

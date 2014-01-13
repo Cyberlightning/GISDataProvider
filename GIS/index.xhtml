@@ -21,55 +21,80 @@
       left:50%;
       display:none;
     }
+    .menu
+    {
+      max-width: 20%;
+      max-height: 30%;  
+      margin-top: 5px;       
+      margin-left: 5px;
+      margin-right: 5px;
+      padding: 3px;
+      background-color:#FFD700;
+      float:left;
+/*      font-size:90%*/
+    }
+    .content
+    {
+      max-width: 10%;
+      max-height: 30%;  
+      margin-top: 5px;       
+      margin-left: auto;
+      margin-right: auto;
+      padding: 3px;   
+      float:left;   
+    }
   </style>
 
 </head>
 <body onload="initsettings()">
   <div id="loading" class="wrapper"></div>
 
-<div id="first" style="background-color:#FFD700;height:100%;width:15%;float:left;">
-  <p>Scene initialization values needs to be set first. At least layer selection needs to be done. After selections are done, terrain can be loaded by pressing "<i>Load selected layer data</i>"-button. </p>
-<div id="checkboxdiv"><b>Select layer:</b> </div> 
-<select id="selectTexture"></select>
-<select id="selectTextureRes"></select>
-<select id="selectLodLevel"></select>
-<br/>
-"<i>Reset view</i>"-button needs to be used before modifying grid block value
-<select id="selectGridRowColNumber"></select>
+  <div id="menu" class="menu" style="">
+    <p>Scene initialization values needs to be set first. At least layer selection needs to be done. After selections are done, terrain can be loaded by pressing "<i>Load selected layer data</i>"-button. </p>
+    <div id="checkboxdiv"><b>Select layer:</b> </div> 
+    <select id="selectTexture"></select>
+    <select id="selectTextureRes"></select>
+    <select id="selectLodLevel"></select>
+    <br/>
+    "<i>Reset view</i>"-button needs to be used before modifying grid block value
+    <br/>
+    <select id="selectGridRowColNumber"></select>
 
-<div id="submitReset">
-<br/>
-<button id="SelecLayersButton" style="background-color:#33FF00">Load selected layer data</button>
-<button id="resetScreenButton" style="background-color:#FF6600" onclick="reloadPage()">Reset view</button>
-</div>
-</div> 
+    <div id="submitReset">
+      <br/>
+      <button id="SelecLayersButton" style="background-color:#33FF00">Load selected layer data</button>
+      <button id="resetScreenButton" style="background-color:#FF6600" onclick="reloadPage()">Reset view</button>
+    </div>
+    <br/>
+    <button id="Octet_query_Button" style="background-color:#00FFFF">Test octet-stream query</button>
+  </div> 
 
-<div id="content" style="height:100%;width:85%;float:right;">
-  <div>
-    <xml3d id="xml3dContent" xmlns="http://www.xml3d.org/2009/xml3d">
-        <defs id="defs" xmlns="http://www.xml3d.org/2009/xml3d">
-            <transform id="t_node-camera_player" rotation="0.0 0.0 0.0 0.0" translation="0 0 0"/>
-            <shader id="phong" script="urn:xml3d:shader:phong">
-              <float3 name="diffuseColor" >1 0.5 0</float3>
-              <float name="ambientIntensity" >0.5</float>
-            </shader>
-            <lightshader id="light1" script="urn:xml3d:lightshader:directional" >
-              <float3 name="intensity" >2 2 2</float3>
-              <bool name="castShadow">true</bool>
-              <float3 name="direction">1 -0.5 1.0</float3>
-            </lightshader>
+  <div id="content" class="content">
+    <div>
+      <xml3d id="xml3dContent" xmlns="http://www.xml3d.org/2009/xml3d">
+          <defs id="defs" xmlns="http://www.xml3d.org/2009/xml3d">
+              <transform id="t_node-camera_player" rotation="0.0 0.0 0.0 0.0" translation="0 0 0"/>
+              <shader id="phong" script="urn:xml3d:shader:phong">
+                <float3 name="diffuseColor" >1 0.5 0</float3>
+                <float name="ambientIntensity" >0.5</float>
+              </shader>
+              <lightshader id="light1" script="urn:xml3d:lightshader:directional" >
+                <float3 name="intensity" >2 2 2</float3>
+                <bool name="castShadow">true</bool>
+                <float3 name="direction">1 -0.5 1.0</float3>
+              </lightshader>
 
-            <light shader="#light1" />
-            <bool id="useKeys">true</bool>
-        </defs>
+              <light shader="#light1" />
+              <bool id="useKeys">true</bool>
+          </defs>
 
-        <group xmlns="http://www.xml3d.org/2009/xml3d" id="MaxScene">
-          <group id="node-camera_player" transform="#t_node-camera_player" lightshader="#light1">
-              <view fieldOfView="0.7" id="camera_player-camera"/>
+          <group xmlns="http://www.xml3d.org/2009/xml3d" id="MaxScene">
+            <group id="node-camera_player" transform="#t_node-camera_player" lightshader="#light1">
+                <view fieldOfView="0.7" id="camera_player-camera"/>
+            </group>
           </group>
-        </group>
-    </xml3d>
-  </div>
+      </xml3d>
+    </div>
   </div> 
 </body>
   <script type="text/javascript" src="scripts/scenemngr.js"></script>

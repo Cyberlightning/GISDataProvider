@@ -170,7 +170,39 @@ var spinnerCounter = 0;
             }
         });
       });
-     
+
+    $(function() {
+        $("#Octet_query_Button").click(function(e) {
+            e.preventDefault(); // if desired...
+            var xhr = new XMLHttpRequest(); 
+            xhr.open("GET", "http://dev.cyberlightning.com:9091/geoserver/w3ds?version=0.4&service=w3ds&request=GetScene&crs=EPSG:3047&format=application/octet-stream&layers=fiware:terrain&boundingbox=374000,7548000,376402,7550400", true); 
+            xhr.responseType ="arraybuffer"; 
+
+            xhr.onload = function() { 
+                var data = new DataView(this.response), i, MAGICAL_DRAGON_OFFSET = 9, dataOffset = MAGICAL_DRAGON_OFFSET;
+
+                console.log("1. value (big endian):", data.getInt32(dataOffset, false));
+                dataOffset += 4;
+                console.log("2. value (big endian):", data.getInt32(dataOffset, false));
+                dataOffset += 4;
+                console.log("3. value (big endian):", data.getFloat64(dataOffset, false));
+                dataOffset += 8;
+                console.log("4. value (big endian):", data.getFloat64(dataOffset, false));
+                dataOffset += 8;
+
+                var a = [], offset, i, iterations = Math.floor((this.response.byteLength - dataOffset)/8);
+                for(offset=dataOffset, i=0; i < iterations; offset += 8, i++){
+                   a[i] = data.getFloat64(offset, false);
+                }
+                console.log(a);
+                console.log(new Float64Array(a));
+                //console.log("First two values:", new Int32Array(this.response, 0, 2));
+                //console.log("Next two values:", new Float64Array(this.response, 8, 2));
+                //console.log("Last values:", new Float64Array(this.response, 2*4 + 2*8 , (this.response.byteLength - (2*4 +2*8)) / 8))  
+            } 
+            xhr.send();
+        });
+      }); 
 
     // Traps camera movement, used for analyzing when new layer data should be requested
     $("#camera_player-camera").bind("DOMAttrModified", function() {
