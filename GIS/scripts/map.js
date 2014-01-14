@@ -1,10 +1,13 @@
 var xmlDocW3DS;
 var spinner;
 var baseUrl = "http://dev.cyberlightning.com:9091/geoserver/";
+// var baseUrl = "http://localhost:9090/geoserver/";
 var spinnerCounter = 0;
 
 (function() {
     var layerNames = [];
+
+    var selectedTerrainLayer = null;
 
     // var selectedTerrainTextureName = null;
     // var selectedTerrainTextureCRS = null;
@@ -39,25 +42,56 @@ var spinnerCounter = 0;
         xmlDocW3DS = new DOMParser().parseFromString(response,'text/xml');
         var x = xmlDocW3DS.getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "Layer");
 
+        var combo = document.getElementById('select_Layer');
+        var option = document.createElement('option');
+        option.text = "Select terrain layer";
+        option.value = "select_terrain_layer";
+        try {
+            combo.add(option, null); //Standard 
+        } catch(error) {
+            combo.add(option); // IE only
+        }
 
-        $('#checkboxdiv').append('<br/>');
+        for (i=4;i<=10;i++){ 
+
+        }
+
+        $('#select3DobjectLayer').append('<br/>');
         for (i=0;i<x.length;i++)
             { 
-            var checkboxtext = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue;
-            var checkboxvalue = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Title")[0].childNodes[0].nodeValue;
-            $('#checkboxdiv').append(
-               $(document.createElement('input')).attr({
-                   id:    checkboxvalue
-                  ,name:  checkboxtext
-                  ,value: checkboxvalue
-                  ,type:  'checkbox'
-               })
-            );
-            $('#checkboxdiv').append(
-               $(document.createElement('label')).text(checkboxtext));
-            $('#checkboxdiv').append('<br/>');
+            var layerText = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue;
+            // layerText = layerText.replace(/[:]/g,'-');
+            var layerValue = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Title")[0].childNodes[0].nodeValue;
+            // Add only those layers to terrain selection which contains "terrain" in their name
+            if (layerText.indexOf('terrain')===-1){
+                $('#select3DobjectLayer').append(
+                   $(document.createElement('input')).attr({
+                       id:    layerValue
+                      ,name:  layerValue
+                      ,value: layerText
+                      ,type:  'checkbox'
+                   })
+                );
+                $('#select3DobjectLayer').append(
+                   $(document.createElement('label')).text(layerText));
+                $('#select3DobjectLayer').append('<br/>');
 
-            layerNames.push(checkboxvalue);
+
+                layerNames.push(layerValue);    
+            } 
+            // Assumption is that layers which doesn't contain "terrain" in their name cointains points and URI for XML3D 
+            // definitions to be placed in the point location
+            else{
+                var combo = document.getElementById("select_Layer");
+                var option = document.createElement("option");
+                option.text = layerText;
+                option.value = layerValue;
+                try {
+                    combo.add(option, null); //Standard 
+                } catch(error) {
+                    combo.add(option); // IE only
+                }
+            }          
         }
     }
 
@@ -84,28 +118,33 @@ var spinnerCounter = 0;
 
     // Traps selection list click event and launch layer detail fetching funtion
      $(function() {
-        $("#SelecLayersButton").click(function(e) {
-            console.log("SelecLayersButton clicked");
+        $("#SelectLayersButton").click(function(e) {
+            console.log("SelectLayersButton clicked");
             // console.log("Selection list item: "+this.options[this.selectedIndex].value);
             
-            var selectedLayers = [];
-            console.log(selectedLayers.length);
+            var selectedObjectLayers = [];
+            console.log(selectedObjectLayers.length);
 
+            // Check which 3D object layers are selected
             for (i=0; i<layerNames.length; i++){
                 console.log(layerNames[i]);
-                if($('#'+layerNames[i]).is(':checked')){
+                console.log(document.getElementById(layerNames[i]).value);
+                // console.log($('#'+layerNames[i]).name);
+                    if ($('#'+layerNames[i]).is(':checked')){
                     console.log(layerNames[i]+" is checked");
-                    newLayer = true;
-                    selectedLayers.push(layerNames[i]);
+                    selectedObjectLayers.push(layerNames[i]);
                     
                 }
             }
             // Send selected layer information to scenemanager for further processing
-            console.log(selectedLayers.length);
-            if (selectedLayers.length > 0){
-                // getLayerDetails(baseUrl, selectedLayers, selectedTerrainTextureName, selectedTerrainTextureCRS);
-                getLayerDetails(baseUrl, selectedLayers);
-            }            
+            // console.log("selectedLayers.length: "+selectedLayers.length);
+            // if (selectedLayers.length > 0){
+            //     // getLayerDetails(baseUrl, selectedLayers, selectedTerrainTextureName, selectedTerrainTextureCRS);
+            //     getLayerDetails(baseUrl, selectedLayers);
+            // }            
+
+            newLayer = true;
+            getLayerDetails(selectedTerrainLayer, selectedObjectLayers);
 
             // Unfocus button to prevent accidental buttons pressing
             $(this).blur();
@@ -171,6 +210,21 @@ var spinnerCounter = 0;
         });
       });
 
+    // handles terrain layer selection
+    $(function() {
+        $("#select_Layer").click(function(e) {
+            console.log("Selection list item: "+this.options[this.selectedIndex].text);
+            e.preventDefault(); // if desired...
+            if (this.options[this.selectedIndex].value === 'select_terrain_layer'){
+                // Select layer-option pressed, do nothing
+                console.log("select_terrain_layer");
+            }
+            else{
+                selectedTerrainLayer = this.options[this.selectedIndex].text;
+            }
+        });
+      });
+
     $(function() {
         $("#Octet_query_Button").click(function(e) {
             e.preventDefault(); // if desired...
@@ -179,6 +233,7 @@ var spinnerCounter = 0;
             xhr.responseType ="arraybuffer"; 
 
             xhr.onload = function() { 
+                console.log(">>>>>>>>>Octet-Stream test output")
                 var data = new DataView(this.response), i, MAGICAL_DRAGON_OFFSET = 9, dataOffset = MAGICAL_DRAGON_OFFSET;
 
                 console.log("1. value (big endian):", data.getInt32(dataOffset, false));
@@ -199,6 +254,8 @@ var spinnerCounter = 0;
                 //console.log("First two values:", new Int32Array(this.response, 0, 2));
                 //console.log("Next two values:", new Float64Array(this.response, 8, 2));
                 //console.log("Last values:", new Float64Array(this.response, 2*4 + 2*8 , (this.response.byteLength - (2*4 +2*8)) / 8))  
+
+                console.log("<<<<<<<<<<<<<<Octet-Stream test output")
             } 
             xhr.send();
         });
@@ -299,7 +356,7 @@ function initTextureSelection(){
 
                 var combo = document.getElementById('selectTexture');
                 var option = document.createElement('option');
-                option.text = "Select layer texture";
+                option.text = "Select texture";
                 option.value = "select_layer_texture";
                 try {
                     combo.add(option, null); //Standard 
@@ -339,7 +396,7 @@ function initTextureSelection(){
 function initGridBlockSelection(){
     var combo = document.getElementById('selectGridRowColNumber');
     var option = document.createElement('option');
-    option.text = "Select grid block division";
+    option.text = "Select grid";
     option.value = "select_grid_block_division";
     try {
         combo.add(option, null); //Standard 

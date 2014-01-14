@@ -24,14 +24,16 @@
     .menu
     {
       max-width: 20%;
-      max-height: 30%;  
+      min-height: 100%;  
       margin-top: 5px;       
       margin-left: 5px;
       margin-right: 5px;
-      padding: 3px;
-      background-color:#FFD700;
+      margin-bottom: 1px;
+      padding: 5px;
+      padding-bottom: 20px;
+      background-color:#660066;
+      color:#ffffff;
       float:left;
-/*      font-size:90%*/
     }
     .content
     {
@@ -49,24 +51,36 @@
 <body onload="initsettings()">
   <div id="loading" class="wrapper"></div>
 
-  <div id="menu" class="menu" style="">
-    <p>Scene initialization values needs to be set first. At least layer selection needs to be done. After selections are done, terrain can be loaded by pressing "<i>Load selected layer data</i>"-button. </p>
-    <div id="checkboxdiv"><b>Select layer:</b> </div> 
-    <select id="selectTexture"></select>
-    <select id="selectTextureRes"></select>
-    <select id="selectLodLevel"></select>
+  <div id="menu" class="menu" style="max-width: 250px">
+    <img src="http://www.cyberlightning.com/sites/default/themes/CL/logo.png" style="max-width: 250px"></img>
+    Scene initialization values needs to be set first. At least layer selection needs to be done. After selections are done, terrain can be loaded by pressing "<i>Load selected layer data</i>"-button.<hr/>
+    <div id="select_Layer_div" style="max-width: 250px"><b>Select terrain layer:</b> 
+      <select id="select_Layer" style="max-width: 200px"></select>
+    </div> 
+    <div id="select3DobjectLayer" style="max-width: 250px"><b>Select objects:</b> </div> 
+    <b> Select terrain texture:</b> 
+    <select id="selectTexture" style="max-width: 200px"></select>
     <br/>
-    "<i>Reset view</i>"-button needs to be used before modifying grid block value
+    <b>Select terrain texture resolution:</b><br/> 
+    <select id="selectTextureRes" style="max-width: 200px"></select>
     <br/>
+    <b>Select Level Of Details:</b> 
+    <br/> 
+    <select id="selectLodLevel" style="max-width: 200px"></select>
+    <br/>
+    "<i>Reset view</i>"-button needs to be used before modifying grid block value.
+    <br/> 
+
     <select id="selectGridRowColNumber"></select>
 
-    <div id="submitReset">
-      <br/>
-      <button id="SelecLayersButton" style="background-color:#33FF00">Load selected layer data</button>
-      <button id="resetScreenButton" style="background-color:#FF6600" onclick="reloadPage()">Reset view</button>
-    </div>
-    <br/>
+    <div id="octet_test" style="margin-top: 20px;">
     <button id="Octet_query_Button" style="background-color:#00FFFF">Test octet-stream query</button>
+    </div>
+
+    <div id="submitReset">
+      <button id="SelectLayersButton" style="background-color:#33FF00;margin-top:20px;margin-right: 20px;max-width: 100px;">Load selected layer data</button>
+      <button id="resetScreenButton" style="background-color:#FF6600;max-width: 70px;" onclick="reloadPage()">Reset view</button>
+    </div>
   </div> 
 
   <div id="content" class="content">

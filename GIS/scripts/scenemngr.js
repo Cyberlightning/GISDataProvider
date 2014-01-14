@@ -2,8 +2,6 @@
     // var baseUrl;
     var TerrainTextureName = null;
     var TerrainTextureCRS = null;
-    // var texture_layer = "fiware:V4132H-34B-41G-43A_texture";
-    // var texture_layer = "fiware:aerial_view";
 
     // Array which contains all layer names which data is loaded
     var layerToBeLoaded = [];
@@ -18,8 +16,8 @@
     var textureResolution = 512;
     var terrainTextureCRS = 0;
     var LodLevel = 10;
-    var selectedTerrainTextureName = null;
-    var selectedTerrainTextureCRS = null;
+    // var selectedTerrainTextureName = null;
+    // var selectedTerrainTextureCRS = null;
 
     //has to track which blocks of the layers are loaded
     var LayerBlockHash = new Object();
@@ -56,21 +54,55 @@
     }
 
      // Fetches layer details from GeoServer and passes them to getElements()-function
-    this.getLayerDetails = function(serverUrl, selectedLayerArray) {
-        // console.log("getLayerDetails(): "+serverUrl, selectedLayerArray);
-        baseUrl = serverUrl;
+    this.getLayerDetails = function(selectedLayer, selectedObjectLayers) {
+        console.log("getLayerDetails(): "+selectedLayer, selectedObjectLayers);
+        // baseUrl = serverUrl;
         var x = xmlDocW3DS.getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "Layer");
 
-        for (k=0; k<selectedLayerArray.length;k++){
+        // for (k=0; k<selectedLayerArray.length;k++){
+        //     for (i=0;i<x.length;i++) {
+        //         if (selectedLayerArray[k] === x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Title")[0].childNodes[0].nodeValue) {
+        //             // console.log(selectedLayerArray[k]);
+        //             // console.log(x[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue);
+        //             // console.log(x[i].getElementsByTagName("Identifier")[0].childNodes[0].nodeValue);
+
+        //             // console.log(x[i].getElementsByTagName("OutputFormat")[0].childNodes[0].nodeValue);
+        //             // console.log(x[i].getElementsByTagName("DefaultCRS")[0].childNodes[0].nodeValue);
+
+        //             initSceneMngr(x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue,
+        //                           x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "LowerCorner")[0].childNodes[0].nodeValue,
+        //                           x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "UpperCorner")[0].childNodes[0].nodeValue,
+        //                           x[i].getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "DefaultCRS")[0].childNodes[0].nodeValue
+        //                           );
+        //             layerToBeLoaded.push(x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue);
+        //         }
+        //     }
+        // } 
+
+        for (i=0;i<x.length;i++) {
+            if (selectedLayer === x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue) {
+                console.log(selectedLayer);
+                // console.log(x[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue);
+                // console.log(x[i].getElementsByTagName("Identifier")[0].childNodes[0].nodeValue);
+
+                // console.log(x[i].getElementsByTagName("OutputFormat")[0].childNodes[0].nodeValue);
+                // console.log(x[i].getElementsByTagName("DefaultCRS")[0].childNodes[0].nodeValue);
+
+                initSceneMngr(x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue,
+                              x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "LowerCorner")[0].childNodes[0].nodeValue,
+                              x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "UpperCorner")[0].childNodes[0].nodeValue,
+                              x[i].getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "DefaultCRS")[0].childNodes[0].nodeValue
+                              );
+                layerToBeLoaded.push(x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue);
+            }
+        } 
+            
+
+        for (k=0; k<selectedObjectLayers.length;k++){
             for (i=0;i<x.length;i++) {
-                if (selectedLayerArray[k] === x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Title")[0].childNodes[0].nodeValue) {
-                    // console.log(selectedLayerArray[k]);
-                    // console.log(x[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue);
-                    // console.log(x[i].getElementsByTagName("Identifier")[0].childNodes[0].nodeValue);
-
-                    // console.log(x[i].getElementsByTagName("OutputFormat")[0].childNodes[0].nodeValue);
-                    // console.log(x[i].getElementsByTagName("DefaultCRS")[0].childNodes[0].nodeValue);
-
+                console.log("selectedObjectLayers--- "+i);
+                if (selectedObjectLayers[k] === x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Title")[0].childNodes[0].nodeValue) {
+                    console.log("Add object layer "+selectedObjectLayers[k]);
                     initSceneMngr(x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue,
                                   x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "LowerCorner")[0].childNodes[0].nodeValue,
                                   x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "UpperCorner")[0].childNodes[0].nodeValue,
@@ -79,7 +111,10 @@
                     layerToBeLoaded.push(x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue);
                 }
             }
-        }            
+        }
+        
+
+
         var MinX = LayerMinX;
         var MinY = LayerMinY;
         var MaxX = LayerMinX + blocklengthX;
@@ -219,9 +254,6 @@
 
         var xml3dobject = document.getElementById("xml3dContent");
         // console.log("getElements transformX, transformY :"+ transformX, transformY);
-
-        // CamInitCenterX = parseFloat(lowerCornerX+(blocklengthX / layerBlockGridsplit));
-        // CamInitCenterY = parseFloat(lowerCornerY+(blocklengthY / layerBlockGridsplit));    
         
         xml3dobject.setAttribute("width", screenWidth);
         xml3dobject.setAttribute("height", screenHeight);
