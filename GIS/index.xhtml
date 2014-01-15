@@ -2,53 +2,53 @@
 <head>
     <script type="text/javascript" src="deps/xml3d.js"></script>
     <script type="text/javascript" src="scripts/camera.js"></script>
-    <!-- // <script type="text/javascript" src="http://www.xml3d.org/xml3d/script/tools/camera.js"></script>  -->
     <script type="text/javascript" src="deps/jquery.min.js"></script>
     <script type="text/javascript" src="deps/spin.min.js"></script>
 
     <title>GIS Data Provider test client</title>
 
     <style type="text/css">
-    body, html {
-      margin:0;
-      padding:0;
-      overflow:hidden;
-      background-color:#ffffff;
-    }
-    .wrapper {
-      position:absolute;
-      top:50%;
-      left:50%;
-      display:none;
-    }
-    .menu
-    {
-      max-width: 20%;
-      min-height: 100%;  
-      margin-top: 5px;       
-      margin-left: 5px;
-      margin-right: 5px;
-      margin-bottom: 1px;
-      padding: 5px;
-      padding-bottom: 20px;
-      background-color:#660066;
-      color:#ffffff;
-      float:left;
-    }
-    .content
-    {
-      max-width: 10%;
-      max-height: 30%;  
-      margin-top: 5px;       
-      margin-left: auto;
-      margin-right: auto;
-      padding: 3px;   
-      float:left;   
-    }
+      body, html {
+        margin:0;
+        padding:0;
+        height: 100%; 
+        overflow:hidden;
+        background-color:#ffffff;
+      }
+      .wrapper {
+        position:absolute;
+        top:50%;
+        left:50%;
+        display:none;
+      }
+      .menu
+      {
+        height: 100%;   
+        max-width: 20%;       
+        margin-top: 5px;       
+        margin-left: 5px;
+        margin-right: 5px;
+        margin-bottom: 5px;
+        padding: 5px;
+        padding-bottom: 20px;
+        background-color:#660066;
+        color:#ffffff;
+        float:left;
+      }
+      .content
+      {
+        height: 100%;   
+        max-width: 10%;
+        margin-top: 5px;       
+        margin-left: 0px;
+        margin-right: auto;
+        padding: 3px;   
+        float:left;   
+      }
   </style>
 
 </head>
-<body onload="initsettings()">
+<body onload="initsettings()" style="height: 100%;">
   <div id="loading" class="wrapper"></div>
 
   <div id="menu" class="menu" style="max-width: 250px">

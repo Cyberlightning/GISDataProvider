@@ -1,16 +1,12 @@
 var xmlDocW3DS;
 var spinner;
 var baseUrl = "http://dev.cyberlightning.com:9091/geoserver/";
-// var baseUrl = "http://localhost:9090/geoserver/";
 var spinnerCounter = 0;
 
 (function() {
     var layerNames = [];
 
     var selectedTerrainLayer = null;
-
-    // var selectedTerrainTextureName = null;
-    // var selectedTerrainTextureCRS = null;
 
     var spinOpts = {
           lines: 30, // The number of lines to draw
@@ -60,7 +56,6 @@ var spinnerCounter = 0;
         for (i=0;i<x.length;i++)
             { 
             var layerText = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue;
-            // layerText = layerText.replace(/[:]/g,'-');
             var layerValue = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Title")[0].childNodes[0].nodeValue;
             // Add only those layers to terrain selection which contains "terrain" in their name
             if (layerText.indexOf('terrain')===-1){
@@ -136,39 +131,31 @@ var spinnerCounter = 0;
                     
                 }
             }
-            // Send selected layer information to scenemanager for further processing
-            // console.log("selectedLayers.length: "+selectedLayers.length);
-            // if (selectedLayers.length > 0){
-            //     // getLayerDetails(baseUrl, selectedLayers, selectedTerrainTextureName, selectedTerrainTextureCRS);
-            //     getLayerDetails(baseUrl, selectedLayers);
-            // }            
 
             newLayer = true;
             getLayerDetails(selectedTerrainLayer, selectedObjectLayers);
 
             // Unfocus button to prevent accidental buttons pressing
             $(this).blur();
-
             e.preventDefault(); // if desired...
         });
       });
 
+    // Terrain texture selection handling
     $(function() {
         $("#selectTexture").change(function(){
-           // alert( this.options[this.selectedIndex].id )
-           // alert($("#selectTexture option:selected").text());
            var selectedTerrainTextureName = $("#selectTexture option:selected").text();
            var selectedTerrainTextureCRS = $("#selectTexture option:selected").val();
            setTextureInfo(selectedTerrainTextureName, selectedTerrainTextureCRS);
 
-           console.log("select_texture: "+selectedTerrainTextureName, selectedTerrainTextureCRS);
+           // console.log("select_texture: "+selectedTerrainTextureName, selectedTerrainTextureCRS);
         });
     });
 
-     // user selected resolution for terrain texture
+     // User selected resolution for terrain texture
      $(function() {
         $("#selectTextureRes").click(function(e) {
-            console.log("Selection list item: "+this.options[this.selectedIndex].value);
+            // console.log("Selection list item: "+this.options[this.selectedIndex].value);
             e.preventDefault();
             if (this.options[this.selectedIndex].value === 'select_texture_resolution'){
                 // Select layer-option pressed, do nothing
@@ -183,7 +170,7 @@ var spinnerCounter = 0;
      // user selected LOD level
      $(function() {
         $("#selectLodLevel").click(function(e) {
-            console.log("Selection list item: "+this.options[this.selectedIndex].value);
+            // console.log("Selection list item: "+this.options[this.selectedIndex].value);
             e.preventDefault();
             if (this.options[this.selectedIndex].value === 'select_LOD_level'){
                 // Select layer-option pressed, do nothing
@@ -198,7 +185,7 @@ var spinnerCounter = 0;
      // gets user selected value for grid division
     $(function() {
         $("#selectGridRowColNumber").click(function(e) {
-            console.log("Selection list item: "+this.options[this.selectedIndex].value);
+            // console.log("Selection list item: "+this.options[this.selectedIndex].value);
             e.preventDefault(); // if desired...
             if (this.options[this.selectedIndex].value === 'select_grid_block_division'){
                 // Select layer-option pressed, do nothing
@@ -213,7 +200,7 @@ var spinnerCounter = 0;
     // handles terrain layer selection
     $(function() {
         $("#select_Layer").click(function(e) {
-            console.log("Selection list item: "+this.options[this.selectedIndex].text);
+            // console.log("Selection list item: "+this.options[this.selectedIndex].text);
             e.preventDefault(); // if desired...
             if (this.options[this.selectedIndex].value === 'select_terrain_layer'){
                 // Select layer-option pressed, do nothing
@@ -225,6 +212,7 @@ var spinnerCounter = 0;
         });
       });
 
+    // Test function for octet-stream testing
     $(function() {
         $("#Octet_query_Button").click(function(e) {
             e.preventDefault(); // if desired...
@@ -264,23 +252,23 @@ var spinnerCounter = 0;
     // Traps camera movement, used for analyzing when new layer data should be requested
     $("#camera_player-camera").bind("DOMAttrModified", function() {
         // console.log("#camera_player-camera).bind(DOMAttrModified");
+
         // check flag if new layer is loaded, because in this case camera height needs to be adjusted 
         // and that operation tricks this function unneseccary. We want to see only camera movements after new layer is initialized
-        // if (newLayer){
-            var cam = document.getElementById("camera_player-camera");
-            var coordinates = cam.getAttribute("position");
-            if (!oldCoordinates && coordinates !== null){
-                oldCoordinates = coordinates;
+
+        var cam = document.getElementById("camera_player-camera");
+        var coordinates = cam.getAttribute("position");
+        if (!oldCoordinates && coordinates !== null){
+            oldCoordinates = coordinates;
+        }
+        // console.log("oldCoordinates: "+oldCoordinates);
+        // console.log("coordinates: "+coordinates);
+        if ((coordinates != null) && (coordinates !==oldCoordinates)) {
+            var coordSplit = coordinates.split(" ");
+            var currentX = parseFloat(coordSplit[0]);
+            var currentY = parseFloat(coordSplit[2]);
+            calculateCurrentPosLayerBlock(currentX, currentY);        
             }
-            // console.log("oldCoordinates: "+oldCoordinates);
-            // console.log("coordinates: "+coordinates);
-            if ((coordinates != null) && (coordinates !==oldCoordinates)) {
-                var coordSplit = coordinates.split(" ");
-                var currentX = parseFloat(coordSplit[0]);
-                var currentY = parseFloat(coordSplit[2]);
-                calculateCurrentPosLayerBlock(currentX, currentY);        
-                }
-        // }
     })
 
 
@@ -296,10 +284,9 @@ var spinnerCounter = 0;
     
 }());
 
-$( document ).ready(function() {
-    console.log( "ready!" );
-});
 
+// Start function for spinner start.
+// Every time function is called "spinnerCounter" counter is increased.
 function startSpinner(){    
     if (spinnerCounter === 0){
         $("#loading").show();
@@ -309,6 +296,9 @@ function startSpinner(){
     
 };
 
+// Stop function for stopping spinner.
+// Every time function is called "spinnerCounter" counter is decreased. 
+// Spinner is stopped when counter value is "0"
 function stopSpinner(){
     spinnerCounter -= 1;
     if (spinnerCounter === 0){
@@ -344,52 +334,52 @@ function initTexttureSelection(){
 
 function initTextureSelection(){
     var xmlhttp;
-        if (window.XMLHttpRequest) {
-            xmlhttp = new XMLHttpRequest();
-        } else {
-            xmlhttp = new XDomainRequest();
-        }
+    if (window.XMLHttpRequest) {
+        xmlhttp = new XMLHttpRequest();
+    } else {
+        xmlhttp = new XDomainRequest();
+    }
 
-            xmlhttp.onreadystatechange = function() {
-            if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-                // console.log(xmlhttp.responseText);
+        xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+            // console.log(xmlhttp.responseText);
 
-                var combo = document.getElementById('selectTexture');
-                var option = document.createElement('option');
-                option.text = "Select texture";
-                option.value = "select_layer_texture";
-                try {
-                    combo.add(option, null); //Standard 
-                } catch(error) {
-                    combo.add(option); // IE only
-                }
+            var combo = document.getElementById('selectTexture');
+            var option = document.createElement('option');
+            option.text = "Select texture";
+            option.value = "select_layer_texture";
+            try {
+                combo.add(option, null); //Standard 
+            } catch(error) {
+                combo.add(option); // IE only
+            }
 
-                var xmlDoc = new DOMParser().parseFromString(xmlhttp.responseText,'text/xml');
-                var x = xmlDoc.getElementsByTagNameNS("http://www.opengis.net/wms", "Layer");
+            var xmlDoc = new DOMParser().parseFromString(xmlhttp.responseText,'text/xml');
+            var x = xmlDoc.getElementsByTagNameNS("http://www.opengis.net/wms", "Layer");
 
-                for (i=0;i<x.length;i++)
-                    { 
-                    var textureName = x[i].getElementsByTagNameNS("http://www.opengis.net/wms", "Name")[0].childNodes[0].nodeValue;
-                    var textureCRS = x[i].getElementsByTagNameNS("http://www.opengis.net/wms", "CRS")[0].childNodes[0].nodeValue;
-                    if (textureName.indexOf('texture')!=-1 && textureCRS.indexOf('AUTO')==-1){
-                        console.log(textureName);
-                        console.log(textureCRS);
-                        var combo = document.getElementById("selectTexture");
-                        var option = document.createElement("option");
-                        option.text = textureName;
-                        option.value = textureCRS;
-                        try {
-                            combo.add(option, null); //Standard 
-                        } catch(error) {
-                            combo.add(option); // IE only
-                        }
+            for (i=0;i<x.length;i++)
+                { 
+                var textureName = x[i].getElementsByTagNameNS("http://www.opengis.net/wms", "Name")[0].childNodes[0].nodeValue;
+                var textureCRS = x[i].getElementsByTagNameNS("http://www.opengis.net/wms", "CRS")[0].childNodes[0].nodeValue;
+                if (textureName.indexOf('texture')!=-1 && textureCRS.indexOf('AUTO')==-1){
+                    console.log(textureName);
+                    console.log(textureCRS);
+                    var combo = document.getElementById("selectTexture");
+                    var option = document.createElement("option");
+                    option.text = textureName;
+                    option.value = textureCRS;
+                    try {
+                        combo.add(option, null); //Standard 
+                    } catch(error) {
+                        combo.add(option); // IE only
                     }
                 }
             }
         }
+    }
 
-        xmlhttp.open("GET", baseUrl + "ows?service=wms&version=1.3.0&request=GetCapabilities" , true);
-        xmlhttp.send();
+    xmlhttp.open("GET", baseUrl + "ows?service=wms&version=1.3.0&request=GetCapabilities" , true);
+    xmlhttp.send();
 
 };
 
