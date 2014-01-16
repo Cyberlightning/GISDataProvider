@@ -154,7 +154,7 @@ var spinnerCounter = 0;
 
      // User selected resolution for terrain texture
      $(function() {
-        $("#selectTextureRes").click(function(e) {
+        $("#selectTextureRes").change(function(e) {
             // console.log("Selection list item: "+this.options[this.selectedIndex].value);
             e.preventDefault();
             if (this.options[this.selectedIndex].value === 'select_texture_resolution'){
@@ -169,7 +169,7 @@ var spinnerCounter = 0;
 
      // user selected LOD level
      $(function() {
-        $("#selectLodLevel").click(function(e) {
+        $("#selectLodLevel").change(function(e) {
             // console.log("Selection list item: "+this.options[this.selectedIndex].value);
             e.preventDefault();
             if (this.options[this.selectedIndex].value === 'select_LOD_level'){
@@ -184,7 +184,7 @@ var spinnerCounter = 0;
 
      // gets user selected value for grid division
     $(function() {
-        $("#selectGridRowColNumber").click(function(e) {
+        $("#selectGridRowColNumber").change(function(e) {
             // console.log("Selection list item: "+this.options[this.selectedIndex].value);
             e.preventDefault(); // if desired...
             if (this.options[this.selectedIndex].value === 'select_grid_block_division'){
@@ -199,7 +199,7 @@ var spinnerCounter = 0;
 
     // handles terrain layer selection
     $(function() {
-        $("#select_Layer").click(function(e) {
+        $("#select_Layer").change(function(e) {
             // console.log("Selection list item: "+this.options[this.selectedIndex].text);
             e.preventDefault(); // if desired...
             if (this.options[this.selectedIndex].value === 'select_terrain_layer'){

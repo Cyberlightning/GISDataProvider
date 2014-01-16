@@ -457,14 +457,7 @@
         var newGroup = document.createElement('group');
         var IdName = layerName+transformX+transformY;
         var xmlnsTagContent = 'http://www.xml3d.org/2009/xml3d';
-        newGroup.setAttribute('id',IdName);
-        newGroup.setAttribute('xmlns',xmlnsTagContent);
-        newGroup.setAttribute('shader','#'+IdName+'shader');
-        newGroup.setAttribute('transform','#'+IdName+'transform');
-
-        $(newGroup).append(xml3dData);
-        $("#MaxScene").append(newGroup);
-
+        
         // Create layer specific shader
         var layerShader = document.createElement('shader');
         layerShader.setAttribute('id',IdName+'shader');
@@ -492,6 +485,13 @@
         transformation.setAttribute('translation',(transformX*blocklengthX)+' 0 '+((-transformY*blocklengthY)));
 
         $('#defs').append(layerShader,transformation);
+
+        newGroup.setAttribute('id',IdName);
+        newGroup.setAttribute('xmlns',xmlnsTagContent);
+        newGroup.setAttribute('shader','#'+IdName+'shader');
+        newGroup.setAttribute('transform','#'+IdName+'transform');
+        $(newGroup).append(xml3dData);
+        $("#MaxScene").append(newGroup);
 
         if (newLayer) {
             // getTerrainElevationRefPoint();
