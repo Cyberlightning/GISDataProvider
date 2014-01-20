@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <!-- Style -->
-  
+
   <link rel="stylesheet" type="text/css" media="all" href="../../css/jquery-ui.css"/>
   <!-- Scripts -->
   <script type="text/javascript" src="../../deps/xml3d.js">
@@ -13,11 +13,11 @@
   </script>
   <script type="text/javascript" src="../../deps/xml3d-camera.js">
   </script>
-  
+
   <script type="text/javascript" src="../../deps/simplex-noise.min.js"/>
-  
+
   <title>Cyberlightning - Terrain</title>
-  
+
   <script type="text/javascript">
       // Init Slider Control
       function updateWaveConfig() {
@@ -43,7 +43,7 @@
               }
       );
   </script>
-  
+
   <style type="text/css">
     body, html {
       margin: 0;
@@ -52,7 +52,7 @@
       overflow: hidden;
       background-color: #ffffff;
     }
-    
+
     .menu {
       height: 100%;
       max-width: 20%;
@@ -66,21 +66,21 @@
       color: #660066;
       float: left;
     }
-    
+
     .button {
       background-color: #ffffff;
       color: #660066;
     }
-    
+
     .info {
       color: #660066;
     }
     .slider {
       color: #660066;
     }
-    
+
   </style>
-  
+
   </head>
   <body>
     <div id="overall">
@@ -109,7 +109,7 @@
       onclick="elevationRequest(374549,7550190,379645,7555290, 0);textureRequest(374549,7550190,379645,7555290, 256);">
         Low Details
       </button>
-      
+
       <div class="option">
         <label>
           Light intensity
@@ -121,15 +121,15 @@
   <div class="info" id="info">
   </div>
   </div>
-  
+
   <xml3d id="myxml3d" class="xml3d" activeView="#Camera" style="background: white;" onload="getOctet();"
   xmlns="http://www.xml3d.org/2009/xml3d">
-    
+
     <navigation mode="examine" speed="0"/>
          <defs id="mainDef">
-           
+
            <!--- Not so important part: -->
-           
+
            <lightshader id="light1" script="urn:xml3d:lightshader:directional" >
              <float3 name="intensity" id="intensity">
                2 2 2
@@ -141,7 +141,7 @@
                5 -5.5 5.0
              </float3>
            </lightshader>
-           
+
            <shader id="Material" script="urn:xml3d:shader:phong">
              <float name="ambientIntensity">
                0.2
@@ -159,20 +159,20 @@
                0.0978473581213
              </float>
            </shader>
-           
+
            <transform id="t_Camera" rotation="-0.641815 0.733700 0.223063 1.145952" scale="1 1 1"
            translation="3.184399 3.711076 2.405665"/>
            <transform id="t_Grid" rotation="1 0.000000 0.000000 0.000000" scale="25.000000 25.000000 25.000000"
            translation="0.000000 0.00 0.000000"/>
            <transform id="t_Lamp" rotation="0.205942 0.331517 0.920698 1.926274" scale="1 1 1"
            translation="2.086632 10.648042 1.161145"/>
-           
+
            <data id="customGeneratedGrid" compute="(position, normal, texcoord, index) = xflow.customgrid(area)">
              <int name="area" id="area">
                128
              </int>
            </data>
-           
+
            <!-- Transform Grid to Waves: -->
 
            <data id="webclTerrain" compute="(position, normal) = xflow.clDeform(position, normal, amplitude , phase)">
@@ -193,12 +193,12 @@
              true
            </bool>
          </defs>
-         
+
          <view id="Camera" orientation="0.9942595958709717 0.042695533484220505 0.09810669720172882 2.699319334783083"
          position="12.303448677062988 -37.300498962402344 -65.11109161376953"/>
-         
+
          <!-- Wave Shape Display: -->
-         
+
          <group shader="#Material" transform="#t_Grid">
            <mesh type="triangles">
              <data src="#webclTerrain"/>
@@ -206,7 +206,7 @@
          </group>
 
   </xml3d>
-  
+
   <script type="text/javascript">
 
       <![CDATA[
@@ -325,16 +325,8 @@
                   yy +
                   "&amp;width=" + resolution + "&amp;height=" + resolution + "&amp;srs=EPSG:3067&amp;format=image%2Fpng";
 
-          var xhr2 = new XMLHttpRequest();
-          xhr2.open("GET", texture, true);
-          xhr2.responseType = "";
 
-          xhr2.onload = function () {
-
-              document.getElementById("texque").setAttribute("src", texture);
-          }
-
-          xhr2.send();
+          document.getElementById("texque").setAttribute("src", texture);
 
       }
 
