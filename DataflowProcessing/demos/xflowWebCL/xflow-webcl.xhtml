@@ -1,11 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <!-- Style -->
     <link rel="stylesheet" type="text/css" media="all" href="../../css/layout.css"/>
 
     <!-- Scripts -->
-    <script type="text/javascript" src="../../deps/xml3d.new.js"></script>
+    <script type="text/javascript" src="../../deps/xml3d.js"></script>
     <script type="text/javascript" src="../../deps/xml3d-camera.js"></script>
 
 
@@ -38,11 +39,10 @@
                 </data>
             </data-->
 
-            <dataflow id="images" out="image, desaturated, blurred, thresholded" platform="js">
-                <texture name="image">
-                    <img id="srcimg" src="../../assets/water.gif" style="display:none;"/>
-                    <!--video src="dizzy.ogv"/-->
-                </texture>
+
+            <dataflow id="images" out="image, desaturated, blurred, thresholded">
+
+                <data name="input" src="#imageInput"/>
 
                 <int name="blurSize">10</int>
                 <int name="threshold">10</int>
@@ -53,6 +53,18 @@
                     thresholded = xflow.thresholdImage(desaturated, threshold);
                 </compute>
             </dataflow>
+
+            <data id="videoInput">
+                <texture name="image">
+                    <video id="video" src=""/>
+                </texture>
+            </data>
+
+            <data id="imageInput">
+                <texture name="image">
+                    <img src="../../assets/water.gif" style="display:none;"/>
+                </texture>
+            </data>
 
             <shader id="texture1" script="urn:xml3d:shader:phong">
                 <float3 name="diffuseColor">1.5 1.5 1.5</float3>
@@ -128,10 +140,13 @@
 <script type="text/javascript" src="XflowWebCLNodes.js"></script>
 <script type="text/javascript">
     (function (e) {
+
+
         var theta = 0;
         var blurSize = document.querySelector("[name = 'blurSize']");
         var threshold = document.querySelector("[name = 'threshold']");
-        var texture = document.querySelector("[name = 'image']");
+        var inputData = document.querySelector("[name = 'input']");
+        var videoEl = document.getElementById("video");
         var processVidButton = document.getElementById("processVideo");
         var processImgButton = document.getElementById("processImage");
 
@@ -143,13 +158,39 @@
 
         }
 
-        //window.setInterval(update, 1000);
+        window.setInterval(update, 1000);
+
+
+        var isWebCLInitialised;
+        var webcl = XML3D.webcl;
+
+        if (!webcl.isAvailable()) {
+            wex.Utils.log("WebCL is not available!");
+            wex.Utils.log("Utilising JavaScript Xflow operators.");
+        } else {
+            isWebCLInitialised = XML3D.data.xflowGraph.platform !== 0;
+
+            if (!isWebCLInitialised) {
+                wex.Utils.log("Utilising JavaScript Xflow operators.");
+                wex.Utils.log("Warning: If you have WebCL enabled, there might be something wrong with the WebCL platform!");
+                wex.Utils.log("Possible reasons:");
+                wex.Utils.log("1. Not enough free memory available",
+                        "2. OpenCL Drivers/Device Drivers or Hardware are not working properly",
+                        "3. Nokia WebCL plugin is not working properly.");
+                wex.Utils.log("Restart your browser and try again. If the problem persists, check the cases above.");
+            } else {
+                wex.Utils.log("Utilising WebCL operators.");
+            }
+        }
 
         processVidButton.addEventListener("click", function () {
-            texture.textContent = "<video src='../../assets/dizzy.ogv'/>";
+            videoEl.setAttribute("src", "../../assets/dizzy.ogv");
+            inputData.setAttribute("src", "#videoInput");
         });
 
         processImgButton.addEventListener("click", function () {
+            inputData.setAttribute("src", "#imageInput");
+            videoEl.setAttribute("src", "");
 
         });
 
