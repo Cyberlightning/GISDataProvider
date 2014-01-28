@@ -19,7 +19,7 @@ $branch = isset($_GET['master']) ? 'master' : 'dev';
 
 <head>
     <title>CYBER-AR</title>
-    <script type="text/javascript" src="../../deps/xml3d.js"></script>
+    <script type="text/javascript" src="../../deps/xml3d.old.js"></script>
     <script type="text/javascript" src="../../deps/alvar.js"></script>
     <script type="text/javascript" src="../../deps/alvar-xflow.js"></script>
     <script type="text/javascript" src="../../deps/phongvs.js"></script>
