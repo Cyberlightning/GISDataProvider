@@ -1,338 +1,347 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
+<head>
     <!-- Style -->
 
-  <link rel="stylesheet" type="text/css" media="all" href="../../css/jquery-ui.css"/>
-  <!-- Scripts -->
-  <script type="text/javascript" src="../../deps/xml3d.old.js">
-  </script>
-  <script type="text/javascript" src="../../deps/jquery-1.8.1.min.js">
-  </script>
-  <script type="text/javascript" src="../../deps/jquery-ui-1.8.23.min.js">
-  </script>
-  <script type="text/javascript" src="../../deps/xml3d-camera.js">
-  </script>
+    <link rel="stylesheet" type="text/css" media="all" href="../../css/jquery-ui.css"/>
+    <!-- Scripts -->
+    <script type="text/javascript" src="../../deps/xml3d.js">
+    </script>
+    <script type="text/javascript" src="../../deps/jquery-1.8.1.min.js">
+    </script>
+    <script type="text/javascript" src="../../deps/jquery-ui-1.8.23.min.js">
+    </script>
+    <script type="text/javascript" src="../../deps/xml3d-camera.js">
+    </script>
 
-  <script type="text/javascript" src="../../deps/simplex-noise.min.js"/>
+    <script type="text/javascript" src="../../deps/simplex-noise.min.js"/>
 
-  <title>Cyberlightning - Terrain</title>
+    <title>Cyberlightning - Terrain</title>
 
-  <script type="text/javascript">
-      // Init Slider Control
-      function updateWaveConfig() {
+    <script type="text/javascript">
+        // Init Slider Control
+        function updateWaveConfig() {
 
-          var intensity = document.getElementById("intensity");
-          var string = $("#slider_intensity").slider("value");
-          string += " " + string + " " + string + " ";
-          intensity.textContent = (string);
-      }
+            var intensity = document.getElementById("intensity");
+            var string = $("#slider_intensity").slider("value");
+            string += " " + string + " " + string + " ";
+            intensity.textContent = (string);
+        }
 
-      $(function () {
-                  $(".slider").slider({
-                              orientation: "horizontal",
-                              range: "min",
-                              slide: updateWaveConfig,
-                              change: updateWaveConfig
-                          }
-                  );
-                  $("#slider_intensity").slider({
-                              min: 0, max: 5, value: 1}
-                  );
-                  updateWaveConfig();
-              }
-      );
-  </script>
+        $(function () {
+                    $(".slider").slider({
+                                orientation: "horizontal",
+                                range: "min",
+                                slide: updateWaveConfig,
+                                change: updateWaveConfig
+                            }
+                    );
+                    $("#slider_intensity").slider({
+                                min: 0, max: 5, value: 1}
+                    );
+                    updateWaveConfig();
+                }
+        );
+    </script>
 
-  <style type="text/css">
-    body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      background-color: #ffffff;
-    }
+    <style type="text/css">
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background-color: #ffffff;
+        }
 
-    .menu {
-      height: 100%;
-      max-width: 20%;
-      margin-top: 5px;
-      margin-left: 5px;
-      margin-right: 5px;
-      margin-bottom: 5px;
-      padding: 5px;
-      padding-bottom: 20px;
-      background-color: #ffffff;
-      color: #660066;
-      float: left;
-    }
+        .menu {
+            height: 100%;
+            max-width: 20%;
+            margin-top: 5px;
+            margin-left: 5px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            padding: 5px;
+            padding-bottom: 20px;
+            background-color: #ffffff;
+            color: #660066;
+            float: left;
+        }
 
-    .button {
-      background-color: #ffffff;
-      color: #660066;
-    }
+        .button {
+            background-color: #ffffff;
+            color: #660066;
+        }
 
-    .info {
-      color: #660066;
-    }
-    .slider {
-      color: #660066;
-    }
+        .info {
+            color: #660066;
+        }
 
-  </style>
+        .slider {
+            color: #660066;
+        }
 
-  </head>
-  <body>
-    <div id="overall">
-      <div id="content">
-        <div id="menu" class="menu" style="max-width: 250px">
-          <img src="http://www.cyberlightning.com/sites/default/themes/CL/logo.png" style="max-width: 250px">
-        </img>
-        <div class="controls">
-          Procedural Terrain
-          <button class="button" onclick="update()">
-          Regenerate Terrain
-          </button>
-          <p>
-          Download Elevation Data
-          </p>
-          
-          <button class="button"
-          onclick="elevationRequest(374549,7550190,379645,7555290, 9);textureRequest(374549,7550190,379645,7555290, 2048);">
+    </style>
+
+</head>
+<body>
+<div id="overall">
+<div id="content">
+<div id="menu" class="menu" style="max-width: 250px">
+    <img src="http://www.cyberlightning.com/sites/default/themes/CL/logo.png" style="max-width: 250px">
+    </img>
+
+    <div class="controls">
+        Procedural Terrain
+        <button class="button" onclick="update()">
+            Regenerate Terrain
+        </button>
+        <p>
+            Download Elevation Data
+        </p>
+
+        <button class="button"
+                onclick="elevationRequest(377099,7552743,379645,7555290, 0);textureRequest(377099,7552743,379645,7555290, 1024);">
             High Details
-      </button>
-      <button class="button"
-      onclick="elevationRequest(374549,7550190,379645,7555290, 5);textureRequest(374549,7550190,379645,7555290, 512);">
-        Medium Details
-      </button>
-      <button class="button"
-      onclick="elevationRequest(374549,7550190,379645,7555290, 0);textureRequest(374549,7550190,379645,7555290, 256);">
-        Low Details
-      </button>
+        </button>
+        <button class="button"
+                onclick="elevationRequest(377099,7552743,379645,7555290, 0);textureRequest(377099,7552743,379645,7555290, 512);">
+            Medium Details
+        </button>
+        <button class="button"
+                onclick="elevationRequest(377099,7552743,379645,7555290, 0);textureRequest(377099,7552743,379645,7555290, 256);">
+            Low Details
+        </button>
 
-      <div class="option">
-        <label>
-          Light intensity
-        </label>
-        <div id="slider_intensity" class="slider" >
+        <div class="option">
+            <label>
+                Light intensity
+            </label>
+
+            <div id="slider_intensity" class="slider">
+            </div>
         </div>
-      </div>
-  </div>
-  <div class="info" id="info">
-  </div>
-  </div>
+    </div>
+    <div class="info" id="info">
+    </div>
+</div>
 
-  <xml3d id="myxml3d" class="xml3d" activeView="#Camera" style="background: white;" onload="getOctet();"
-  xmlns="http://www.xml3d.org/2009/xml3d">
+<xml3d id="myxml3d" class="xml3d" activeView="#Camera" style="background: white;" onload="getOctet();"
+       xmlns="http://www.xml3d.org/2009/xml3d">
 
     <navigation mode="examine" speed="0"/>
-         <defs id="mainDef">
+    <defs id="mainDef">
 
-           <!--- Not so important part: -->
+        <!--- Not so important part: -->
 
-           <lightshader id="light1" script="urn:xml3d:lightshader:directional" >
-             <float3 name="intensity" id="intensity">
-               2 2 2
-             </float3>
-             <bool name="castShadow">
-               true
-             </bool>
-             <float3 name="direction" id="direction">
-               5 -5.5 5.0
-             </float3>
-           </lightshader>
+        <lightshader id="light1" script="urn:xml3d:lightshader:directional">
+            <float3 name="intensity" id="intensity">
+                2 2 2
+            </float3>
+            <bool name="castShadow">
+                true
+            </bool>
+            <float3 name="direction" id="direction">
+                5 -5.5 5.0
+            </float3>
+        </lightshader>
 
-           <shader id="Material" script="urn:xml3d:shader:phong">
-             <float name="ambientIntensity">
-               0.2
-             </float>
-             <texture name="diffuseTexture">
-               <img id="texque" src="../../assets/terrain.jpg"/>
-             </texture>
-             <float3 name="diffuseColor">
-               1 1 1
-             </float3>
-             <float3 name="specularColor">
-               0.5 0.5 0.5
-             </float3>
-             <float name="shininess">
-               0.0978473581213
-             </float>
-           </shader>
+        <shader id="Material" script="urn:xml3d:shader:phong">
+            <float name="ambientIntensity">
+                0.2
+            </float>
+            <texture name="diffuseTexture">
+                <img id="texque" src="../../assets/terrain.jpg"/>
+            </texture>
+            <float3 name="diffuseColor">
+                1 1 1
+            </float3>
+            <float3 name="specularColor">
+                0.5 0.5 0.5
+            </float3>
+            <float name="shininess">
+                0.0978473581213
+            </float>
+        </shader>
 
-           <transform id="t_Camera" rotation="-0.641815 0.733700 0.223063 1.145952" scale="1 1 1"
-           translation="3.184399 3.711076 2.405665"/>
-           <transform id="t_Grid" rotation="1 0.000000 0.000000 0.000000" scale="25.000000 25.000000 25.000000"
-           translation="0.000000 0.00 0.000000"/>
-           <transform id="t_Lamp" rotation="0.205942 0.331517 0.920698 1.926274" scale="1 1 1"
-           translation="2.086632 10.648042 1.161145"/>
+        <transform id="t_Camera" rotation="-0.641815 0.733700 0.223063 1.145952" scale="1 1 1"
+                   translation="3.184399 3.711076 2.405665"/>
+        <transform id="t_Grid" rotation="1 0.000000 0.000000 0.000000" scale="25.000000 25.000000 25.000000"
+                   translation="0.000000 0.00 0.000000"/>
+        <transform id="t_Lamp" rotation="0.205942 0.331517 0.920698 1.926274" scale="1 1 1"
+                   translation="2.086632 10.648042 1.161145"/>
 
-           <data id="customGeneratedGrid" compute="(position, normal, texcoord, index) = xflow.customgrid(area)">
-             <int name="area" id="area">
-               128
-             </int>
-           </data>
+        <data id="customGeneratedGrid" compute="(position, normal, texcoord, index) = xflow.customgrid(area)">
+            <int name="area" id="area">
+                128
+            </int>
+        </data>
 
-           <!-- Transform Grid to Waves: -->
+        <!-- Transform Grid to Waves: -->
 
-           <data id="webclTerrain" compute="(position, normal) = xflow.clDeform(position, normal, amplitude , phase)">
-             <float3 name="elevation" id="elevation">
-               0.0
-             </float3>
-             <float name="amplitude" id="amplitude">
-               0.09
-             </float>
-             <float name="phase" id="ph">
-               0.01
-             </float>
-             <data src="#customGeneratedGrid"/>
-           </data>
-           <!--/data-->
-           <light shader="#light1"/>
-           <bool id="useKeys">
-             true
-           </bool>
-         </defs>
+        <data id="webclTerrain" compute="(position, normal) = xflow.clDeform(position, normal, amplitude , phase)">
+            <float3 name="elevation" id="elevation">
+                0.0
+            </float3>
+            <float name="amplitude" id="amplitude">
+                0.09
+            </float>
+            <float name="phase" id="ph">
+                0.01
+            </float>
+            <data src="#customGeneratedGrid"/>
+        </data>
+        <!--/data-->
+        <light shader="#light1"/>
+        <bool id="useKeys">
+            true
+        </bool>
+    </defs>
 
-         <view id="Camera" orientation="0.9942595958709717 0.042695533484220505 0.09810669720172882 2.699319334783083"
-         position="12.303448677062988 -37.300498962402344 -65.11109161376953"/>
+    <view id="Camera" orientation="0.9942595958709717 0.042695533484220505 0.09810669720172882 2.699319334783083"
+          position="12.303448677062988 -37.300498962402344 -65.11109161376953"/>
 
-         <!-- Wave Shape Display: -->
+    <!-- Wave Shape Display: -->
 
-         <group shader="#Material" transform="#t_Grid">
-           <mesh type="triangles">
-             <data src="#webclTerrain"/>
-           </mesh>
-         </group>
+    <group shader="#Material" transform="#t_Grid">
+        <mesh type="triangles">
+            <data src="#webclTerrain"/>
+        </mesh>
+    </group>
 
-  </xml3d>
+</xml3d>
 
-  <script type="text/javascript">
+<script type="text/javascript">
 
-      <![CDATA[
-      /* Run timer for wave animation */
-      var mytime = 0,
-          lastTime = Date.now();
+    <![CDATA[
+    /* Run timer for wave animation */
+    var mytime = 0,
+            lastTime = Date.now();
 
-      var update = function () {
+    var update = function () {
 
-          var phase = document.getElementById("ph");
+        var phase = document.getElementById("ph");
 
-          if (phase && phase._configured) {
-              phase.textContent = "" + mytime;
-          }
-          var diff = Date.now() - lastTime;
-          lastTime = Date.now();
-          mytime += diff / 1;
-      }
-      ]]>
+        if (phase && phase._configured) {
+            phase.textContent = "" + mytime;
+        }
+        var diff = Date.now() - lastTime;
+        lastTime = Date.now();
+        mytime += diff / 1;
+    }
+    ]]>
 
-      //Default grid 256x256, LOD=5
-      var x = 374549,
-          xx = 379645,
-          y = 7550190,
-          yy = 7555290;
-          lod = 5;
+    //Default grid 256x256, LOD=5
+    var x = 377099,
+        xx = 379645,
+        y = 7552743,
+        yy = 7555290;
+        lod = 0;
 
-      //Testing Browser's Endianess
-      var littleEndian = (function () {
-          var buffer = new ArrayBuffer(2);
-          new DataView(buffer).setInt16(0, 256, true);
-          return new Int16Array(buffer)[0] === 256;
-      })();
+    //Testing Browser's Endianess
+    var littleEndian = (function () {
+        var buffer = new ArrayBuffer(2);
+        new DataView(buffer).setInt16(0, 256, true);
+        return new Int16Array(buffer)[0] === 256;
+    })();
 
-      //Key bindings for the movement and requesting elevation data
-      document.addEventListener('keydown', function (event) {
-          if (event.keyCode == 87) {
-              y += 500;
-              yy += 500;
-              elevationRequest(x, y, xx, yy, lod);
-              textureRequest(x, y, xx, yy);
-          }
-          else if (event.keyCode == 65) {
-              x -= 500;
-              xx -= 500;
-              elevationRequest(x, y, xx, yy, lod);
-              textureRequest(x, y, xx, yy);
-          }
-          else if (event.keyCode == 68) {
-              x += 500;
-              xx += 500;
-              elevationRequest(x, y, xx, yy, lod);
-              textureRequest(x, y, xx, yy);
-          }
-          else if (event.keyCode == 83) {
-              y -= 500;
-              yy -= 500;
-              elevationRequest(x, y, xx, yy, lod);
-              textureRequest(x, y, xx, yy);
-          }
-      });
+    //Key bindings for the movement and requesting elevation data
+    document.addEventListener('keydown', function (event) {
+        if (event.keyCode == 87) {
+            y += 500;
+            yy += 500;
+            elevationRequest(x, y, xx, yy, lod);
+            textureRequest(x, y, xx, yy);
+        }
+        else if (event.keyCode == 65) {
+            x -= 500;
+            xx -= 500;
+            elevationRequest(x, y, xx, yy, lod);
+            textureRequest(x, y, xx, yy);
+        }
+        else if (event.keyCode == 68) {
+            x += 500;
+            xx += 500;
+            elevationRequest(x, y, xx, yy, lod);
+            textureRequest(x, y, xx, yy);
+        }
+        else if (event.keyCode == 83) {
+            y -= 500;
+            yy -= 500;
+            elevationRequest(x, y, xx, yy, lod);
+            textureRequest(x, y, xx, yy);
+        }
+    });
 
-      //Elevation request function
-      function elevationRequest(x, y, xx, yy, lod) {
+    //Elevation request function
+    function elevationRequest(x, y, xx, yy, lod) {
 
-          var xhr = new XMLHttpRequest();
+        var xhr = new XMLHttpRequest();
+        document.getElementById("info").innerHTML = "Loading Terrain Data";
+        xhr.open("GET", "http://dev.cyberlightning.com:9091/geoserver/w3ds?version=0.4&amp;service=w3ds&amp;request=GetScene&amp;crs=EPSG:3047&amp;format=application/octet-stream&amp;layers=fiware:postgis_finland&amp;boundingbox=" + x + "," + y + "," + xx + "," + yy + "&amp;LOD=" + lod + "", true);
+        xhr.responseType = "arraybuffer";
 
-          xhr.open("GET", "http://dev.cyberlightning.com:9091/geoserver/w3ds?version=0.4&amp;service=w3ds&amp;request=GetScene&amp;crs=EPSG:3047&amp;format=application/octet-stream&amp;layers=fiware:high_resolution_terrain&amp;boundingbox=" + x + "," + y + "," + xx + "," + yy + "&amp;LOD=" + lod + "", true);
-          xhr.responseType = "arraybuffer";
+        xhr.onload = function () {
 
-          xhr.onload = function () {
+            var elevation = document.getElementById("elevation"),
+                    area = document.getElementById("area");
 
-              var elevation = document.getElementById("elevation"),
-                      area = document.getElementById("area");
+            // This changes compute Attribute if elevation data is found
+            if (this.response.byteLength &gt;= 2) {
+                var webclTerrain = document.getElementById("webclTerrain");
+                webclTerrain.setAttribute("compute", "(position, normal) = xflow.clElevation(position, normal, index, elevation)");
 
-              // This changes compute Attribute if elevation data is found
-              if (this.response.byteLength &gt;= 2) {
-                  var webclTerrain = document.getElementById("webclTerrain");
-                  webclTerrain.setAttribute("compute", "(position, normal) = xflow.clElevation(position, normal, index, elevation)");
-
-                  document.getElementById("info").innerHTML = "Scroll the map with WASD";
-              }
-              var data = new DataView(this.response), i, dataOffset = 0;
-
-              dataOffset += 4;
-              dataOffset += 4;
-              dataOffset += 8;
-              dataOffset += 8;
-
-              var a = [], offset, i, iterations = Math.floor((this.response.byteLength - dataOffset) / 8);
-              for (offset = dataOffset, i = 0; i &lt; iterations; offset += 8, i++) {
-                  a[i] = data.getFloat64(offset, false);
-              }
-
-              elevation.textContent = a;
-              area.textContent = (data.getInt32(0, false));
-          }
-
-          xhr.send();
-
-      }
-
-      //Texture Request function
-      function textureRequest(x, y, xx, yy, resolution) {
-
-          if (typeof resolution === 'undefined') {
-              resolution = 1024;
-          }
-
-          var texture = "http://dev.cyberlightning.com:9091/geoserver/" + "fiware/wms?service=WMS&amp;version=1.1.0&amp;request=GetMap&amp;layers=" +
-                  "fiware:aerial_view_texture" +
-                  "&amp;styles=&amp;bbox=" +
-                  x + "," +
-                  y + "," +
-                  xx + "," +
-                  yy +
-                  "&amp;width=" + resolution + "&amp;height=" + resolution + "&amp;srs=EPSG:3067&amp;format=image%2Fpng";
+                document.getElementById("info").innerHTML = "Scroll the map with WASD";
+            }
+            else {
+                document.getElementById("info").innerHTML = "GIS data is not available. Please use generated data.";
+            }
+            var data = new DataView(this.response), i, dataOffset = 0;
 
 
-          document.getElementById("texque").setAttribute("src", texture);
+            dataOffset += 4;
+            dataOffset += 4;
+            dataOffset += 8;
+            dataOffset += 8;
 
-      }
+            var a = [], offset, i, iterations = Math.floor((this.response.byteLength - dataOffset) / 8);
+            for (offset = dataOffset, i = 0; i &lt; iterations; offset += 8, i++) {
+                a[i] = data.getFloat64(offset, false);
+            }
 
-  </script>
-  </div>
-  </div>
-  <script type="text/javascript" src="./terrain.js"/>
+            elevation.textContent = a;
+            area.textContent = (data.getInt32(0, false));
+        }
+
+        xhr.send();
+
+    }
+    ;
+
+    //Texture Request function
+    function textureRequest(x, y, xx, yy, resolution) {
+
+        if (typeof resolution === 'undefined') {
+            resolution = 1024;
+        }
+
+        var texture = "http://dev.cyberlightning.com:9091/geoserver/" + "fiware/wms?service=WMS&amp;version=1.1.0&amp;request=GetMap&amp;layers=" +
+                "fiware:aerial_view_texture" +
+                "&amp;styles=&amp;bbox=" +
+                x + "," +
+                y + "," +
+                xx + "," +
+                yy +
+                "&amp;width=" + resolution + "&amp;height=" + resolution + "&amp;srs=EPSG:3067&amp;format=image%2Fpng";
+
+
+        document.getElementById("texque").setAttribute("src", texture);
+
+    }
+    ;
+
+</script>
+</div>
+</div>
+<script type="text/javascript" src="./terrain.js"/>
 </body>
 </html>
