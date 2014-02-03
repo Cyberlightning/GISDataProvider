@@ -1,0 +1,113 @@
+@CHARSET "UTF-8";
+/**body and html is necessary for google maps API */ 
+html { height: 100% }
+body { 
+	height: 100%; 
+	margin: 0; 
+	padding: 0;
+	background-color: #161023;
+	color: #ffffff;
+	font-family:"Lucida Sans Unicode", "Lucida Grande", sans-serif
+}
+a {
+	color: #ffffff;
+	font-family:"Lucida Sans Unicode", "Lucida Grande", sans-serif
+}
+
+.tempiconlist {
+	width: 25%;
+	margin-left: 100px;
+	margin-top: 300px;
+}
+
+.tempiconmap {
+	width: 12%;
+	margin-top: 310px;
+	margin-left: 240px;
+}
+
+#topic {
+	position : absolute;
+	top:0px;
+	left:400px;
+}
+
+
+#logo{
+	position : absolute;
+	top:0px;
+	left:0px;
+	width: 400px;
+}
+	
+#mobile{
+	position : absolute;
+	top: 500px;
+	width: 600px;
+	height: 400px;
+	left : 880px;
+	border-color: white;
+	border-width: thin;
+	border-style: solid;
+}
+
+
+#photoMap {
+	position : absolute;
+	height: 800px;
+	top	: 100px;
+	width : 600px;
+	left : 10px;
+	border-color: white;
+	border-width: thin;
+	border-style: solid;
+}
+
+/* #demoList {
+	position : absolute;
+	height: 800px;
+	top	: 100px;
+	width : 600px;
+	left :280px;
+	border-color: white;
+	border-width: thin;
+	border-style: solid;
+} */	
+
+#streetview{
+	position : absolute;
+	top:100px;
+	width: 600px;
+	height:400px;
+	left : 880px;
+	border-color: white;
+	border-width: thin;
+	border-style: solid;
+}
+
+#photoList {
+	border-color: white;
+	border-width: thin;
+	border-style: solid;
+	position : absolute;
+	left: 600px;
+	top	: 100px;
+	width : 280px;
+	height : 800px;
+}
+
+#cube-webgl {
+	margin-left:140px;
+	margin-top:50px;	
+}
+
+#image {
+	border-color: white;
+	border-width: thin;
+	border-style: solid;
+	position : absolute;
+	left: 1480px;
+	top: 100px;
+	width: 500px;
+	overflow: scroll;
+}

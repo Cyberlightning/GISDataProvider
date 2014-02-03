@@ -1,6 +1,6 @@
 "use strict";
 /**
- * DO NOT EDIT OR CHANGE. THIS IS A COPY OF CAMERAFEED.HTML. JUST HERE FOR DEMO PURPOSES
+ * DO NOT EDIT OR CHANGE. THIS IS A COPY OF PHOTOMAP.JS. JUST HERE FOR DEMO PURPOSES
  */
 /*global Float32Array, Uint16Array */
 /*jslint vars: true, white: true, browser: true */
@@ -137,6 +137,7 @@ var getImageList = function(data){
 		var node=document.createElement("li");
 		var link = document.createElement('button');
 		link.setAttribute('id', i);
+		link.onclick= reply_click;
 		var textnode=document.createTextNode(image.imagename);
 		link.appendChild(textnode);
 		node.appendChild(link);
@@ -161,11 +162,11 @@ var roll = 0;
 var yaw = 0;
 
 function reply_click(e) {
-    e = e || window.event;
-    e = e.target || e.srcElement;
-    if (e.nodeName === 'BUTTON') {
-        console.log(e.id);
-        var image = JSON.parse(imageList[e.id]);
+	var evt = e || window.event;
+    var clicked = e.target || e.srcElement;
+    if (clicked.nodeName === 'BUTTON') {
+        console.log(clicked.id);
+        var image = JSON.parse(imageList[clicked.id]);
         $('#image').empty();
         $('#image').append("<img src=\""+image.url+"\" alt=\"Loading...\" />");
 		var lat= image.latitude;

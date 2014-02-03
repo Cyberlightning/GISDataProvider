@@ -24,17 +24,19 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/RestRequestMultiplexer")
 public class RestRequestMultiplexer extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-    private static final String serverURL = "dev.cyberlightning.com";
-    private static final String serverPORT = "17322";
-    
+//    private static final String serverURL = "dev.cyberlightning.com";
+//    private static final String serverPORT = "17322";  
+    private final String USER_AGENT = "Mozilla/5.0";
 //    private static final String serverURL = "dev.cyberlightning.com";
 //    private static final String serverPORT = "17323";
+    private static final String serverURL = "localhost";
+    private static final String serverPORT = "17322"; 
+    
     /**
      * @see HttpServlet#HttpServlet()
      */
     public RestRequestMultiplexer() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
 	/**
@@ -46,6 +48,7 @@ public class RestRequestMultiplexer extends HttpServlet {
 		String server = request.getParameter("server");
 		server = server.trim();
 		data = data.trim();
+		System.out.println(data);
 		if(data.equals("getAll")){
 	        try {
 	            URL getPhotoList = new URL("http://"+serverURL+":"+serverPORT+"/getAllImageData");
@@ -61,13 +64,19 @@ public class RestRequestMultiplexer extends HttpServlet {
 	        }
 		} else if (data.equals("getLocationBasedData")){
 			try {
-	            URL getPhotoList = new URL("http://"+serverURL+":"+serverPORT+"/getLocationImageData");
+				String  lng = request.getParameter("Longitude");
+				String  lat = request.getParameter("Latitude");
+				float flng = Float.parseFloat(lng);
+				float flat = Float.parseFloat(lat);
+				String payload = "{\"lon\":"+lng.trim()+",\"lat\":"+lat.trim()+"}";
+	            URL getPhotoList = new URL("http://"+serverURL+":"+serverPORT+"/getLocationImageData?lat="+flat+"&lon="+flng+"&json="+payload);	           
 	            BufferedReader in = new BufferedReader( new InputStreamReader(getPhotoList.openStream()));
-	
+	            System.out.println(data);
 	            String outString="";
 	            String inputLine;
 	            while (( inputLine = in.readLine()) != null)
 	            	outString = outString+inputLine;
+	            System.out.println(outString);
 	            in.close();
 	            out.println(outString);
 	        } 
@@ -83,7 +92,6 @@ public class RestRequestMultiplexer extends HttpServlet {
 		String  data = request.getParameter("command");
 		String  imagedata = request.getParameter("imagedata");
 		String server = request.getParameter("server");		
-		final String USER_AGENT = "Mozilla/5.0";
 		System.out.println("Post request arrived "+data+server);		
 		if(data == null) {
 			OutputStream out = response.getOutputStream();
@@ -142,8 +150,7 @@ public class RestRequestMultiplexer extends HttpServlet {
 			PrintWriter out = response.getWriter();
 			server = server.trim();
 			data = data.trim();		
-			if(data.equals("wsstart")){
-		
+			if(data.equals("wsstart")){		
 				try {
 		            URL postURL = new URL("http://"+serverURL+":"+serverPORT+"/postImage");
 		            HttpURLConnection con = (HttpURLConnection) postURL.openConnection();            
@@ -155,8 +162,7 @@ public class RestRequestMultiplexer extends HttpServlet {
 		    		DataOutputStream wr = new DataOutputStream(con.getOutputStream());
 		    		wr.writeBytes(urlParameters);
 		    		wr.flush();
-		    		wr.close();
-		     
+		    		wr.close();		     
 		    		int responseCode = con.getResponseCode();
 		    		BufferedReader in = new BufferedReader( new InputStreamReader(con.getInputStream()));
 		            String outString="";

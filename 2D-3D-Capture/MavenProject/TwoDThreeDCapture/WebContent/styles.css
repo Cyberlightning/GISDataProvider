@@ -110,3 +110,15 @@ a {
 	width: 500px;
 	overflow: scroll;
 }
+
+#datatable {
+	position : absolute;
+	top:100px;
+	left : 20x;
+}
+
+#mapcanvas {
+	position : absolute;
+	top:400px;
+	left : 20x;
+}

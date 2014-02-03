@@ -47,7 +47,7 @@ public class ImageTaggingServlet extends HttpServlet {
 	public boolean tagImage(String imagename, String extension,String tag) {
 
 		String path ="/home/twijethilake/public_html/images/";
-//		String path ="/home/tharanga/git/CyberWexdemo1/2D-3D-Capture/public_html/images/";
+//		String path ="/home/tharanga/workspace/pub-sub-example/public_html/images/";
 		String filename = path+imagename+"."+extension;
 		String tempfilename = path +imagename+"_temp."+extension;
 		File f = new File(tempfilename);

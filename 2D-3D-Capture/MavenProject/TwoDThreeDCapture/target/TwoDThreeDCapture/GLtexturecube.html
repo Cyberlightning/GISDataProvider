@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="webGL.css">
+<script type="text/javascript" src="res/glMatrix-0.9.5.min.js"></script>
+<script type="text/javascript" src="GLtexturecube.js"></script>
+<script id="shader-fs" type="x-shader/x-fragment">
+
+    varying highp vec2 vTextureCoord;
+
+    uniform sampler2D uSampler;
+
+    void main(void) {
+        gl_FragColor = texture2D(uSampler, vTextureCoord);
+    }
+</script>
+	
+<script id="shader-vs" type="x-shader/x-vertex">
+	attribute vec3 aVertexPosition;
+	attribute vec2 aTextureCoord;
+
+	 varying highp vec2 vTextureCoord;
+
+  	uniform mat4 uMVMatrix;
+  	uniform mat4 uPMatrix;
+  
+  	void main(void) {
+    	gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+		vTextureCoord = aTextureCoord;
+	}
+</script>
+
+<script id="shader-fs-COLOUR" type="x-shader/x-fragment">
+
+    varying lowp vec4 vColor;
+
+    void main(void) {
+        gl_FragColor = vColor;
+      }
+</script>
+	
+<script id="shader-vs-COLOUR" type="x-shader/x-vertex">
+	attribute vec3 aVertexPosition;
+    attribute vec4 aVertexColor;
+
+	 varying lowp vec4 vColor;
+
+  	uniform mat4 uMVMatrix;
+  	uniform mat4 uPMatrix;
+  
+  	void main(void) {
+    	gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+		vColor = aVertexColor;
+	}
+</script>
+<title>WebGL Example</title>
+</head>
+<body onload="webGLStart()" class ="body">
+<div id="logo"><a href="http://www.cyberlightning.com/"> <img alt="Company Logo" src="img/logo.png"></a>
+</div>
+
+<div id="page">
+	<canvas id="glcanvas" width="640" height="480">
+	    Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
+	</canvas>
+	<video src=""></video>
+</div>
+</body>
+</html>

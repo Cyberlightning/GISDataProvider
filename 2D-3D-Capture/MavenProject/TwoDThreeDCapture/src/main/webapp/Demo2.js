@@ -1,10 +1,14 @@
 
 //FIware_wp13.Device = function(localurl, resturl, localport, restport, wsp) 
-var dAPI = new FIware_wp13.Device("dev.cyberlightning.com" ,"dev.cyberlightning.com", "9090", "17324","17323");
-//var dAPI = new FIware_wp13.Device("localhost","localhost", "8080" , "17324" ,"17323");
+//var dAPI = new FIware_wp13.Device("dev.cyberlightning.com" ,"dev.cyberlightning.com", "9090", "17324","17323");
+var dAPI;
 
-function startVideoClicked() {	
-	dAPI.showVideo(videoCallback);	
+function startVideoClicked() {
+	var bt = dAPI.browser.getBrowserType();
+	if(dAPI.Type =="Desktop" && bt == "Firefox" && dAPI.browser.releaseVersion !="29.0")
+		alert("Vedio Element is not suppoted by your version of Firefox");
+	else
+		dAPI.showVideo(videoCallback);	
 }
 
 function videoCallback(videoStream) {
@@ -37,9 +41,11 @@ function handleRotation(r) {
 }
 
 function onLocationSearchSuccess(pos,coords){
+	
 }
 
 function onLocationSearchSuccess123(pos){
+	dAPI.log("current location retrieved");
 }
 
 function onLocationServiceSearchError(){
@@ -49,13 +55,22 @@ function testCallback() {
 }
 
 window.onload=function() {
-	var list = dAPI.getSensorList();
-	dAPI.setupLogger();
+	dAPI = new FIware_wp13.Device("dev.cyberlightning.com","dev.cyberlightning.com", "9090" , "17322" ,"17321");
+	dAPI.setupLogger();	
+	if(dAPI.Type=="Desktop"){
+		alert("This Demo is intended for  Mobile Devices");
+		var bt = dAPI.browser.getBrowserType();
+		console.log("Browser type "+bt);
+		if(bt == "Firefox" && dAPI.browser.releaseVersion !="29.0")
+			Alert("Vedio Element is not suppoted by your version of Firefox");		
+	} else {
+		dAPI.subscribe(onLocationSearchSuccess, onLocationServiceSearchError, handlacceleration, handleAccelerationWithGravityEvent, handleRotation, handleOrientationChanges);
+	}
 //	dAPI.showVideo(testCallback);
 //	dAPI.getCurrentLocation(onLocationSearchSuccess123);
 //	This location tracker needs two functions as parameters
 //	dAPI.registerForDeviceMovements(onLocationSearchSuccess, onLocationServiceSearchError);
 //	dAPI.registerDeviceMotionEvents(handlacceleration, handleAccelerationWithGravityEvent, handleRotation);
 //	dAPI.reigsterDeviceOrentationEvent(handleOrientationChanges);
-	dAPI.subscribe(onLocationSearchSuccess, onLocationServiceSearchError, handlacceleration, handleAccelerationWithGravityEvent, handleRotation, handleOrientationChanges)
+	
 };

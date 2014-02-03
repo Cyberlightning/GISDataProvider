@@ -1,0 +1,36 @@
+@CHARSET "UTF-8";
+#logo{
+	top:0px;
+	left:0px;
+	width: 400px;
+}
+	
+#page{
+	position : absolute;
+	top:120px;
+	left:0px;
+}
+#glcanvas {
+	position : absolute;
+	top:120px;
+	left:25px;
+}
+
+#mobileList {
+		position : absolute;
+		top:120px;
+		left: 660px;
+		z-index: 1000;
+}
+
+#streetview {
+	position : absolute;
+	top : 720px;
+	left : 25px;
+}
+
+#data {
+	position : absolute;
+	top : 720px;
+	left : 25px;
+}
