@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  	<meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="LocationbasedSearch.css">
+    <script type="text/javascript" src="res/glDegmatrix.js"></script>
+	<!-- Load my shader utilities -->
+	<script type="text/javascript" src="res/gpu.js"></script>    
+    <script type="text/javascript" src="LocationbasedSearch.js"></script>
+    <script type="text/javascript" src="res/jquery-2.0.3.js"></script>
+<!--     <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+    <script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script> -->
+    
+    <script id="shade_vert" type="x-shader/GLSL">
+
+    #version 100
+    precision mediump float;
+    
+    uniform mat4 gProjectionMatrix;
+    uniform mat4 gModelViewMatrix;
+    uniform mat4 gNormalMatrix;
+    
+    uniform vec4 gLightPos;
+    uniform vec4 gColor;
+    
+    attribute vec3 vPosition;
+    attribute vec3 vNormal;
+    
+    varying vec4 fColor;
+    
+    void main(void)
+    {
+        vec4 eyeNorm, eyePos, lightDir, pos;
+        float NdotL, diffuse;
+        
+        eyeNorm = normalize(gNormalMatrix * vec4(vNormal, 0));
+        eyePos  = gModelViewMatrix * vec4(vPosition, 1);        
+        
+        lightDir = normalize(gLightPos - eyePos);
+        NdotL = max(dot(eyeNorm.xyz, lightDir.xyz), 0.0);
+        
+        //fColor = gColor;
+        fColor = vec4(gColor.rgb * NdotL, 1);
+        
+        pos = vec4(vPosition, 1);
+        gl_Position = gProjectionMatrix * gModelViewMatrix * pos;
+    }
+</script>
+
+<script id="shade_frag" type="x-shader/GLSL">
+
+    #version 100
+    // Must specify precision in WebGL frag shaders
+    precision mediump float;
+    
+    varying vec4 fColor;
+    varying vec4 bColor;
+    
+    void main(void)
+    {
+        // Want to see polygons in wrong order
+        if (gl_FrontFacing)
+            gl_FragColor = fColor;
+        else
+            gl_FragColor = vec4(1,0,0,1);
+    }
+</script>
+  </head>
+  <body>
+	<div id="logo"> <a href="http://www.cyberlightning.com/"> 
+		<img alt="Company Logo" src="img/logo.png"></a>
+	</div>
+	<div id="photoList"><ul id="imglist"></ul></div>
+	<div id="photoMap"></div>
+	<div id="mobile">
+		<canvas id="cube-webgl" style="border: 1px;" width="300" height="300"></canvas>
+	</div>
+	<div id="streetview">
+		
+	</div>
+	<div id="image">
+		<img id="image" alt="Image..." src="">
+	</div>
+  </body>
+</html>
+

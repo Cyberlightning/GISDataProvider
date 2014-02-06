@@ -56,14 +56,19 @@ Browser.prototype = {
 		 },
 		 
 		 /**
-		  * 
+		  * This Function returns the browser type in use.
 		  * @returns {String}
 		  */
 		 getBrowserType : function() {
 			 this.browser= "";
 			 var uagent = navigator.userAgent.toLowerCase();
 			 if(uagent.search("firefox") != -1){
-				 this.browser = "FireFox";
+				 this.browser = "Firefox";
+				 var n = uagent.indexOf("rv:");
+				 console.log(n);
+				 this.releaseVersion = uagent.substring(n+3, n+7).trim();
+				 if(this.releaseVersion == "26.0")
+					 console.log(this.releaseVersion);
 			 } else if(uagent.search("chrome") != -1){
 				 this.browser = "Chrome";
 			 } else if(uagent.search("msie") != -1){
@@ -167,7 +172,8 @@ Browser.prototype = {
 var Sensor = function(name){
 	this.name = name;
 	this.array =new Array();
-	this.currentValue=0;	
+	this.currentValue=-1000;
+	this.active = false;
 };
 
 Sensor.prototype = {
@@ -198,6 +204,8 @@ Sensor.prototype = {
 				var gamma;
 				if(!this.array[0]){
 					alpha = new Array();
+					if(!value.alpha)
+						value.alpha=400;
 					alpha.push(value.alpha);
 					this.array[0]= alpha;
 				}else {
@@ -205,10 +213,14 @@ Sensor.prototype = {
 					if(len===10) {
 						this.array[0].splice(0, 1); 
 					}
+					if(!value.alpha)
+						value.alpha=400;
 					this.array[0].push(value.alpha);
 				}
 				if(!this.array[1]){
 					beta = new Array();
+					if(!value.beta)
+						value.beta=400;
 					beta.push(value.beta);
 					this.array[1]= beta;		
 				}else {
@@ -216,10 +228,14 @@ Sensor.prototype = {
 					if(len===10) {
 						this.array[1].splice(0, 1); 
 					}
+					if(!value.beta)
+						value.beta=400;
 					this.array[1].push(value.beta);
 				}
 				if(!this.array[2]){
 					gamma = new Array();
+					if(!value.gamma)
+						value.gamma=400;
 					gamma.push(value.gamma);
 					this.array[2]= gamma;
 				}else {
@@ -228,6 +244,8 @@ Sensor.prototype = {
 						this.array[2].splice(0, 1); 
 					}
 					this.array[2].push(value.gamma);
+					if(!value.gamma)
+						value.gamma=400;
 				}
 			} else if(this.name ==="Accelerometer"){
 				//For accelerometer you need 3 arrays to be managed. acceleration, acceleration with gravity and rotation. We will give minimum priority to rotation. 
@@ -240,6 +258,9 @@ Sensor.prototype = {
 				var rot;
 				if(!this.array[0]){
 					acc = new Array();
+					if(!value.acceleration){
+						value.acceleration.x=0.0;value.acceleration.y=0.0;value.acceleration.z=0.0;
+					}
 					acc.push(value.acceleration);
 					this.array[0]= acc;
 				}else {
@@ -247,10 +268,16 @@ Sensor.prototype = {
 					if(len===10) {
 						this.array[0].splice(0, 1); 
 					}
+					if(!value.acceleration){
+						value.acceleration.x=0.0;value.acceleration.y=0.0;value.acceleration.z=0.0;
+					}
 					this.array[0].push(value.acceleration);
 				}
 				if(!this.array[1]){
 					accg = new Array();
+					if(!value.accelerationWithGravity){
+						value.accelerationWithGravity.x=0.0;value.accelerationWithGravity.y=0.0;value.accelerationWithGravity.z=0.0;
+					}
 					accg.push(value.accelerationWithGravity);
 					this.array[1]= accg;		
 				}else {
@@ -258,16 +285,25 @@ Sensor.prototype = {
 					if(len===10) {
 						this.array[1].splice(0, 1); 
 					}
+					if(!value.accelerationWithGravity){
+						value.accelerationWithGravity.x=0.0;value.accelerationWithGravity.y=0.0;value.accelerationWithGravity.z=0.0;
+					}
 					this.array[1].push(value.accelerationWithGravity);
 				}
 				if(!this.array[2]){
 					rot = new Array();
+					if(!value.rotationRate){
+						value.rotationRate.alpha=400.0;value.rotationRate.beta=400.0;value.rotationRate.gamma=400.0;
+					}
 					rot.push(value.rotationRate);
 					this.array[2]= rot;
 				}else {
 					var len = this.array[2].length;
 					if(len===10) {
 						this.array[2].splice(0, 1); 
+					}
+					if(!value.rotationRate){
+						value.rotationRate.alpha=400.0;value.rotationRate.beta=400.0;value.rotationRate.gamma=400.0;
 					}
 					this.array[2].push(value.rotationRate);
 				}		
@@ -320,7 +356,7 @@ FIware_wp13.Device = function(localurl, resturl, localport, wsp ,restport ) {
 	 }else if (this.userAgentString.search("windows") != -1){
 		dos = "Windows";
 	} else if(this.userAgentString.search("linux") != -1){
-		 device = "Linux";
+		dos = "Linux";
 	 }else  {
 		 dos = "Unditected";
 	}
@@ -351,6 +387,9 @@ FIware_wp13.Device = function(localurl, resturl, localport, wsp ,restport ) {
 	this.sensorList = temp;
 	this.browser = b;
 	this.Type = deviceType;
+	if(document.getElementById("consolelog")){
+		log("Device Type-->" +deviceType+"\n<br>OS--> "+dos);
+	}
 };
 
 /**
@@ -375,7 +414,7 @@ FIware_wp13.Device.prototype = {
 			logger.style.height = "800px";
 			logger.style.top="80px";
 			logger.style.left="500px";
-			logger.style.zIndex= 1000;
+			logger.style.zIndex= 999;
 			logger.style.opacity = 0.5;
 			document.body.appendChild(logger);
 			var clbutton = document.createElement("button");
@@ -415,46 +454,61 @@ FIware_wp13.Device.prototype = {
 			var beta=0;
 			var gamma=0;
 			var mode=null;
+			var metadata;
 			var lon;
-			try{
-				var list = this.getSensorList();
-				var count;
-				for(count = 0 ; count < list.length; count++ ){
-					var sn = list[count].getName();
-					if(sn ==="GPS"){
-						var s =list[count];
-						currentGPSValue =s.getCurrentValue();
-					}else if(sn ==="Accelerometer"){
-						var s =list[count];
-						var a  =s.getValues();
-						currentAcceleration = processAccelerationValues(a[0]);
-						//log("Accelerometer 1" +currentAcceleration.x+":"+currentAcceleration.y+":"+currentAcceleration.y);
-						currentAccelerationWithGravity = processAccelerationDueToGravity(a[1]);
-						log("Accelerometer 1" +currentAccelerationWithGravity.x+":"+currentAccelerationWithGravity.y+":"+currentAccelerationWithGravity.y);
-					} else if(sn ==="Compass"){
-						var s =list[count];
-						var a =s.getValues();
-						var temp =processOrientationEvent(a[0],a[1],a[2]);
-						alpha = temp.alpha;
-						beta = temp.beta;
-						gamma = temp.gamma;
-						if(gamma < -25 || gamma > 25)
-							mode = "landscape";
-						else 
-							mode = "potrait";
-					} else {
-						
+			if(this.Type =="Mobile"){
+				try{
+					var list = this.getSensorList();
+					var count;
+					for(count = 0 ; count < list.length; count++ ){
+						var sn = list[count].getName();
+						if(sn ==="GPS"){
+							var s =list[count];
+							currentGPSValue =s.getCurrentValue();
+						}else if(sn ==="Accelerometer"){
+							var s =list[count];
+							var a  =s.getValues();
+							if(a[0])
+								currentAcceleration = processAccelerationValues(a[0]);
+							else{
+								currentAcceleration.x=0.0;currentAcceleration.y=0.0;currentAcceleration.z=0.0;
+							}							
+							//log("Accelerometer 1" +currentAcceleration.x+":"+currentAcceleration.y+":"+currentAcceleration.y);
+							if(a[1])
+								currentAccelerationWithGravity = processAccelerationDueToGravity(a[1]);
+							else 
+								currentAccelerationWithGravity.x = 0.0 ;currentAccelerationWithGravity.y=0.0; currentAccelerationWithGravity.z = 0.0;
+							log("Accelerometer 1" +currentAccelerationWithGravity.x+":"+currentAccelerationWithGravity.y+":"+currentAccelerationWithGravity.y);
+						} else if(sn ==="Compass"){
+							var s =list[count];
+							var a =s.getValues();
+							if(a[0] && a[1] && a[2] )
+								var temp =processOrientationEvent(a[0],a[1],a[2]);
+							else{
+								temp.alpha = 400.0; temp.beta = 400.0 ; temp.gamma = 400.0;
+							}
+								
+							alpha = temp.alpha;
+							beta = temp.beta;
+							gamma = temp.gamma;
+							if(gamma < -25 || gamma > 25)
+								mode = "landscape";
+							else 
+								mode = "potrait";
+						} else {
+							
+						}
 					}
-				}
-				
-			} catch(error){
-				log("VALUE SET ERROR "+error.message);
-			};
-			var metadata={
+					
+				} catch(error){
+					log("VALUE SET ERROR "+error.message);
+				};
+			metadata={
 					 type:"image",
 					 time:time, 
 					 ext:"png",
-					 devicetype : this.OS,
+					 deviceType :this.Type,
+					 deviceOS : this.OS,
 				 	 browsertype : this.browser.getBrowserType(),
 					 position: {
 						 lon:currentGPSValue.longitude,
@@ -473,6 +527,32 @@ FIware_wp13.Device.prototype = {
 						 orientation:mode,
 					 },	 
 					 vwidth:this.videoelement.videoWidth, vheight:this.videoelement.videoHeight, };
+			} else {
+				var metadata={
+						 type:"image",
+						 time:time, 
+						 ext:"png",
+						 deviceType :this.Type,
+						 deviceOS : this.OS,
+					 	 browsertype : this.browser.getBrowserType(),
+						 position: {
+							 lon:currentGPSValue.longitude,
+							 lat:currentGPSValue.latitude,
+							 alt:currentGPSValue.altitude,
+							 acc:currentGPSValue.accuracy,
+						 },
+			//			 motion : {
+			//				 heading:thisDevice.position.heading ,
+			//				 speed:thisDevice.position.speed,
+			//			},
+//						 device : {
+//							 ax:currentAcceleration.x,ay:currentAcceleration.y,az:currentAcceleration.z,
+//							 gx:currentAccelerationWithGravity.x,gy:currentAccelerationWithGravity.y,gz:currentAccelerationWithGravity.z,
+//							 ra:alpha,rb:beta,rg:gamma,
+//							 orientation:mode,
+//						 },	 
+						 vwidth:this.videoelement.videoWidth, vheight:this.videoelement.videoHeight, };
+				}			
 		//	log(JSON.stringify(metadata));
 			return metadata;
 		},
@@ -521,21 +601,27 @@ FIware_wp13.Device.prototype = {
 		 */
 		showVideo : function(callback){
 			this.videoelement = document.querySelector('video');		
-			navigator.getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
+			navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;			
+			window.URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
 			if(this.videoelement){
-				if(this.browser.hasVideoCameraSupport())						    
-					navigator.getUserMedia({video: true, audio: true},
+				if(this.browser.hasVideoCameraSupport())
+					navigator.getUserMedia({video: true, audio: false},
 							function(stream) { 
-								this.videoelement.src = window.URL.createObjectURL(stream);
+								if (navigator.mozGetUserMedia) {
+							        this.videoelement.mozSrcObject = stream;
+							      } else {
+							        var vendorURL = window.URL || window.webkitURL;
+							        this.videoelement.src = vendorURL.createObjectURL(stream);
+							      }
+								this.videoelement.play();
 								this.videoStream = stream;
-								this.videoRunning = true;
 								if (typeof callback === "function")
-									callback(this.videoStream);
+									callback(stream);
 					}.bind(this) , function (err) {
 						alert("Unknown Error "+err.message);
 					});
 			} else{
-				alert("You HTML dom Does nto have a video element!");
+				alert("You HTML dom Does have a video element!");
 			}	
 		},
 		
@@ -546,18 +632,21 @@ FIware_wp13.Device.prototype = {
 		*/
 		getCurrentLocation : function (callback,options){
 			var mapoptions;
-			if (options) {
-				mapoptions = options;
-			} else {
-				mapoptions = defaultmapoptions;
+			var r = confirm("Trying to obtain GPS location.");
+			if(r){
+				if (options) {
+					mapoptions = options;
+				} else {
+					mapoptions = defaultmapoptions;
+				}
+				navigator.geolocation.getCurrentPosition(
+					function (pos){
+						
+						if (typeof callback === "function") {				    
+						        callback(pos);
+						    }
+					}.bind(this), locationFindingerror, mapoptions);
 			}
-			navigator.geolocation.getCurrentPosition(
-				function (pos){
-					
-					if (typeof callback === "function") {				    
-					        callback(pos);
-					    }
-				}.bind(this), locationFindingerror, mapoptions);
 		},
 		
 		/**
@@ -567,71 +656,74 @@ FIware_wp13.Device.prototype = {
 		 * @param options
 		 */
 		registerForDeviceMovements : function(onLocationSuccess,onLocationError,options) {
+			var r = confirm("Trying to obtain GPS cahgnes");
 			var mapoptions;
-			if (options) {
-				mapoptions = options;
-			}	else {
-				mapoptions = defaultmapoptions;
+			if(r){
+				if (options) {
+					mapoptions = options;
+				}	else {
+					mapoptions = defaultmapoptions;
+				}
+				if (typeof onLocationSuccess === "function" && typeof onLocationError === "function") {
+					navigator.geolocation.watchPosition(
+						function(pos) {//Success function					
+							var Coordinates= new Object();
+							coords = pos.coords;					
+							if(coords.latitude)
+								Coordinates.latitude = coords.latitude;
+							else
+								Coordinates.latitude = 100.00;
+							if(coords.longitude)
+								Coordinates.longitude = coords.longitude;
+							else
+								Coordinates.longitude = 181.00;
+							if(coords.altitude)
+								Coordinates.altitude = coords.altitude;
+							else
+								Coordinates.altitude = -1000;
+							if(coords.accuracy)
+								Coordinates.accuracy = coords.accuracy;
+							else
+								Coordinates.accuracy = 0;
+							if(coords.altitudeAccuracy)
+								Coordinates.altitudeAccuracy = coords.altitudeAccuracy;
+							else
+								Coordinates.altitudeAccuracy = 0;
+							if(coords.speed) {
+								Coordinates.speed = coords.speed;
+								Coordinates.heading = coords.heading;
+							}else {
+								Coordinates.speed = 0;
+								Coordinates.heading = 400;
+							}
+							
+							try{
+								var list = this.getSensorList();
+								var count;
+								for(count = 0 ; count < list.length; count++ ){
+									var sn = list[count].getName();
+									if(sn ==="GPS"){
+										var s =list[count];
+										s.setCurrentValue(Coordinates);
+										s.addValue(Coordinates);
+										var a =s.getValues();
+										Coordinates =s.getCurrentValue();
+										log(Coordinates.longitude +":"+Coordinates.latitude);
+	//									Coordinates =a.pop();
+										break;
+									}							
+								}					
+							} catch(error){
+								log("error message "+error.message);
+							};
+							onLocationSuccess(pos,Coordinates);					
+							}.bind(this),
+							function(){
+								onLocationError();
+							},
+							mapoptions);
+				};
 			}
-			if (typeof onLocationSuccess === "function" && typeof onLocationError === "function") {
-				navigator.geolocation.watchPosition(
-					function(pos) {//Success function					
-						var Coordinates= new Object();
-						coords = pos.coords;					
-						if(coords.latitude)
-							Coordinates.latitude = coords.latitude;
-						else
-							Coordinates.latitude = 100.00;
-						if(coords.longitude)
-							Coordinates.longitude = coords.longitude;
-						else
-							Coordinates.longitude = 181.00;
-						if(coords.altitude)
-							Coordinates.altitude = coords.altitude;
-						else
-							Coordinates.altitude = -1000;
-						if(coords.accuracy)
-							Coordinates.accuracy = coords.accuracy;
-						else
-							Coordinates.accuracy = 0;
-						if(coords.altitudeAccuracy)
-							Coordinates.altitudeAccuracy = coords.altitudeAccuracy;
-						else
-							Coordinates.altitudeAccuracy = 0;
-						if(coords.speed) {
-							Coordinates.speed = coords.speed;
-							Coordinates.heading = coords.heading;
-						}else {
-							Coordinates.speed = 0;
-							Coordinates.heading = 400;
-						}
-						
-						try{
-							var list = this.getSensorList();
-							var count;
-							for(count = 0 ; count < list.length; count++ ){
-								var sn = list[count].getName();
-								if(sn ==="GPS"){
-									var s =list[count];
-									s.setCurrentValue(Coordinates);
-									s.addValue(Coordinates);
-									var a =s.getValues();
-									Coordinates =s.getCurrentValue();
-									log(Coordinates.longitude +":"+Coordinates.latitude);
-//									Coordinates =a.pop();
-									break;
-								}							
-							}					
-						} catch(error){
-							log("error message "+error.message);
-						};
-						onLocationSuccess(pos,Coordinates);					
-						}.bind(this),
-						function(){
-							onLocationError();
-						},
-						mapoptions);
-			};	
 		},
 		
 		/**
@@ -640,26 +732,31 @@ FIware_wp13.Device.prototype = {
 		 */
 		snapshot : function(){
 			var localcanvas=null;
-			if(this.videoStream) {
-				try {
-					localcanvas =document.getElementById("image");
-					if(!localcanvas)
-						localcanvas = document.createElement("canvas");
-					localcanvas.id = "image";
-					var localcontext = localcanvas.getContext('2d');
-					localcanvas.width = this.videoelement.videoWidth;
-					localcanvas.height = this.videoelement.videoHeight;	
-					localcanvas.style.position="fixed";
-					localcanvas.style.top="600px";
-					localcanvas.style.left=(200)+"px";
-					localcanvas.style.zIndex= 2000;
-					localcontext.drawImage(this.videoelement, 0, 0);
-					document.body.appendChild(localcanvas);
-				} catch(e){
-					log("ERROR1 "+e.message);
+			var r= true;
+			if(this.Type =="Desktop")
+				r = confirm("You are running on a Desktop/Latop so will not be able to obtain Meta Data and will result an error. Do you want to continue ?");
+			if(r){
+				if(this.videoStream) {
+					try {
+						localcanvas =document.getElementById("image");
+						if(!localcanvas)
+							localcanvas = document.createElement("canvas");
+						localcanvas.id = "image";
+						var localcontext = localcanvas.getContext('2d');
+						localcanvas.width = this.videoelement.videoWidth;
+						localcanvas.height = this.videoelement.videoHeight;	
+						localcanvas.style.position="fixed";
+						localcanvas.style.top="600px";
+						localcanvas.style.left=(200)+"px";
+						localcanvas.style.zIndex= 2000;
+						localcontext.drawImage(this.videoelement, 0, 0);
+						document.body.appendChild(localcanvas);
+					} catch(e){
+						log("ERROR1 "+e.message);
+					}
+				} else{
+					alert("Video is not running");
 				}
-			} else{
-				alert("Video is not running");
 			}
 			return localcanvas;
 		},
@@ -715,7 +812,7 @@ FIware_wp13.Device.prototype = {
 				if(response == "SERVER_READY"){
 					try {
 						var message =JSON.stringify(this.imagedata);
-						var r = confirm("Confirm" +message) ;
+						var r = confirm("CONFIRM :" +message) ;
 						if(r){
 							var fullBuffer =this.setupBinaryMessage(message);						
 							this.connection = new WebSocket('ws://'+this.serverURL+':'+this.websocketport+'/');
@@ -767,7 +864,7 @@ FIware_wp13.Device.prototype = {
 			var message =JSON.stringify(this.imagedata);	
 			var fullBuffer = this.setupBinaryMessage(message);
 			var message =JSON.stringify(this.imagedata);
-			var r = confirm("Confirm" +message) ;
+			var r = confirm("Confirm " +message) ;
 			if(r){
 				var formdata = { command : "post", server : this.serverURL ,imagedata : fullBuffer};
 				//alert(jQuery.isPlainObject( formdata ));
@@ -802,68 +899,71 @@ FIware_wp13.Device.prototype = {
 		* @param handleRotation
 		*/
 		registerDeviceMotionEvents : function(handlacceleration, handleAccelerationWithGravity, handleRotation){
-			if(this.browser.isDeviceMotionSupported()){
-				window.addEventListener("devicemotion", function(event) {
-					var rotationRate = event.rotationRate;		
-					var acceleration = event.acceleration;
-					var accelerationWithGravity = event.accelerationIncludingGravity;
-					var tempEvent = new Object();
-					if(acceleration ) {
-						if(!acceleration.x)
-							acceleration.x=0;
-						if(!acceleration.y)
-							acceleration.y=0;
-						if(!acceleration.z)
-							acceleration.z=0;
-						tempEvent.acceleration = acceleration;
-					}
-							
-					if(accelerationWithGravity){
-						if(!accelerationWithGravity.x)
-							accelerationWithGravity.x=0;
-						if(!accelerationWithGravity.y)
-							accelerationWithGravity.y=0;
-						if(!accelerationWithGravity.z)
-							accelerationWithGravity.z=0;
-						tempEvent.accelerationWithGravity = accelerationWithGravity;			
-					};
-					if(rotationRate){
-						if(!rotationRate.alpha)
-							rotationRate.alpha =0;
-						if(!rotationRate.beta)
-							rotationRate.beta =0;
-						if(!rotationRate.gamma)
-							rotationRate.gamma =0;
-						tempEvent.rotationRate = rotationRate;
-					};	
-					try{
-						var list = this.getSensorList();
-						var count;
-						for(count = 0 ; count < list.length; count++ ){
-							var sn = list[count].getName();
-							if(sn ==="Accelerometer"){
-								var s =list[count];
-								s.addValue(tempEvent);
-								s.setCurrentValue(tempEvent);
-//								var a =s.getValues();
-								break;
-							}
-						}				
-					} catch(error){
-					    log(error.message);
-					};
-					if (typeof handleAccelerationWithGravity === "function"){
-						handleAccelerationWithGravity(tempEvent.accelerationWithGravity);
-					}
-					if (typeof handlacceleration === "function"){
-						handlacceleration(tempEvent.acceleration);
-					}
-					if (typeof handleRotation === "function"){
-						handleRotation(tempEvent.rotationRate);
-					}
-				}.bind(this), true);
-			} else {
-				alert("Device browser does not support this event..!");
+			var r = confirm("Trying to obtain Accelerometer Values");
+			if(r){			
+				if(this.browser.isDeviceMotionSupported()){
+					window.addEventListener("devicemotion", function(event) {
+						var rotationRate = event.rotationRate;		
+						var acceleration = event.acceleration;
+						var accelerationWithGravity = event.accelerationIncludingGravity;
+						var tempEvent = new Object();
+						if(acceleration ) {
+							if(!acceleration.x)
+								acceleration.x=0;
+							if(!acceleration.y)
+								acceleration.y=0;
+							if(!acceleration.z)
+								acceleration.z=0;
+							tempEvent.acceleration = acceleration;
+						}
+								
+						if(accelerationWithGravity){
+							if(!accelerationWithGravity.x)
+								accelerationWithGravity.x=0;
+							if(!accelerationWithGravity.y)
+								accelerationWithGravity.y=0;
+							if(!accelerationWithGravity.z)
+								accelerationWithGravity.z=0;
+							tempEvent.accelerationWithGravity = accelerationWithGravity;			
+						};
+						if(rotationRate){
+							if(!rotationRate.alpha)
+								rotationRate.alpha =0;
+							if(!rotationRate.beta)
+								rotationRate.beta =0;
+							if(!rotationRate.gamma)
+								rotationRate.gamma =0;
+							tempEvent.rotationRate = rotationRate;
+						};	
+						try{
+							var list = this.getSensorList();
+							var count;
+							for(count = 0 ; count < list.length; count++ ){
+								var sn = list[count].getName();
+								if(sn ==="Accelerometer"){
+									var s =list[count];
+									s.addValue(tempEvent);
+									s.setCurrentValue(tempEvent);
+	//								var a =s.getValues();
+									break;
+								}
+							}				
+						} catch(error){
+						    log(error.message);
+						};
+						if (typeof handleAccelerationWithGravity === "function"){
+							handleAccelerationWithGravity(tempEvent.accelerationWithGravity);
+						}
+						if (typeof handlacceleration === "function"){
+							handlacceleration(tempEvent.acceleration);
+						}
+						if (typeof handleRotation === "function"){
+							handleRotation(tempEvent.rotationRate);
+						}
+					}.bind(this), true);
+				} else {
+					alert("Device browser does not support this event..!");
+				}
 			}
 			
 		},
@@ -879,36 +979,39 @@ FIware_wp13.Device.prototype = {
 		 * @param eventHandlingFunction callback function for a successful data retrieval
 		 */
 		registerDeviceOrentationEvent : function(eventHandlingFunction){
-			if (this.browser.isDeviceOrientationSupported()) {
-			    window.addEventListener("deviceorientation", function( event ) {
-					if(!event.alpha)
-						event.alpha = 400.0;
-					if(!event.beta)
-						event.beta = 400.0;
-					if(!event.gamma)
-						event.gamma = 400.0;
-					try{
-						var list = this.getSensorList();
-						var count;
-						for(count = 0 ; count < list.length; count++ ){
-							var sn = list[count].getName();
-							if(sn ==="Compass"){
-								var s =list[count];
-								s.addValue(event);
-								s.setCurrentValue(event);
-								var a =s.getValues();
-//								log("Rot->"+a[0][0] + ":" +a[1][0]+ ":" +a[2][0]);						
-								eventHandlingFunction(event.alpha, event.beta, event.gamma );
-								break;
-							}							
-						}
-						
-					} catch(error){
-					    
-					};				
-			    }.bind(this), true);
-			} else {
-				alert("Your browser does not support ");
+			var r = confirm("Trying to obtain GPS cahgnes");
+			if(r){
+				if (this.browser.isDeviceOrientationSupported()) {
+				    window.addEventListener("deviceorientation", function( event ) {
+						if(!event.alpha)
+							event.alpha = 400.0;
+						if(!event.beta)
+							event.beta = 400.0;
+						if(!event.gamma)
+							event.gamma = 400.0;
+						try{
+							var list = this.getSensorList();
+							var count;
+							for(count = 0 ; count < list.length; count++ ){
+								var sn = list[count].getName();
+								if(sn ==="Compass"){
+									var s =list[count];
+									s.addValue(event);
+									s.setCurrentValue(event);
+									var a =s.getValues();
+	//								log("Rot->"+a[0][0] + ":" +a[1][0]+ ":" +a[2][0]);						
+									eventHandlingFunction(event.alpha, event.beta, event.gamma );
+									break;
+								}							
+							}
+							
+						} catch(error){
+						    
+						};				
+				    }.bind(this), true);
+				} else {
+					alert("Your browser does not support ");
+				}
 			}
 		},
 		
@@ -987,7 +1090,6 @@ var processAccelerationValues= function(acceleration){
 */
 var processAccelerationDueToGravity= function(acceleration){
 	var count = 0;
-
 	var gaccx = new Array();
 	var gaccy = new Array();
 	var gaccz = new Array();

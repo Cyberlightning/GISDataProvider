@@ -27,10 +27,10 @@ import javax.servlet.http.HttpServletResponse;
 public class ClientRequestMultiplexer extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final String serverURL = "dev.cyberlightning.com";
-	private static final String serverPORT = "17323";
-	    
+	private static final String serverPORT = "17323";	    
 //	    private static final String serverURL = "localhost";
 //	    private static final String serverPORT = "17323";
+	
 	    /**
 	     * @see HttpServlet#HttpServlet()
 	     */

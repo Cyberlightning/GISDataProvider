@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Textured Mobile</title>
+<link rel="stylesheet" href="TexturedMobile.css">
+<script type="text/javascript" src="res/glMatrix-0.9.5.min.js"></script>
+<script type="text/javascript" src="js_api_r2_dev.js"></script>
+<script type="text/javascript" src="TexturedMobile.js"></script>
+<script id="shader-fs" type="x-shader/x-fragment">
+  varying lowp vec4 vColor;
+  void main(void) {
+    gl_FragColor = vColor;
+  }
+</script>
+<script id="shader-vs" type="x-shader/x-vertex">
+  attribute vec3 aVertexPosition;
+  attribute vec4 aVertexColor;
+	
+  uniform mat4 uMVMatrix;
+  uniform mat4 uPMatrix;
+  
+  varying lowp vec4 vColor;
+  void main(void) {
+    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+    vColor = aVertexColor;
+  }
+</script>
+<script id="shader-fs-texture" type="x-shader/x-fragment">
+  varying highp vec2 vTextureCoord;
+  varying highp vec3 vLighting;
+
+  uniform sampler2D uSampler;
+  void main(void) {
+   gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+  }
+</script>
+<script id="shader-vs-texture" type="x-shader/x-vertex">
+  attribute highp vec3 aVertexPosition;
+  attribute highp vec2 aTextureCoord;
+							
+  uniform highp mat4 uMVMatrix;
+  uniform highp mat4 uPMatrix;
+
+  varying highp vec2 vTextureCoord;
+
+  void main(void) {
+    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+    vTextureCoord = aTextureCoord;
+  }
+</script>
+</head>
+<body onload="start()" class ="body">
+<div id="logo"><a href="http://www.cyberlightning.com/"> <img alt="Company Logo" src="img/logo.png"></a>
+</div>
+
+<div id="page">
+	<div id="mobileList">
+		<ul>
+			<li><button onclick="setMobileType(this.id,value)" id='galaxy_s2'>Samsung Galaxy s2</button></li>
+			<li><button onclick="setMobileType(this.id,value)" id='galaxy_tab_note3'>Samsung Galaxy Note 3</button></li>
+			<li><button onclick="setMobileType(this.id,value)" id='LG_stereoscopic'>LG Stereoscopic</button></li>
+		</ul>
+	</div>
+	<canvas id="glcanvas" width="640" height="480">
+    Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
+  </canvas>
+<!--   <div id="streetview">
+  </div> -->
+  <div id="data">o
+	</div>
+</div>
+</body>
+</html>

@@ -1,269 +1,190 @@
 (function () {
-    var webcl = XML3D.webcl,
-        kernelManager = webcl.kernels,
-        cmdQueue;
-        XML3D.debug.loglevel = 1;
-        webcl.init("GPU");
-        cmdQueue = webcl.createCommandQueue();
-
-    (function () {
-
-        kernelManager.register("clThresholdImage",
-            ["__kernel void clThresholdImage(__global const uchar4* src, __global uchar4* dst, uint width, uint height)",
-                "{",
-                "int x = get_global_id(0);",
-                "int y = get_global_id(1);",
-                "if (x >= width || y >= height) return;",
-                "int i = y * width + x;",
-                "int color = src[i].x;",
-                "if (color < 50)",
-                "{",
-                "color=0;",
-                "}else{",
-                "color=255;",
-                "}",
-                "dst[i] = (uchar4)(color, color, color, 255);",
-                "}"].join("\n"));
-
-         var kernel = webcl.kernels.getKernel("clThresholdImage"),
-             oldBufSize = 0,
-             buffers = {bufIn: null, bufOut: null};
-
-
-        Xflow.registerOperator("xflow.clThresholdImage", {
-            outputs: [
-                {type: 'texture', name: 'result', sizeof: 'image'}
-            ],
-            params: [
-                {type: 'texture', source: 'image'}
-            ],
-
-            evaluate: function (result, image) {
-                //console.time("clThresholdImage");
-
-                //passing xflow operators input data
-                var width = image.width,
-                    height = image.height,
-                    imgSize = width * height,
-
-                // Setup buffers
-                    bufSize = imgSize * 4, // size in bytes
-                    bufIn = buffers.bufIn,
-                    bufOut = buffers.bufOut;
-
-                if (bufSize !== oldBufSize) {
-                    oldBufSize = bufSize;
-
-                    if (bufIn && bufOut) {
-                        bufIn.releaseCLResources();
-                        bufOut.releaseCLResources();
-                    }
-                    // Setup WebCL context using the default device of the first available platform
-                    bufIn = buffers.bufIn = webcl.createBuffer(bufSize, "r");
-                    bufOut = buffers.bufOut = webcl.createBuffer(bufSize, "w");
-
-                }
-
-                kernelManager.setArgs(kernel, bufIn, bufOut,
-                    new Uint32Array([width]), new Uint32Array([height]));
-
-                // Write the buffer to OpenCL device memory
-                cmdQueue.enqueueWriteBuffer(bufIn, false, 0, bufSize, image.data, []);
-
-                // Init ND-range
-                var localWS = [16, 4],
-                    globalWS = [Math.ceil(width / localWS[0]) * localWS[0],
-                        Math.ceil(height / localWS[1]) * localWS[1]];
-
-                // Execute (enqueue) kernel
-                cmdQueue.enqueueNDRangeKernel(kernel, globalWS.length, [], globalWS, localWS, []);
-
-                // Read the result buffer from OpenCL device
-                cmdQueue.enqueueReadBuffer(bufOut, false, 0, bufSize, result.data, []);
-
-                cmdQueue.finish(); //Finish all the operations
-
-                //console.timeEnd("clThresholdImage");
-
-                return true;
-            }
-
-        });
-    }());
+    "use strict";
+    XML3D.debug.loglevel = 0;
 
     /**
-     * WebCL accelerated Image Desaturation (gray scaling)
+     * Registering JS Operators
+     *
      */
 
-    (function () {
+    Xflow.registerOperator("xflow.desaturateImage", {
+        outputs: [
+            {type: 'texture', name: 'output', sizeof: 'input'}
+        ],
+        params: [
+            {type: 'texture', source: 'input'}
+        ],
 
-        kernelManager.register("clDesaturate",
-            ["__kernel void clDesaturate(__global const uchar4* src, __global uchar4* dst, uint width, uint height)",
-                "{",
-                "int x = get_global_id(0);",
-                "int y = get_global_id(1);",
-                "if (x >= width || y >= height) return;",
-                "int i = y * width + x;  uchar4 color = src[i];",
-                "uchar lum = (uchar)(0.30f * color.x + 0.59f * color.y + 0.11f * color.z);",
-                "dst[i] = (uchar4)(lum, lum, lum, 255);",
-                "}"].join("\n"));
+        platform: Xflow.PLATFORM.JAVASCRIPT,
+
+        evaluate: function (output, input) {
+            var s = input.data;
+            var d = output.data;
+            for (var i = 0; i < s.length; i += 4) {
+                // CIE luminance        (HSI Intensity: Averaging three channels)
+                d[i] = d[i + 1] = d[i + 2] = 0.2126 * s[i] + 0.7152 * s[i + 1] + 0.0722 * s[i + 2];
+                d[i + 3] = s[i + 3];
+            }
+            return true;
+        }
+    });
 
 
-        var kernel = webcl.kernels.getKernel("clDesaturate"),
-            oldBufSize = 0,
-            buffers = {bufIn: null, bufOut: null};
+    Xflow.registerOperator("xflow.thresholdImage", {
+        outputs: [
+            {type: 'texture', name: 'output', sizeof: 'input'}
+        ],
+        params: [
+            {type: 'texture', source: 'input'},
+            {type: 'int', source: 'threshold'}
+        ],
 
+        platform: Xflow.PLATFORM.JAVASCRIPT,
 
-        Xflow.registerOperator("xflow.clDesaturateImage", {
-            outputs: [
-                {type: 'texture', name: 'result', sizeof: 'image'}
-            ],
-            params: [
-                {type: 'texture', source: 'image'}
-            ],
-            evaluate: function (result, image) {
-                //console.time("clDesaturate");
+        evaluate: function (output, input, threshold) {
+            var s = input.data,
+                d = output.data;
 
-                //passing xflow operators input data
-                var width = image.width,
-                    height = image.height,
-                    imgSize = width * height,
+            for (var i = 0; i < s.length; i += 4) {
+                d[i] = d[i + 1] = d[i + 2] = ((s[i] > threshold[0]) ? 0 : 255);
+                d[i + 3] = s[i + 3];
+            }
 
-                // Setup buffers
-                    bufSize = imgSize * 4,
-                    bufIn = buffers.bufIn,
-                    bufOut = buffers.bufOut;
+            return true;
+        }
+    });
 
-                if (bufSize !== oldBufSize) {
-                    oldBufSize = bufSize;
+    function floatToByte(f) {
+        f = Math.max(0.0, Math.min(1.0, f));
+        return Math.floor(f === 1.0 ? 255 : f * 256.0);
+    }
 
-                    if (bufIn && bufOut) {
-                        bufIn.releaseCLResources();
-                        bufOut.releaseCLResources();
+    function byteToFloat(b) {
+        b = Math.max(0, Math.min(255, b));
+        return b === 255 ? 1.0 : b / 256.0;
+    }
+
+    Xflow.registerOperator("xflow.blurImage", {
+        outputs: [
+            {type: 'texture', name: 'output', sizeof: 'input'}
+        ],
+        params: [
+            {type: 'texture', source: 'input'},
+            {type: 'int', source: 'blurSize'}
+        ],
+
+        platform: Xflow.PLATFORM.JAVASCRIPT,
+
+        evaluate: function (output, input, blurSize) {
+            var s = input.data;
+            var sLen = s.length;
+            var d = output.data;
+            var m = [0.05, 0.09, 0.12, 0.15, 0.16, 0.15, 0.12, 0.09, 0.05];
+            var sumR = 0;
+            var sumG = 0;
+            var sumB = 0;
+            var currentCoord = 0;
+            var i, j;
+
+            for (i = 0; i < sLen; i += 4) {
+                for (j = 0; j < 9; j++) {
+                    currentCoord = (i - (16 - j * 4) * blurSize[0]);
+                    if (currentCoord >= 0 && currentCoord <= sLen) {
+                        sumR += byteToFloat(s[currentCoord]) * m[j];
+                        sumG += byteToFloat(s[currentCoord + 1]) * m[j];
+                        sumB += byteToFloat(s[currentCoord + 2]) * m[j];
                     }
-
-                    // Setup WebCL context using the default device of the first available platform
-                    bufIn = buffers.bufIn = webcl.createBuffer(bufSize, "r");
-                    bufOut = buffers.bufOut = webcl.createBuffer(bufSize, "w");
-
                 }
 
-                try{
-                kernelManager.setArgs(kernel, bufIn, bufOut,
-                    new Uint32Array([width]), new Uint32Array([height]));
-
-                // Write the buffer to OpenCL device memory
-                cmdQueue.enqueueWriteBuffer(bufIn, false, 0, bufSize, image.data, []);
-
-                // Init ND-range
-                var localWS = [16, 4], globalWS = [Math.ceil(width / localWS[0]) * localWS[0],
-                    Math.ceil(height / localWS[1]) * localWS[1]];
-
-                // Execute (enqueue) kernel
-                cmdQueue.enqueueNDRangeKernel(kernel, globalWS.length, [], globalWS, localWS, []);
-
-                // Read the result buffer from OpenCL device
-                cmdQueue.enqueueReadBuffer(bufOut, false, 0, bufSize, result.data, []);
-
-                cmdQueue.finish(); //Finish all the operations
-                }catch(e){console.log(e.name, e.message );}
-
-                //console.timeEnd("clDesaturate");
-                return true;
+                d[i] = floatToByte(sumR);
+                d[i + 1] = floatToByte(sumG);
+                d[i + 2] = floatToByte(sumB);
+                d[i + 3] = 255;
+                sumR = sumG = sumB = 0;
             }
-        });
-    }());
 
-    (function () {
-
-        kernelManager.register("clBlur",
-            ["__kernel void clBlur(__global const uchar4* src, __global uchar4* dst, uint width, uint height, uint blurSize)",
-                "{",
-                "const float m[9] = {0.05f, 0.09f, 0.12f, 0.15f, 0.16f, 0.15f, 0.12f, 0.09f, 0.05f};",
-
-                "int x = get_global_id(0);",
-                "int y = get_global_id(1);",
-
-                "if (x >= width || y >= height) return;",
-                "int i = y * width + x;",
-
-                "float3 sum = {0.0f, 0.0f, 0.0f};",
-                "uchar3 result;",
-                "int currentCoord;",
-
-                "for(int j = 0; j < 9; j++) {",
-                   "currentCoord = convert_int(i - (4-j)*blurSize);",
-                   "if(currentCoord >= 0 || currentCoord <= width*height) {",
-                      "sum.x += convert_float_rte(src[currentCoord].x) * m[j];",
-                      "sum.y += convert_float_rte(src[currentCoord].y) * m[j];",
-                      "sum.z += convert_float_rte(src[currentCoord].z) * m[j];",
-                   "}",
-                "}",
-
-                "result = convert_uchar3_rte(sum);",
-                "dst[i] = (uchar4)(result.x, result.y, result.z, 255);",
-                "}"].join("\n"));
+            return true;
+        }
+    });
 
 
-        var kernel = webcl.kernels.getKernel("clBlur"),
-            oldBufSize = 0,
-            buffers = {bufIn: null, bufOut: null};
+    /**
+     * Registering WebCL Operators
+     *
+     */
 
 
-        Xflow.registerOperator("xflow.clBlurImage", {
-            outputs: [
-                {type: 'texture', name: 'result', sizeof: 'image'}
-            ],
-            params: [
-                {type: 'texture', source: 'image'}
-            ],
-            evaluate: function (result, image) {
-                //passing xflow operators input data
-                var width = image.width,
-                    height = image.height,
-                    imgSize = width * height,
+    Xflow.registerOperator("xflow.thresholdImage", {
+        outputs: [
+            {type: 'texture', name: 'result', sizeof: 'image'}
+        ],
+        params: [
+            {type: 'texture', source: 'image'},
+            {type: 'int', source: 'threshold'}
+        ],
 
-                // Setup buffers
-                    bufSize = imgSize * 4,
-                    bufIn = buffers.bufIn,
-                    bufOut = buffers.bufOut;
+        platform: Xflow.PLATFORM.CL,
 
-                if (bufSize !== oldBufSize) {
-                    oldBufSize = bufSize;
+        evaluate: [
+            "int color = image[image_i].x;",
+            "if (color > threshold)",
+            "{",
+            "color=0;",
+            "}else{",
+            "color=255;",
+            "}",
+            "result[image_i] = (uchar4)(color, color, color, 255);"
+        ]
+    });
 
-                    if (bufIn && bufOut) {
-                        bufIn.releaseCLResources();
-                        bufOut.releaseCLResources();
-                    }
 
-                    // Setup WebCL context using the default device of the first available platform
-                    bufIn = buffers.bufIn = webcl.createBuffer(bufSize, "r");
-                    bufOut = buffers.bufOut = webcl.createBuffer(bufSize, "w");
+    Xflow.registerOperator("xflow.desaturateImage", {
+        outputs: [
+            {type: 'texture', name: 'result', sizeof: 'image'}
+        ],
+        params: [
+            {type: 'texture', source: 'image'}
+        ],
 
-                }
+        platform: Xflow.PLATFORM.CL,
 
-                kernelManager.setArgs(kernel, bufIn, bufOut,
-                    new Uint32Array([width]), new Uint32Array([height]),
-                    new Uint32Array([6]));
+        evaluate: [
+            "uchar4 color = image[image_i];",
+            "uchar lum = (uchar)(0.30f * color.x + 0.59f * color.y + 0.11f * color.z);",
+            "result[image_i] = (uchar4)(lum, lum, lum, 255);"
+        ]
+    });
 
-                // Write the buffer to OpenCL device memory
-                cmdQueue.enqueueWriteBuffer(bufIn, false, 0, bufSize, image.data, []);
 
-                // Init ND-range
-                var localWS = [16, 4], globalWS = [Math.ceil(width / localWS[0]) * localWS[0],
-                    Math.ceil(height / localWS[1]) * localWS[1]];
+    Xflow.registerOperator("xflow.blurImage", {
+        outputs: [
+            {type: 'texture', name: 'result', sizeof: 'image'}
+        ],
+        params: [
+            {type: 'texture', source: 'image'},
+            {type: 'int', source: 'blurSize'}
+        ],
 
-                // Execute (enqueue) kernel
-                cmdQueue.enqueueNDRangeKernel(kernel, globalWS.length, [], globalWS, localWS, []);
+        platform: Xflow.PLATFORM.CL,
 
-                // Read the result buffer from OpenCL device
-                cmdQueue.enqueueReadBuffer(bufOut, false, 0, bufSize, result.data, []);
+        evaluate: [
+            "const float m[9] = {0.05f, 0.09f, 0.12f, 0.15f, 0.16f, 0.15f, 0.12f, 0.09f, 0.05f};",
+            "float3 sum = {0.0f, 0.0f, 0.0f};",
+            "uchar3 resultSum;",
+            "int currentCoord;",
 
-                cmdQueue.finish(); //Finish all the operations
+            "for(int j = 0; j < 9; j++) {",
+            "currentCoord = convert_int(image_i - (4-j)*blurSize);",
+            "if(currentCoord >= 0 || currentCoord <= image_width * image_height) {",
+            "sum.x += convert_float_rte(image[currentCoord].x) * m[j];",
+            "sum.y += convert_float_rte(image[currentCoord].y) * m[j];",
+            "sum.z += convert_float_rte(image[currentCoord].z) * m[j];",
+            "}",
+            "}",
 
-                return true;
-            }
-        });
-    }());
+            "resultSum = convert_uchar3_rte(sum);",
+            "result[image_i] = (uchar4)(resultSum.x, resultSum.y, resultSum.z, 255);",
+        ]
+    });
 
 }());

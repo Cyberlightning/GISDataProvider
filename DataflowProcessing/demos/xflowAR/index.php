@@ -19,17 +19,17 @@ $branch = isset($_GET['master']) ? 'master' : 'dev';
 
 <head>
     <title>CYBER-AR</title>
-    <script type="text/javascript" src="js/xml3d/<?php echo $branch ?>/xml3d.js"></script>
-    <script type="text/javascript" src="js/alvar.js"></script>
-    <script type="text/javascript" src="js/alvar-xflow.js"></script>
-    <script type="text/javascript" src="js/phongvs.js"></script>
+    <script type="text/javascript" src="../../deps/xml3d.old.js"></script>
+    <script type="text/javascript" src="../../deps/alvar.js"></script>
+    <script type="text/javascript" src="../../deps/alvar-xflow.js"></script>
+    <script type="text/javascript" src="../../deps/phongvs.js"></script>
     <script type="text/javascript">
     	<?php 
     	echo "const WEBCAM_WIDTH = $width;"; 
     	echo "const WEBCAM_HEIGHT = $height;";
     	?>
     </script>
-    <script type="text/javascript" src="js/scripts.js"></script>
+    <script type="text/javascript" src="../../deps/scripts.js"></script>
     <style>
 	body{
 	font: 62.5% "Trebuchet MS", sans-serif;
