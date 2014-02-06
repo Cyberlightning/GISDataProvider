@@ -471,12 +471,12 @@
         $(layerFloat).append('0.1')
         $(layerShader).append(layerFloat);
 
-        // console.log(textureUrl);
+        $('#defs').append(layerShader);
 
         if (textureUrl!==undefined){
             var texture = "<texture name=\"diffuseTexture\">\n";
             texture += "<img src=\"" + textureUrl + "\"/>\n" + "</texture>";
-            $(layerShader).append(texture);    
+            document.getElementById(IdName+"shader").innerHTML = texture;
         }   
 
         var transformation = document.createElement('transform');
@@ -484,7 +484,7 @@
         transformation.setAttribute('rotation','0.0 0.0 0.0 0.0');
         transformation.setAttribute('translation',(transformX*blocklengthX)+' 0 '+((-transformY*blocklengthY)));
 
-        $('#defs').append(layerShader,transformation);
+        $('#defs').append(transformation);
 
         newGroup.setAttribute('id',IdName);
         newGroup.setAttribute('xmlns',xmlnsTagContent);
