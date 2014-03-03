@@ -394,7 +394,7 @@ function initGridBlockSelection(){
         combo.add(option); // IE only
     }
 
-    for (i=5;i<=10;i=i+5){ 
+    for (i=1;i<=6;i++){ 
         var combo = document.getElementById("selectGridRowColNumber");
         var option = document.createElement("option");
         option.text = i;
@@ -418,7 +418,7 @@ function initLODSelection(){
         combo.add(option); // IE only
     }
 
-    for (i=4;i<=10;i++){ 
+    for (i=1;i<=10;i++){ 
         var combo = document.getElementById("selectLodLevel");
         var option = document.createElement("option");
         option.text = i;

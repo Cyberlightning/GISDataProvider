@@ -16,7 +16,7 @@
     var layerBlockGridsplit = 5;
     var textureResolution = 512;
     var terrainTextureCRS = 0;
-    var LodLevel = -1;
+    var LodLevel = 1;
     // var selectedTerrainTextureName = null;
     // var selectedTerrainTextureCRS = null;
 
@@ -362,13 +362,11 @@
                     split[0] = parseFloat(split[0]) + parseFloat(transformX*blocklengthX);
                 }
                 if(transformY>0){
-                    // GeoServer sends object coordinates so that y-axis is measured from the top level of the block.
-                    // scenemanager handles grids from down to up in y-axis, therefore y-axis transfomation is needed.
-                    var object_grid_location = (blocklengthY + parseFloat(split[2]));
-                    // console.log("object_grid_location "+object_grid_location)
-                    split[2] = (parseFloat(object_grid_location) - parseFloat(transformY*blocklengthY));
+                    // GeoServer sends object coordinates so that 0,0 -location is the lower left corner of the block. Y-axis grows to up. In XML3D this coordinate is opposite, 
+                    // SO y-axis transfomation is needed.
+                    split[2] = (parseFloat(blocklengthY - parseFloat(split[2])) - parseFloat(transformY*blocklengthY));
                 }else{
-                    split[2] = blocklengthY - parseFloat(split[2]);
+                    split[2] = parseFloat(blocklengthY) - parseFloat(split[2]);
                 }
                 translation = split[0]+" "+split[1]+" "+(split[2]);
                 // console.log("translation: "+translation);
