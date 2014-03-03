@@ -120,7 +120,7 @@
         var layerBorder = "<group id=\"layerguide\" xmlns=\"http://www.xml3d.org/2009/xml3d\" shader=\"#phong\"  transform=\"#layerguideTransform\">";
 
         layerBorder += "<mesh type=\"triangles\" transform=\"#layerguideTransform\"> <int name=\"index\">0 1 2  1 2 3</int>";
-        layerBorder += "<float3 name=\"position\"> 0 20 0 "+(blocklengthX*layerBlockGridsplit)+" 20 0 0 20 "+(-(blocklengthY*layerBlockGridsplit))+" "+(blocklengthX*layerBlockGridsplit)+" 20 "+(-(blocklengthY*layerBlockGridsplit))+"</float3>";
+        layerBorder += "<float3 name=\"position\"> 0 0 0 "+(blocklengthX*layerBlockGridsplit)+" 0 0 0 0 "+(-(blocklengthY*layerBlockGridsplit))+" "+(blocklengthX*layerBlockGridsplit)+" 0 "+(-(blocklengthY*layerBlockGridsplit))+"</float3>";
         layerBorder += "<float3 name=\"normal\">0 0 1  0 0 1  0 0 1  0 0 1</float3>";
         layerBorder += "<float2 name=\"texcoord\">0.0 0.0 1.0 0.0 0.0 1.0 1.0 1.0</float2>";
         layerBorder += "</mesh></group>";
@@ -336,63 +336,74 @@
     function parseMeshSrc(xml3dData, transformX, transformY){
             // console.log("parseMeshSrc(xml3dData): transformX, transformY: "+transformX, transformY);
             // console.log(xml3dData);
-            var style, meshSrc;
-        if ($(xml3dData).find("mesh").attr("src")!= undefined){
-            
-            startSpinner();
+        var objects = $(xml3dData).find("group").each(function () {
+            console.log("group: " + $(this).attr("id"))
+            return $(this);
+        });
 
-            meshSrc = $(xml3dData).find("mesh").attr("src");
-            // console.log("mesh src found: "+$(xml3dData).find("mesh").attr("src"));
-            translation = $(xml3dData).attr('translation');
-            // console.log('parseMeshSrc:translation: '+translation);
-            // console.log('parseMeshSrc:blocklengthX & blocklengthY: '+blocklengthX, blocklengthY);
+        for (var i = 0; i<objects.length; i++) {
+            console.log(objects[i]);
+            var style, meshSrc, translation, split;
 
-            //HOX: change translation according to used grid
-            split = translation.split(' ');
-            if (transformX>0){
-                split[0] = parseFloat(split[0]) + parseFloat(transformX*blocklengthX);
-            }
-            if(transformY>0){
-                // GeoServer sends object coordinates so that y-axis is measured from the top level of the block.
-                // scenemanager handles grids from down to up in y-axis, therefore y-axis transfomation is needed.
-                var object_grid_location = (blocklengthY + parseFloat(split[2]));
-                // console.log("object_grid_location "+object_grid_location)
-                split[2] = (parseFloat(object_grid_location) - parseFloat(transformY*blocklengthY));
-            }else{
-                split[2] = parseFloat(split[2])+blocklengthY;
-            }
-            translation = split[0]+" "+split[1]+" "+(split[2]);
-            // console.log("translation: "+translation);
 
-            var xmlhttp;
-            if (window.XMLHttpRequest) {
-                xmlhttp = new XMLHttpRequest();
-            } else {
-                xmlhttp = new XDomainRequest();
-            }
+            if ($(objects[i]).find("mesh").attr("src")!= undefined){
 
-            // remove spaces from the url
-            meshSrc=meshSrc.replace(/\s+/g, '');
+                startSpinner();
 
-             xmlhttp.onreadystatechange = function() {
-                if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-                    var meshNameArray = [];
-                    $.get(meshSrc, function(xml){
-                        $('data', xml).each(function(i){
-                            console.log($(this).attr('id'));
-                            var meshName = $(this).attr('id');
-                            if (meshName && meshName.indexOf('submesh')>=0){
-                                // console.log(meshName.indexOf('submesh'));                    
-                                meshNameArray.push(meshSrc+"#"+meshName);
-                            }
-                        });
-                    // console.log(meshNameArray);
-                    addMeshtoHtml(meshNameArray, translation);
-                    });
+                meshSrc = $(objects[i]).find("mesh").attr("src");
+                console.log("mesh src found: "+meshSrc);
+                translation = $(objects[i]).attr('translation');
+                console.log('parseMeshSrc:translation: '+translation);
+                // console.log('parseMeshSrc:blocklengthX & blocklengthY: '+blocklengthX, blocklengthY);
+
+                //HOX: change translation according to used grid
+                split = translation.split(' ');
+                if (transformX>0){
+                    split[0] = parseFloat(split[0]) + parseFloat(transformX*blocklengthX);
                 }
+                if(transformY>0){
+                    // GeoServer sends object coordinates so that y-axis is measured from the top level of the block.
+                    // scenemanager handles grids from down to up in y-axis, therefore y-axis transfomation is needed.
+                    var object_grid_location = (blocklengthY + parseFloat(split[2]));
+                    // console.log("object_grid_location "+object_grid_location)
+                    split[2] = (parseFloat(object_grid_location) - parseFloat(transformY*blocklengthY));
+                }else{
+                    split[2] = blocklengthY - parseFloat(split[2]);
+                }
+                translation = split[0]+" "+split[1]+" "+(split[2]);
+                // console.log("translation: "+translation);
+
+                var xmlhttp;
+                if (window.XMLHttpRequest) {
+                    xmlhttp = new XMLHttpRequest();
+                } else {
+                    xmlhttp = new XDomainRequest();
+                }
+
+                // remove spaces from the url
+                meshSrc=meshSrc.replace(/\s+/g, '');
+
+                xmlhttp.onreadystatechange = function() {
+                    var local_translation = translation;
+                    if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+                        var meshNameArray = [];
+                        $.get(meshSrc, function(xml){
+                            $('data', xml).each(function(i){
+                                // console.log($(this).attr('id'));
+                                var meshName = $(this).attr('id');
+                                if (meshName && meshName.indexOf('submesh')>=0){
+                                    // console.log(meshName.indexOf('submesh'));
+                                    meshNameArray.push(meshSrc+"#"+meshName);
+                                }
+                            });
+                        // console.log(meshNameArray);
+                        addMeshtoHtml(meshNameArray, local_translation);
+                        });
+                    }
+                }
+                xmlhttp.open("GET",meshSrc,false);
+                xmlhttp.send();
             }
-            xmlhttp.open("GET",meshSrc,false);
-            xmlhttp.send();
         }
     }
 
