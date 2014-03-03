@@ -13,7 +13,7 @@
     var blocklengthX, blocklengthY = 0;
 
     // Amount of the grid blocks for dividing layer
-    var layerBlockGridsplit = 5;
+    var layerBlockGridsplit = 3;
     var textureResolution = 512;
     var terrainTextureCRS = 0;
     var LodLevel = 1;
