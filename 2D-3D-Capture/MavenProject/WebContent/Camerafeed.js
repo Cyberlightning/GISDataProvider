@@ -551,7 +551,9 @@ function init() {
 	}
 
 	window.onload=function() {
-		dAPI = new FIware_wp13.Device("localhost","localhost", "9090" , "17322","LG_stereoscopic" ,"17321");
+		var server = prompt("Insert the server URL");
+		dAPI = new FIware_wp13.Device(server,server, "9090" , "17322","LG_stereoscopic" ,"17321");
+//		dAPI = new FIware_wp13.Device("dev.cyberlightning.com","dev.cyberlightning.com", "9090" , "17322","LG_stereoscopic" ,"17321");
 //		dAPI.setupLogger();	
 		if(dAPI.Type=="Desktop"){
 			alert("This Demo is intended for  Mobile Devices");
