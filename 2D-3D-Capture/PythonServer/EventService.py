@@ -33,10 +33,10 @@ tomcatport = "9090"
 wsport = 17322
 restport = 17321
 lhost = "localhost"
-serverurl="dev.cyberlightning.com"
-repo_url ="http://dev.cyberlightning.com/~twijethilake/images"
-dbuser = "twijethilake"
-dbpassword = "twj1672$1"
+serverurl="localhost"
+repo_url ="./images"
+dbuser = ""
+dbpassword = ""
 dbname = "2d3dcapture"
 local_image_repo="../public_html/images"
 
