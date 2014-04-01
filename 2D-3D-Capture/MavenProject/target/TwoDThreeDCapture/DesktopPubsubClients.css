@@ -1,0 +1,22 @@
+@CHARSET "UTF-8";
+
+#logo{
+	top:0px;
+	left:0px;
+	width: 400px;
+}
+
+.body {
+	background-color: #161023;
+	color: #ffffff;
+	font-family:"Lucida Sans Unicode", "Lucida Grande", sans-serif
+}
+
+button{
+	width :150px;
+}
+
+#content {
+	top: 100px;
+	left: 10px
+}

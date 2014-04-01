@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="styles.css">
+    <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDqNrH21T3prB-yKHLiw8us-YHdVUOr5lQ&sensor=false"></script>
+    <script type="text/javascript" src="js_api.js"></script>
+    <script type="text/javascript" src="location.js"></script>
+    <meta charset="UTF-8">
+  </head>
+  <body class ="body">
+  <div id="logo"><a href="http://www.cyberlightning.com/"> <img alt="Company Logo" src="img/logo.png"></a>
+</div>
+
+<div id="page">
+  <table border = "1" >
+		<caption>Table 1: System Info</caption>
+		<tr>
+			<td> User Agent String  </td>
+			<td id='uastring'></td>
+		</tr>
+		<tr>
+			<td> Device type  </td>
+			<td id='device'></td>
+		</tr>
+		<tr>
+			<td> Device OS  </td>
+			<td id='deviceOS'></td>
+		</tr>
+		<tr>
+			<td> Device platform  </td>
+			<td id='browser'></td>
+		</tr>
+		<tr>
+			<td> Your location is  </td>
+			<td id='location'></td>
+		</tr>
+		<tr>
+			<td> Orientation changes are </td>
+			<td id='orientationsupport'> </td>
+		</tr>
+		<tr>
+			<td> Your accelerometer  </td>
+			<td id='acclerationsupport'></td>
+		</tr>
+		
+	</table>
+    <div id="mapcanvas"/></div>
+</div>
+  </body>
+</html>

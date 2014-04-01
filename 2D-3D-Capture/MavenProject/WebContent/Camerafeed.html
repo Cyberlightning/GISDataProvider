@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script type="text/javascript" src="res/jquery-2.0.3.js"></script>
+<script type="text/javascript" src="OrientationAPI.js"></script>
+<script type="text/javascript" src="res/glMatrix-0.9.5.min.js"></script>
+<script type="text/javascript" src="js_api_r3_dev.js"></script>
+<script type="text/javascript" src="Camerafeed.js"></script>
+<link rel="stylesheet" href="Camerafeed.css">
+<script id="shader-fs" type="x-shader/x-fragment">
+  varying lowp vec4 vColor;
+  void main(void) {
+    gl_FragColor = vColor;
+  }
+</script>
+<script id="shader-vs" type="x-shader/x-vertex">
+  attribute vec3 aVertexPosition;
+  attribute vec4 aVertexColor;
+	
+  uniform mat4 uMVMatrix;
+  uniform mat4 uPMatrix;
+  
+  varying lowp vec4 vColor;
+  void main(void) {
+    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+    vColor = aVertexColor;
+  }
+</script>
+<script id="shader-fs-texture" type="x-shader/x-fragment">
+  varying highp vec2 vTextureCoord;
+  varying highp vec3 vLighting;
+
+  uniform sampler2D uSampler;
+  void main(void) {
+   gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+  }
+</script>
+<script id="shader-vs-texture" type="x-shader/x-vertex">
+  attribute highp vec3 aVertexPosition;
+  attribute highp vec2 aTextureCoord;
+							
+  uniform highp mat4 uMVMatrix;
+  uniform highp mat4 uPMatrix;
+
+  varying highp vec2 vTextureCoord;
+
+  void main(void) {
+    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+    vTextureCoord = aTextureCoord;
+  }
+</script>
+</head>
+<body class ="body">
+	<div id="logo"> <a href="http://www.cyberlightning.com/"> <img alt="Company Logo" src="img/logo.png"></a>
+	</div>	
+	<button onclick="startVideoClicked()" id='videobutton'>video Start</button>
+	<button onclick="uploadSnapshotClicked()" id='snapbutton'>Upload snapshot using web socket</button>
+	 <button onclick="upladlImageWithPost()" id='postbutton'>Upload snapshot using POST</button>
+	<video src="" autoplay id="videopad"></video>
+	<div id="mobileList">
+		<canvas id="glcanvas" width="320" height="240">
+			Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
+  		</canvas>
+		<ul>
+			<li><button onclick="setMobileType(this.id,value)" id='galaxy_s2'>Samsung Galaxy s2</button></li>
+			<li><button onclick="setMobileType(this.id,value)" id='galaxy_tab_note3'>Samsung Galaxy Note 3</button></li>
+			<li><button onclick="setMobileType(this.id,value)" id='LG_stereoscopic'>LG Stereoscopic</button></li>
+		</ul>
+	</div>
+	<div id="data">Data </div>
+	<div id="velocity">Calculated Velocity</div>
+	<div id="ambientLight">Ambient Light</div>	
+</body>
+</html>

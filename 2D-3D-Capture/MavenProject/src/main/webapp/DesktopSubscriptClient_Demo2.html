@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script type="text/javascript" src="res/glMatrix-0.9.5.min.js"></script>
+<script type="text/javascript" src = "DesktopSubscriptClient_Demo2.js"> </script>
+<title>Panorma Image Setting</title>
+<link rel="stylesheet" href="DesktopPubsubClients.css">
+<script id="shader-fs-texture" type="x-shader/x-fragment">
+  varying highp vec2 vTextureCoord;
+  varying highp vec3 vLighting;
+
+  uniform sampler2D uSampler;
+  void main(void) {
+   gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+  }
+</script>
+<script id="shader-vs-texture" type="x-shader/x-vertex">
+  attribute highp vec3 aVertexPosition;
+  attribute highp vec2 aTextureCoord;
+							
+  uniform highp mat4 uMVMatrix;
+  uniform highp mat4 uPMatrix;
+
+  varying highp vec2 vTextureCoord;
+
+  void main(void) {
+    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+    vTextureCoord = aTextureCoord;
+  }
+</script>
+</head>
+<body class='body'>
+	<div id="logo"> <a href="http://www.cyberlightning.com/"> <img alt="Company Logo" src="img/logo.png"></a>
+	</div>
+<button onclick='init()'>Connect to Server</button>
+<button onclick='startWebGl()'>Start WebGL</button>
+<button onclick='subscribeDirectional()'>Subscribe Directional</button>
+<button onclick='subscribeAny()'>Subscribe-Any </button>
+<button onclick='unsubscribe()'>Unsubscribe </button>
+<div id="canvas-div">
+	<canvas id="glcanvas"  width="1280" height="960"></canvas>
+</div>
+
+</body>
+</html>

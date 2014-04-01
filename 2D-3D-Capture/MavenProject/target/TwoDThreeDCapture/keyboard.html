@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+var metaChar = false;
+var exampleKey = 16;
+
+function keyEvent(event) {
+  var key = event.keyCode || event.which;
+  console.log(key);
+  var keychar = String.fromCharCode(key);
+  if (key == exampleKey) {
+    metaChar = true;
+  }
+  if (key != exampleKey) {
+    if (metaChar) {
+      alert("Combination of metaKey + " + keychar);
+      metaChar = false;
+    } else {
+      alert("Key pressed " + key);
+    }
+  }
+}
+
+function metaKeyUp (event) {
+  var key = event.keyCode || event.which;
+
+  if (key == exampleKey) {
+    metaChar = false;
+  }
+}
+
+function init(){
+    document.onkeydown = handleKeyDown;
+    document.onkeyup = handleKeyUp;
+}
+
+var currentlyPressedKeys = {};
+function handleKeyDown(event) {
+    currentlyPressedKeys[event.keyCode] = true;
+}
+
+function handleKeyUp(event) {
+    currentlyPressedKeys[event.keyCode] = false;
+}
+
+function handleKeys() {
+	    if (currentlyPressedKeys[33]) { // Page Up
+	        z -= 0.05;
+	    }
+	    if (currentlyPressedKeys[34]) { // Page Down
+	        z += 0.05;
+	    }
+	    if (currentlyPressedKeys[37]) { // Left cursor key
+	        ySpeed -= 1;
+	    }
+	    if (currentlyPressedKeys[39]) { // Right cursor key
+	        ySpeed += 1;
+	    }
+	    if (currentlyPressedKeys[38]) { // Up cursor key
+	        xSpeed -= 1;
+}
+	    if (currentlyPressedKeys[40]) { // Down cursor key
+	        xSpeed += 1;
+	    }
+}
+
+
+</script>
+</head>
+
+<body onkeydown="keyEvent(event)" onkeyup="metaKeyUp(event)">
+</body>
+</html>

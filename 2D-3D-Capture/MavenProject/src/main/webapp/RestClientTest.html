@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script type="text/javascript" src="res/glMatrix-0.9.5.min.js"></script>
+<script type="text/javascript" src = "RestClientTest.js"> </script>
+<link rel="stylesheet" href="DesktopPubsubClients.css">
+<title>Desktop pub sub client</title>
+<script id="shader-fs-texture" type="x-shader/x-fragment">
+  varying highp vec2 vTextureCoord;
+  varying highp vec3 vLighting;
+
+  uniform sampler2D uSampler;
+  void main(void) {
+   gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+  }
+</script>
+<script id="shader-vs-texture" type="x-shader/x-vertex">
+  attribute highp vec3 aVertexPosition;
+  attribute highp vec2 aTextureCoord;
+							
+  uniform highp mat4 uMVMatrix;
+  uniform highp mat4 uPMatrix;
+
+  varying highp vec2 vTextureCoord;
+
+  void main(void) {
+    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+    vTextureCoord = aTextureCoord;
+  }
+</script>
+</head>
+<body class="body">
+	<div id="logo"> <a href="http://www.cyberlightning.com/"> <img alt="Company Logo" src="img/logo.png"></a>
+	</div>
+	<div id="content">
+		<button onclick='startWSServer()'>Start Server</button><br>
+		<button onclick='init()'>Init </button><br>
+		<button onclick='subscribeDirectional()'>Subscribe Directional</button><br>
+		<button onclick='subscribeAny()'>Subscribe-Any </button><br>
+		<button onclick='subscribeLocal()'>Subscribe-Local </button><br>
+		<button onclick='sendMeAnEvent()'>Event Request </button><br>
+		<button onclick='sendAllAnEvent()'>Event Broadcast Request </button><br>
+		<button onclick='unsubscribe()'>Unsubscribe </button><br>
+		<button onclick='shutdownWSServer()'>Close server </button><br>
+	</div>
+
+
+</body>
+</html>
