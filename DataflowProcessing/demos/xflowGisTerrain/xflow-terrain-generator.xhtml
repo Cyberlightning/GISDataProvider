@@ -300,12 +300,12 @@
 
             dataOffset += 4;
             dataOffset += 4;
-            dataOffset += 8;
-            dataOffset += 8;
+            dataOffset += 4;
+            dataOffset += 4;
 
-            var a = [], offset, i, iterations = Math.floor((this.response.byteLength - dataOffset) / 8);
-            for (offset = dataOffset, i = 0; i &lt; iterations; offset += 8, i++) {
-                a[i] = data.getFloat64(offset, false);
+            var a = [], offset, i, iterations = Math.floor((this.response.byteLength - dataOffset) / 4);
+            for (offset = dataOffset, i = 0; i &lt; iterations; offset += 4, i++) {
+                a[i] = data.getFloat32(offset, false);
             }
 
             elevation.textContent = a;
