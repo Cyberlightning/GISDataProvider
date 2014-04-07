@@ -277,7 +277,7 @@
 
         var xhr = new XMLHttpRequest();
         document.getElementById("info").innerHTML = "Loading Terrain Data";
-        xhr.open("GET", "http://dev.cyberlightning.com:9091/geoserver/w3ds?version=0.4&amp;service=w3ds&amp;request=GetScene&amp;crs=EPSG:3047&amp;format=application/octet-stream&amp;layers=fiware:postgis_finland&amp;boundingbox=" + x + "," + y + "," + xx + "," + yy + "&amp;LOD=" + lod + "", true);
+        xhr.open("GET", "http://dev.cyberlightning.com:9091/geoserver/w3ds?version=0.4&amp;service=w3ds&amp;request=GetScene&amp;crs=EPSG:3047&amp;format=application/octet-stream&amp;layers=fiware:postgis_pullrequest_terrain&amp;boundingbox=" + x + "," + y + "," + xx + "," + yy + "&amp;LOD=" + lod + "", true);
         xhr.responseType = "arraybuffer";
 
         xhr.onload = function () {
@@ -325,7 +325,7 @@
         }
 
         var texture = "http://dev.cyberlightning.com:9091/geoserver/" + "fiware/wms?service=WMS&amp;version=1.1.0&amp;request=GetMap&amp;layers=" +
-                "fiware:aerial_view_texture" +
+                "fiware:imagemosaic_texture_aerial" +
                 "&amp;styles=&amp;bbox=" +
                 x + "," +
                 y + "," +
