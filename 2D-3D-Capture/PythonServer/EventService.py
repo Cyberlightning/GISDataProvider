@@ -27,16 +27,17 @@ import urllib
 from datetime import timedelta
 from flask import make_response, request, current_app
 from functools import update_wrapper
+import ConfigParser as cp
 # import time
 
 tomcatport = "9090"
 wsport = 17322
 restport = 17321
 lhost = "localhost"
-serverurl="localhost"
-repo_url ="./images"
-dbuser = ""
-dbpassword = ""
+serverurl="dev.cyberlightning.com"
+repo_url ="http://dev.cyberlightning.com/~twijethilake/images"
+dbuser = "twijethilake"
+dbpassword = "twj1672$1"
 dbname = "2d3dcapture"
 local_image_repo="../public_html/images"
 
@@ -835,7 +836,7 @@ def setup_logging():
             logging.basicConfig(level=loglevel_int) 
         else :
             print "Invalid Log level. Setting it to default  value INFO."
-            logging.basicConfig(level=logging.INFO)        
+            logging.basicConfig(level=logging.INFO)      
     else :
         print "Debug Level set to INFO" 
         logging.basicConfig(level=logging.INFO) 
@@ -844,9 +845,44 @@ def setup_logging():
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     fh.setFormatter(formatter)
     logging.getLogger('').addHandler(fh)
+
+def setup_parms():
+    config = cp.RawConfigParser()
+    config.read('server.properties')
+    global tomcatport
+    tomcatport = config.get('SectionPython', 'tomcatport')
+    logging.debug("tomcatport %s",tomcatport)
+    global wsport
+    wsport = config.getint('SectionPython', 'wsport')
+    logging.debug("wsport %s",wsport)
+    global restport
+    restport = config.getint('SectionPython', 'restport')
+    logging.debug("restport %s",restport)
+    global lhost
+    lhost = config.get('SectionPython', 'lhost')
+    logging.debug("lhost %s",lhost)
+    global serverurl
+    serverurl=config.get('SectionPython', 'serverurl')
+    logging.debug("serverurl %s",serverurl)
+    global repo_url
+    repo_url =config.get('SectionPython', 'repo_url')
+    logging.debug("repo_url %s",repo_url)
+    global dbuser
+    dbuser = config.get('SectionPython', 'dbuser')
+    logging.debug("dbuser %s",dbuser)
+    global dbpassword
+    dbpassword = config.get('SectionPython', 'dbpassword')
+    logging.debug("dbpassword %s",dbpassword)
+    global dbname
+    dbname = config.get('SectionPython', 'dbname')
+    logging.debug("dbname %s",dbname)
+    global local_image_repo
+    local_image_repo=config.get('SectionPython', 'local_image_repo')
+    logging.debug("local_image_repo %s",local_image_repo)   
     
-def main():
+def main():    
     setup_logging()
+    setup_parms()
     logging.info("Logging Set up")
     app.run(host= serverurl , port = restport , debug = True)
     logging.info("Rest Server Running")    
