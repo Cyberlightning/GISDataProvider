@@ -16,11 +16,12 @@ function startVideoClicked() {
 	var bt = dAPI.browser.getBrowserType();
 	if(dAPI.Type=="Desktop"){
 		if(bt == "Firefox" ){
-			if(dAPI.browser.releaseVersion =="29.0" || dAPI.browser.releaseVersion =="30.0")
+			if(dAPI.browser.releaseVersion =="29.0" || dAPI.browser.releaseVersion =="30.0"|| dAPI.browser.releaseVersion =="31.0"|| dAPI.browser.releaseVersion =="32.0"|| dAPI.browser.releaseVersion =="33.0")
 				dAPI.showVideo(videoCallback);
 			else 
 				alert("Vedio Element is not suppoted by your version of Firefox");
-		}
+		}else 
+			dAPI.showVideo(videoCallback);
 	} else{
 		alert("Starting Video");		
 		dAPI.showVideo(videoCallback);	
@@ -552,13 +553,12 @@ function init() {
 
 	window.onload=function() {
 		var server = prompt("Insert the server URL");
+		if(!server)
+			server = "dev.cyberlightning.com";
 		dAPI = new FIware_wp13.Device(server,server, "9090" , "17322","LG_stereoscopic" ,"17321");
-//		dAPI = new FIware_wp13.Device("dev.cyberlightning.com","dev.cyberlightning.com", "9090" , "17322","LG_stereoscopic" ,"17321");
-//		dAPI.setupLogger();	
 		if(dAPI.Type=="Desktop"){
 			alert("This Demo is intended for  Mobile Devices");
-			var bt = dAPI.browser.getBrowserType();
-//			dAPI.log("Browser type "+bt);
+			var bt = dAPI.browser.getBrowserType();	
 			if(bt == "Firefox" ){
 				if(dAPI.browser.releaseVersion =="29.0" || dAPI.browser.releaseVersion =="30.0")
 					init();
