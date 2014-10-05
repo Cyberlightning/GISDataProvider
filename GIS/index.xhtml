@@ -14,6 +14,7 @@
         height: 100%; 
         overflow:hidden;
         background-color:#ffffff;
+        font-size: 14px;
       }
       .wrapper {
         position:absolute;
@@ -51,35 +52,45 @@
 <body onload="initsettings()" style="height: 100%;">
   <div id="loading" class="wrapper"></div>
 
-  <div id="menu" class="menu" style="max-width: 250px">
-    <img src="http://www.cyberlightning.com/sites/default/themes/CL/logo.png" style="max-width: 250px"></img>
-    Scene initialization values needs to be set first. At least layer selection needs to be done. After selections are done, terrain can be loaded by pressing "<i>Load selected layer data</i>"-button.<hr/>
+  <div style="max-width: 250px; margin-top:5px;" align="middle">  
+    <img src="http://cyberlightning.com/wp-content/uploads/2014/01/Cyberlightning-Logo-Landscape-140128-Uusi-e1398866908607.png" style="max-width: 250px; height:auto; width:150px;"></img>
+  </div>
+
+  <div id="menu" class="menu" style="max-width: 240px">
+    Scene initialization values needs to be set first. At least layer selection needs to be done. After selections are done, terrain can be loaded "<i>Load selected layer data</i>"-button.<hr/>
     <div id="select_Layer_div" style="max-width: 250px"><b>Select terrain layer:</b> 
-      <select id="select_Layer" style="max-width: 200px"></select>
+      <select id="select_Layer" style="max-width: 200px" title="Select terrain layer to be displayed"></select>
     </div> 
+    
     <div id="select3DobjectLayer" style="max-width: 250px"><b>Select objects:</b> </div> 
+    
     <b> Select terrain texture:</b> 
-    <select id="selectTexture" style="max-width: 200px"></select>
+    <select id="selectTexture" style="max-width: 200px" title="Select texture for the terrain"></select>
     <br/>
-    <b>Select terrain texture resolution:</b><br/> 
-    <select id="selectTextureRes" style="max-width: 200px"></select>
+    <b>Set terrain texture resolution:</b><br/>
+    (default 512)<br/> 
+    
+    <select id="selectTextureRes" style="max-width: 200px" title="Select terrain texture resolution"></select>
     <br/>
-    <b>Select Level Of Details </b> (default 1, smaller value is less detailed):
+    <b>Set Level Of Details</b> (default 4):
     <br/> 
-    <select id="selectLodLevel" style="max-width: 200px"></select>
+    <select id="selectLodLevel" style="max-width: 200px" title="Select level of details"></select>
+    
     <br/>
-    "<i>Reset view</i>"-button needs to be used before modifying grid block value.
+    "<i>Reset view</i>"-button needs to be used before modifying grid block value. (Default grid value 5)
     <br/> 
 
     <select id="selectGridRowColNumber"></select>
 
-    <div id="octet_test" style="margin-top: 20px;">
-    <button id="Octet_query_Button" style="background-color:#00FFFF">Test octet-stream query</button>
-    </div>
+    
 
     <div id="submitReset">
-      <button id="SelectLayersButton" style="background-color:#33FF00;margin-top:20px;margin-right: 20px;max-width: 100px;">Load selected layer data</button>
-      <button id="resetScreenButton" style="background-color:#FF6600;max-width: 70px;" onclick="reloadPage()">Reset view</button>
+      <button id="SelectLayersButton" style="background-color:#33FF00;margin-top:20px;margin-right: 10px;" title="Load selected terrain data to the display">Load data</button>
+      <button id="resetScreenButton" style="background-color:#FF6600;" onclick="reloadPage()" title="Clear screen and selected values">Reset view</button>
+    </div>
+
+    <div id="octet_test" style="margin-top: 20px;">
+    <button id="Octet_query_Button" style="background-color:#00FFFF">Test octet-stream query</button>
     </div>
   </div> 
 
@@ -95,7 +106,7 @@
               <lightshader id="light1" script="urn:xml3d:lightshader:directional" >
                 <float3 name="intensity" >2 2 2</float3>
                 <bool name="castShadow">true</bool>
-                <float3 name="direction">1 -0.5 1.0</float3>
+                <float3 name="direction">1 0.5 1.0</float3>
               </lightshader>
 
               <light shader="#light1" />

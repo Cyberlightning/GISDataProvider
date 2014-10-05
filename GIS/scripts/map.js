@@ -1,7 +1,10 @@
 var xmlDocW3DS;
 var spinner;
-var baseUrl = "http://dev.cyberlightning.com:9091/geoserver/";
+//var baseUrl = "http://localhost:8080/geoserver/";
 var spinnerCounter = 0;
+
+var ip = location.host;
+var baseUrl = "http://"+ip+"/geoserver/";
 
 (function() {
     var layerNames = [];
@@ -394,7 +397,7 @@ function initGridBlockSelection(){
         combo.add(option); // IE only
     }
 
-    for (i=1;i<=6;i++){ 
+    for (i=5;i<=10;i=i+5){ 
         var combo = document.getElementById("selectGridRowColNumber");
         var option = document.createElement("option");
         option.text = i;
@@ -418,7 +421,7 @@ function initLODSelection(){
         combo.add(option); // IE only
     }
 
-    for (i=1;i<=10;i++){ 
+    for (i=4;i<=10;i++){ 
         var combo = document.getElementById("selectLodLevel");
         var option = document.createElement("option");
         option.text = i;
