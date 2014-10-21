@@ -1,8 +1,8 @@
 #!/bin/bash
 
-sudo aptitude install libgdal-dev libpq-dev \
-postgresql postgresql-server-dev-9.1 postgresql-contrib postgresql-client-common \
-libgeos-dev libproj0 libproj-dev libgdal-dev libgdal1 libgeos-c1 libgeos-dev python-qgis python-qgis-common
+sudo apt-get install libgdal-dev libpq-dev \
+postgresql postgresql-server-dev-9.3 postgresql-contrib postgresql-client-common \
+libgeos-dev libproj0 libproj-dev libgdal-dev libgdal1h libgeos-c1 libgeos-dev python-qgis python-qgis-common
 
 if test -f postgis-2.1.0.tar.gz; then
 	echo "postgis source already downloaded"
