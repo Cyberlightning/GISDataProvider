@@ -433,3 +433,49 @@ function initLODSelection(){
         }
     }
 };
+
+function WebSocketTest(){
+  if ("WebSocket" in window)
+  {
+     // alert("WebSocket is supported by your Browser!");
+     console.log("WebSocket is supported by your Browser!");
+     // Let us open a web socket
+     var ws = new WebSocket("ws://130.206.81.238:44445");
+     ws.onopen = function()
+     {
+        // Web Socket is connected, send data using send()
+        ws.send("Message to send");
+        // alert("Message is sent...");
+     };
+     ws.onmessage = function (evt)
+     {
+        var received_msg = evt.data;
+        //console.log(received_msg);
+        //console.log(received_msg.indexOf("}}}}"));
+
+        received_msg = received_msg.substring(0, received_msg.indexOf("}}}}")+4);
+        //console.log(received_msg);
+
+        var data = JSON.parse(received_msg);
+       
+	var newVal = data.d23c058698435eff.d23c058698435eff.sensors[0].value.values;
+        console.log(newVal);
+
+        var lightShader = document.getElementById("light1");
+        var x =  document.getElementById("light1_intensity"); 
+        // lightShader.setAttribute("intensity", " "+newVal+" "+newVal+" "+newVal+" ");
+        x.innerHTML = String(newVal)+" "+String(newVal)+" "+String(newVal);
+        
+     };
+     ws.onclose = function()
+     {
+        // websocket is closed.
+        alert("Connection is closed...");
+     };
+  }
+  else
+  {
+     // The browser doesn't support WebSocket
+     alert("WebSocket NOT supported by your Browser!");
+  }
+};

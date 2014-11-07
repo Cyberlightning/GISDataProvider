@@ -91,6 +91,7 @@
 
     <div id="octet_test" style="margin-top: 20px;">
     <button id="Octet_query_Button" style="background-color:#00FFFF">Test octet-stream query</button>
+    <button id="connect_button" onclick="WebSocketTest()">Connect RealWorldIntegration</button>
     </div>
   </div> 
 
@@ -104,7 +105,7 @@
                 <float name="ambientIntensity" >0.5</float>
               </shader>
               <lightshader id="light1" script="urn:xml3d:lightshader:directional" >
-                <float3 name="intensity" >2 2 2</float3>
+                <float3 id="light1_intensity" name="intensity" >2 2 2</float3>
                 <bool name="castShadow">true</bool>
                 <float3 name="direction">1 0.5 1.0</float3>
               </lightshader>
