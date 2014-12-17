@@ -31,14 +31,14 @@
     	<artifactId>json-simple</artifactId>
     	<version>1.1</version>
     	<scope>system</scope>
-    	<systemPath>/home/tharanga/Software/json_simple-1.1.jar</systemPath>
+    	<systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib/json_simple-1.1.jar</systemPath>
 	</dependency>
 	<dependency>
     	<groupId>pngj</groupId>
     	<artifactId>pngj-2.0.0.jar</artifactId>
     	<version>2.0.0</version>
     	<scope>system</scope>
-    	<systemPath>/home/tharanga/Software/pngj-2.0.0.jar</systemPath>
+    	<systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib/pngj-2.0.0.jar</systemPath>
 	</dependency>
   </dependencies>
   <build>
@@ -93,15 +93,10 @@
 				<groupId>org.apache.tomcat.maven</groupId>
 				<artifactId>tomcat7-maven-plugin</artifactId>
  				<configuration>
-					<url>http://127.0.0.1:8080/manager/html</url>
+					<url>http://127.0.0.1:9090/manager/text</url>
 					<server>TomcatServer</server>
 					<path>/TwoDThreeDCapture</path>
 				</configuration> 
-<!-- 				<configuration>
-					<url>http://dev.cyberlightning.com:9090/manager/html</url>
-					<server>RemoteServer</server>
-					<path>/TwoDThreeDCapture</path>
-				</configuration>  -->
 		</plugin>
   	</plugins>
     <pluginManagement>
