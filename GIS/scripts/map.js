@@ -220,28 +220,28 @@ var baseUrl = "http://"+ip+"/geoserver/";
         $("#Octet_query_Button").click(function(e) {
             e.preventDefault(); // if desired...
             var xhr = new XMLHttpRequest(); 
-            xhr.open("GET", "http://dev.cyberlightning.com:9091/geoserver/w3ds?version=0.4&service=w3ds&request=GetScene&crs=EPSG:3047&format=application/octet-stream&layers=fiware:terrain&boundingbox=374000,7548000,376402,7550400", true); 
+            xhr.open("GET", baseUrl+"w3ds?version=0.4&service=w3ds&request=GetScene&crs=EPSG:3047&format=application/octet-stream&layers=fiware:pallas-terrain&boundingbox=374000,7548000,376402,7550400", true); 
             xhr.responseType ="arraybuffer"; 
 
             xhr.onload = function() { 
                 console.log(">>>>>>>>>Octet-Stream test output")
-                var data = new DataView(this.response), i, MAGICAL_DRAGON_OFFSET = 9, dataOffset = MAGICAL_DRAGON_OFFSET;
+                var data = new DataView(this.response), i, dataOffset = 0;
 
                 console.log("1. value (big endian):", data.getInt32(dataOffset, false));
                 dataOffset += 4;
                 console.log("2. value (big endian):", data.getInt32(dataOffset, false));
                 dataOffset += 4;
-                console.log("3. value (big endian):", data.getFloat64(dataOffset, false));
-                dataOffset += 8;
-                console.log("4. value (big endian):", data.getFloat64(dataOffset, false));
-                dataOffset += 8;
+                console.log("3. value (big endian):", data.getFloat32(dataOffset, false));
+                dataOffset += 4;
+                console.log("4. value (big endian):", data.getFloat32(dataOffset, false));
+                dataOffset += 4;
 
                 var a = [], offset, i, iterations = Math.floor((this.response.byteLength - dataOffset)/8);
-                for(offset=dataOffset, i=0; i < iterations; offset += 8, i++){
-                   a[i] = data.getFloat64(offset, false);
+                for(offset=dataOffset, i=0; i < iterations; offset += 4, i++){
+                   a[i] = data.getFloat32(offset, false);
                 }
                 console.log(a);
-                console.log(new Float64Array(a));
+                //console.log(new Float32Array(a));
                 //console.log("First two values:", new Int32Array(this.response, 0, 2));
                 //console.log("Next two values:", new Float64Array(this.response, 8, 2));
                 //console.log("Last values:", new Float64Array(this.response, 2*4 + 2*8 , (this.response.byteLength - (2*4 +2*8)) / 8))  
@@ -249,6 +249,7 @@ var baseUrl = "http://"+ip+"/geoserver/";
                 console.log("<<<<<<<<<<<<<<Octet-Stream test output")
             } 
             xhr.send();
+            tempAlert("Octet-Stream query send, check result in the console window", 5000);
         });
       }); 
 
@@ -437,15 +438,15 @@ function initLODSelection(){
 function WebSocketTest(){
   if ("WebSocket" in window)
   {
-     // alert("WebSocket is supported by your Browser!");
+     alert("WebSocket is supported by your Browser!");
      console.log("WebSocket is supported by your Browser!");
      // Let us open a web socket
-     var ws = new WebSocket("ws://130.206.81.238:44445");
+     var ws = new WebSocket("ws://localhost:44445");
      ws.onopen = function()
      {
         // Web Socket is connected, send data using send()
         ws.send("Message to send");
-        // alert("Message is sent...");
+        tempAlert("Connection established and message is sent to RvI server", 5000);
      };
      ws.onmessage = function (evt)
      {
@@ -454,7 +455,6 @@ function WebSocketTest(){
         //console.log(received_msg.indexOf("}}}}"));
 
         received_msg = received_msg.substring(0, received_msg.indexOf("}}}}")+4);
-        //console.log(received_msg);
 
         var data = JSON.parse(received_msg);
        
@@ -470,7 +470,7 @@ function WebSocketTest(){
      ws.onclose = function()
      {
         // websocket is closed.
-        alert("Connection is closed...");
+        tempAlert("Connection is closed, check that RvI server is running", 5000);
      };
   }
   else
@@ -479,3 +479,15 @@ function WebSocketTest(){
      alert("WebSocket NOT supported by your Browser!");
   }
 };
+
+
+function tempAlert(msg,duration)
+{
+ var el = document.createElement("div");
+ el.setAttribute("style","position:absolute;top:5px;left:35%;background-color:white;font-size:x-large;");
+ el.innerHTML = msg;
+ setTimeout(function(){
+  el.parentNode.removeChild(el);
+ },duration);
+ document.body.appendChild(el);
+}

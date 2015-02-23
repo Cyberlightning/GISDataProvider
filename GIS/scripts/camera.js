@@ -131,7 +131,7 @@ XML3D.Xml3dSceneController = function(xml3dElement) {
     this.mode = "walk";
     this.revolveAroundPoint = new XML3DVec3(0, 0, 0);
     this.rotateSpeed = 1;
-    this.zoomSpeed = 20;
+    this.zoomSpeed = 100;
     this.spinningSensitivity = 0.3;
     this.isSpinning = false;
 
