@@ -1,6 +1,6 @@
 var xmlDocW3DS;
 var spinner;
-//var baseUrl = "http://localhost:8080/geoserver/";
+// var baseUrl = "http://130.206.81.238:8080/geoserver/";
 var spinnerCounter = 0;
 
 var ip = location.host;
@@ -224,6 +224,7 @@ var baseUrl = "http://"+ip+"/geoserver/";
             xhr.responseType ="arraybuffer"; 
 
             xhr.onload = function() { 
+                tempAlert("Octet-Stream response received, check result in the console window", 5000);
                 console.log(">>>>>>>>>Octet-Stream test output")
                 var data = new DataView(this.response), i, dataOffset = 0;
 
