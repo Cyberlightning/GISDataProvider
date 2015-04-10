@@ -1,10 +1,10 @@
 var xmlDocW3DS;
 var spinner;
-// var baseUrl = "http://130.206.81.238:8080/geoserver/";
+var baseUrl = "http://130.206.81.238:8080/geoserver/";
 var spinnerCounter = 0;
 
-var ip = location.host;
-var baseUrl = "http://"+ip+"/geoserver/";
+// var ip = location.host;
+// var baseUrl = "http://"+ip+"/geoserver/";
 
 (function() {
     var layerNames = [];
@@ -280,7 +280,7 @@ var baseUrl = "http://"+ip+"/geoserver/";
     function init(){
         getGeoserverCapabilities();
         initTexttureSelection();
-        initGridBlockSelection();
+        // initGridBlockSelection();
         initTextureSelection();
         initLODSelection();
     }
@@ -295,6 +295,8 @@ var baseUrl = "http://"+ip+"/geoserver/";
 function startSpinner(){    
     if (spinnerCounter === 0){
         $("#loading").show();
+        $("#loadingOctetStream").show();
+        // $("#loadingOctetStream").style.visibility='visible';
     }
     spinnerCounter += 1;
     console.log("startSpinner()"+spinnerCounter);
@@ -308,6 +310,7 @@ function stopSpinner(){
     spinnerCounter -= 1;
     if (spinnerCounter === 0){
         $("#loading").hide(true);
+        $("#loadingOctetStream").hide(true);
     }
     console.log("stopSpinner()"+spinnerCounter);
     
@@ -436,59 +439,3 @@ function initLODSelection(){
     }
 };
 
-function WebSocketTest(){
-  if ("WebSocket" in window)
-  {
-     alert("WebSocket is supported by your Browser!");
-     console.log("WebSocket is supported by your Browser!");
-     // Let us open a web socket
-     var ws = new WebSocket("ws://localhost:44445");
-     ws.onopen = function()
-     {
-        // Web Socket is connected, send data using send()
-        ws.send("Message to send");
-        tempAlert("Connection established and message is sent to RvI server", 5000);
-     };
-     ws.onmessage = function (evt)
-     {
-        var received_msg = evt.data;
-        //console.log(received_msg);
-        //console.log(received_msg.indexOf("}}}}"));
-
-        received_msg = received_msg.substring(0, received_msg.indexOf("}}}}")+4);
-
-        var data = JSON.parse(received_msg);
-       
-	var newVal = data.d23c058698435eff.d23c058698435eff.sensors[0].value.values;
-        console.log(newVal);
-
-        var lightShader = document.getElementById("light1");
-        var x =  document.getElementById("light1_intensity"); 
-        // lightShader.setAttribute("intensity", " "+newVal+" "+newVal+" "+newVal+" ");
-        x.innerHTML = String(newVal)+" "+String(newVal)+" "+String(newVal);
-        
-     };
-     ws.onclose = function()
-     {
-        // websocket is closed.
-        tempAlert("Connection is closed, check that RvI server is running", 5000);
-     };
-  }
-  else
-  {
-     // The browser doesn't support WebSocket
-     alert("WebSocket NOT supported by your Browser!");
-  }
-};
-
-
-function tempAlert(msg,duration)
-{
- var el = document.createElement("div");
- el.setAttribute("style","position:absolute;top:5px;left:35%;background-color:white;font-size:x-large;");
- el.innerHTML = msg;
- setTimeout(function(){
-  el.parentNode.removeChild(el);
- },duration);
- document.body.appendChild(el);
-}
