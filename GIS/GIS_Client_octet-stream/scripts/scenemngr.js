@@ -236,14 +236,6 @@
         xml3dobject.setAttribute("width", screenWidth);
         xml3dobject.setAttribute("height", screenHeight);
         
-        // console.log("getElements: "+lowerCornerX+", "+lowerCornerY+", "+higherCornerX+", "+higherCornerY);
-        var octetStreamRequest = createGISRequest( baseUrl, 
-                                        layerName, 
-                                        lowerCornerX+","+
-                                        lowerCornerY+","+
-                                        higherCornerX+","+
-                                        higherCornerY,
-                                        layerCRS);
 
         // external xml files contains all needed info, also textures. 
         // With other layers, e.g. terrain textures needs to be downloaded separately
@@ -262,8 +254,23 @@
         }
         // Assumption is that if layer contains external 3D object references, layer name contains "building_coordinates".
         if (layerName.indexOf("building_coordinates")>=0){
-            httpRequest3dObjects(octetStreamRequest, layerName, transformX, transformY, parseMeshSrc);
+            var xml3dRequest = createGisXml3dRequest( baseUrl, 
+                                            layerName, 
+                                            lowerCornerX+","+
+                                            lowerCornerY+","+
+                                            higherCornerX+","+
+                                            higherCornerY,
+                                            layerCRS);
+            httpRequest3dObjects(xml3dRequest, layerName, transformX, transformY, parseMeshSrc);
         }else{
+            // console.log("getElements: "+lowerCornerX+", "+lowerCornerY+", "+higherCornerX+", "+higherCornerY);
+            var octetStreamRequest = createGisOctetStreamRequest( baseUrl, 
+                                            layerName, 
+                                            lowerCornerX+","+
+                                            lowerCornerY+","+
+                                            higherCornerX+","+
+                                            higherCornerY,
+                                            layerCRS);
             httpRequest(octetStreamRequest, layerName, transformX, transformY, texture, addOctetstreamContent);
         }
 
@@ -271,7 +278,28 @@
 
     }
 
-    function createGISRequest(baseUrl, layer, boundingbox, layerCRS) {
+    function createGisXml3dRequest(baseUrl, layer, boundingbox, layerCRS) {
+        // console.log("createGISRequest");
+        var requestUrl;
+        var service = "w3ds?version=0.4&service=w3ds";
+        
+        var format = "&format=model/xml3d+xml";
+
+        var crs = "&crs="+layerCRS;
+        var request = "&request=GetScene";
+
+        // If user hasn't defined LOD level, LOD level is not included to request at all
+        if (LodLevel !== -1){
+            requestUrl = baseUrl + service + request + crs + format+"&layers="+layer+"&boundingbox="+boundingbox+"&LOD="+LodLevel;
+        }else{
+            requestUrl = baseUrl + service + request + crs + format+"&layers="+layer+"&boundingbox="+boundingbox;
+        }
+        
+        // console.log(requestUrl);
+        return requestUrl;
+    }
+
+    function createGisOctetStreamRequest(baseUrl, layer, boundingbox, layerCRS) {
         // console.log("createGISRequest");
         var requestUrl;
         var service = "w3ds?version=0.4&service=w3ds";
@@ -349,24 +377,25 @@
             startSpinner();
 
             meshSrc = $(xml3dData).find("mesh").attr("src");
-            // console.log("mesh src found: "+$(xml3dData).find("mesh").attr("src"));
-            translation = $(xml3dData).attr('translation');
+            // console.log("mesh src found: "+$(xml3dData).find("mesh").attr("src"));            
+            translation = $(xml3dData).find("group").attr("translation");
             // console.log('parseMeshSrc:translation: '+translation);
             // console.log('parseMeshSrc:blocklengthX & blocklengthY: '+blocklengthX, blocklengthY);
 
             //HOX: change translation according to used grid
             split = translation.split(' ');
             if (transformX>0){
-                split[0] = parseFloat(split[0]) + parseFloat(transformX*blocklengthX);
+                split[0] = parseFloat(split[0]) + parseFloat((transformX-1)*blocklengthX);
             }
             if(transformY>0){
                 // GeoServer sends object coordinates so that y-axis is measured from the top level of the block.
                 // scenemanager handles grids from down to up in y-axis, therefore y-axis transfomation is needed.
-                var object_grid_location = (blocklengthY + parseFloat(split[2]));
+                var object_grid_location = (blocklengthY - parseFloat(split[2]));
                 // console.log("object_grid_location "+object_grid_location)
-                split[2] = (parseFloat(object_grid_location) - parseFloat(transformY*blocklengthY));
+                split[2] = (parseFloat(object_grid_location) - parseFloat((transformY)*blocklengthY));
+
             }else{
-                split[2] = parseFloat(split[2])+blocklengthY;
+                split[2] = parseFloat(split[2])-blocklengthY;
             }
             translation = split[0]+" "+split[1]+" "+(split[2]);
             // console.log("translation: "+translation);
@@ -532,7 +561,7 @@
         transformation.setAttribute('id',IdName+"transform");
         transformation.setAttribute('rotation','0.0 0.0 0.0 0.0');
         // transformation.setAttribute('scale','608 200 608');
-        transformation.setAttribute('scale', '603 200 606');
+        transformation.setAttribute('scale', '603 180 606');
         transformation.setAttribute('translation',(transformX*blocklengthX)+' 0 '+((-transformY*blocklengthY)));
         // transformation.setAttribute('translation',(transformX*(octet_data[0]*octet_data[3]))+' 0 '+((transformY*(-octet_data[1]*octet_data[4]))));
 

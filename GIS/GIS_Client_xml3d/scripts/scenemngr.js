@@ -342,8 +342,8 @@
             startSpinner();
 
             meshSrc = $(xml3dData).find("mesh").attr("src");
-            // console.log("mesh src found: "+$(xml3dData).find("mesh").attr("src"));
-            translation = $(xml3dData).attr('translation');
+            // console.log("mesh src found: "+$(xml3dData).find("mesh").attr("src"));            
+		    translation = $(xml3dData).find("group").attr("translation");
             // console.log('parseMeshSrc:translation: '+translation);
             // console.log('parseMeshSrc:blocklengthX & blocklengthY: '+blocklengthX, blocklengthY);
 
@@ -355,11 +355,12 @@
             if(transformY>0){
                 // GeoServer sends object coordinates so that y-axis is measured from the top level of the block.
                 // scenemanager handles grids from down to up in y-axis, therefore y-axis transfomation is needed.
-                var object_grid_location = (blocklengthY + parseFloat(split[2]));
+                var object_grid_location = (blocklengthY - parseFloat(split[2]));
                 // console.log("object_grid_location "+object_grid_location)
-                split[2] = (parseFloat(object_grid_location) - parseFloat(transformY*blocklengthY));
+		        split[2] = (parseFloat(object_grid_location) - parseFloat((transformY)*blocklengthY));
+
             }else{
-                split[2] = parseFloat(split[2])+blocklengthY;
+                split[2] = parseFloat(split[2])-blocklengthY;
             }
             translation = split[0]+" "+split[1]+" "+(split[2]);
             // console.log("translation: "+translation);
