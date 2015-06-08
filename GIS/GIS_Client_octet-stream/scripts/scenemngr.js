@@ -114,7 +114,7 @@
 
     // Creates square below terrain to give guidance what is the maximum area for the terrain to be loaded
     function createLayerGuideBlock(){
-        var transform = "<transform id=\"layerguideTransform\" rotation=\"0.0 0.0 0.0 0.0\" translation=\"0 0 "+blocklengthY+"\"></transform>"
+        var transform = "<transform id=\"layerguideTransform\" rotation=\"0.0 0.0 0.0 0.0\" translation=\"0 0 "+(blocklengthY/2)+"\"></transform>"
         $("#defs").append(transform);
 
         var layerBorder = "<group id=\"layerguide\" xmlns=\"http://www.xml3d.org/2009/xml3d\" shader=\"#phong\"  transform=\"#layerguideTransform\">";

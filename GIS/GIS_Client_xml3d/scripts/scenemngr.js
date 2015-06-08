@@ -114,7 +114,8 @@
 
     // Creates square below terrain to give guidance what is the maximum area for the terrain to be loaded
     function createLayerGuideBlock(){
-        var transform = "<transform id=\"layerguideTransform\" rotation=\"0.0 0.0 0.0 0.0\" translation=\"0 0 "+blocklengthY+"\"></transform>"
+        var transform = "<transform id=\"layerguideTransform\" rotation=\"0.0 0.0 0.0 0.0\" translation=\"0 0 "+(blocklengthY/2)+"\"></transform>";
+        //var transform = "<transform id=\"layerguideTransform\" rotation=\"0.0 0.0 0.0 0.0\" translation=\"0 0 0\"></transform>"
         $("#defs").append(transform);
 
         var layerBorder = "<group id=\"layerguide\" xmlns=\"http://www.xml3d.org/2009/xml3d\" shader=\"#phong\"  transform=\"#layerguideTransform\">";
@@ -460,6 +461,7 @@
         var xmlnsTagContent = 'http://www.xml3d.org/2009/xml3d';
         
         // Create layer specific shader
+        
         var layerShader = document.createElement('shader');
         layerShader.setAttribute('id',IdName+'shader');
         layerShader.setAttribute('script','urn:xml3d:shader:phong');
@@ -471,6 +473,7 @@
         layerFloat.setAttribute('name','ambientIntensity');
         $(layerFloat).append('0.1')
         $(layerShader).append(layerFloat);
+        
 
         // console.log(textureUrl);
 
@@ -490,6 +493,7 @@
         newGroup.setAttribute('id',IdName);
         newGroup.setAttribute('xmlns',xmlnsTagContent);
         newGroup.setAttribute('shader','#'+IdName+'shader');
+        //newGroup.setAttribute('shader','#terrainShader');
         newGroup.setAttribute('transform','#'+IdName+'transform');
         $(newGroup).append(xml3dData);
         $("#MaxScene").append(newGroup);
