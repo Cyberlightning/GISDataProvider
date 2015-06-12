@@ -1,10 +1,12 @@
 var xmlDocW3DS;
 var spinner;
-// var baseUrl = "http://130.206.81.238:8080/geoserver/";
+//var baseUrl = "http://130.206.81.238:8080/geoserver/";
 var spinnerCounter = 0;
 
 var ip = location.host;
 var baseUrl = "http://"+ip+"/geoserver/";
+
+var oldCoordinates = null;
 
 (function() {
     var layerNames = [];
@@ -33,7 +35,7 @@ var baseUrl = "http://"+ip+"/geoserver/";
 
     // var baseUrl = "http://localhost:9090/geoserver/";
     // var baseUrl = "http://dev.cyberlightning.com:9091/geoserver/";
-    var oldCoordinates = null;
+    
 
     function parseServerCapabilities(response) {
         // console.log(response);
@@ -254,29 +256,7 @@ var baseUrl = "http://"+ip+"/geoserver/";
         });
       }); 
 
-    // Traps camera movement, used for analyzing when new layer data should be requested
-    $("#camera_player-camera").bind("DOMAttrModified", function() {
-        // console.log("#camera_player-camera).bind(DOMAttrModified");
-
-        // check flag if new layer is loaded, because in this case camera height needs to be adjusted 
-        // and that operation tricks this function unneseccary. We want to see only camera movements after new layer is initialized
-
-        var cam = document.getElementById("camera_player-camera");
-        var coordinates = cam.getAttribute("position");
-        if (!oldCoordinates && coordinates !== null){
-            oldCoordinates = coordinates;
-        }
-        // console.log("oldCoordinates: "+oldCoordinates);
-        // console.log("coordinates: "+coordinates);
-        if ((coordinates != null) && (coordinates !==oldCoordinates)) {
-            var coordSplit = coordinates.split(" ");
-            var currentX = parseFloat(coordSplit[0]);
-            var currentY = parseFloat(coordSplit[2]);
-            calculateCurrentPosLayerBlock(currentX, currentY);        
-            }
-    })
-
-
+   
     function init(){
         getGeoserverCapabilities();
         initTexttureSelection();
@@ -439,3 +419,33 @@ function initLODSelection(){
     }
 };
 
+// Traps camera movement, used for analyzing when new layer data should be requested
+window.MutationObserver = window.MutationObserver
+    || window.WebKitMutationObserver
+    || window.MozMutationObserver;
+// Find the element that you want to "watch"
+var target = document.querySelector('#camera_player-camera'),
+
+    observer = new MutationObserver(function(mutation) {
+       //console.log(mutation[0].attributeName);
+       if (mutation[0].attributeName == "position"){
+        //console.log("position change");
+        var cam = document.getElementById("camera_player-camera");
+        var coordinates = cam.getAttribute("position");
+        if (!oldCoordinates && coordinates !== null){
+            oldCoordinates = coordinates;
+        }
+        // console.log("oldCoordinates: "+oldCoordinates);
+        // console.log("coordinates: "+coordinates);
+        if ((coordinates != null) && (coordinates !==oldCoordinates)) {
+            var coordSplit = coordinates.split(" ");
+            var currentX = parseFloat(coordSplit[0]);
+            var currentY = parseFloat(coordSplit[2]);
+            calculateCurrentPosLayerBlock(currentX, currentY);        
+            }
+       }
+    }),
+    config = {
+        attributes: true 
+    };
+observer.observe(target, config);

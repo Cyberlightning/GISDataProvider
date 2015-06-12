@@ -549,8 +549,6 @@
         $(layerFloat).append('0.1')
         $(layerShader).append(layerFloat);
 
-        // console.log(textureUrl);
-
         if (textureUrl!==undefined){
             var texture = "<texture name=\"diffuseTexture\">\n";
             texture += "<img src=\"" + textureUrl + "\"/>\n" + "</texture>";
@@ -560,7 +558,6 @@
         var transformation = document.createElement('transform');
         transformation.setAttribute('id',IdName+"transform");
         transformation.setAttribute('rotation','0.0 0.0 0.0 0.0');
-        // transformation.setAttribute('scale','608 200 608');
         transformation.setAttribute('scale', '603 180 606');
         transformation.setAttribute('translation',(transformX*blocklengthX)+' 0 '+((-transformY*blocklengthY)));
         // transformation.setAttribute('translation',(transformX*(octet_data[0]*octet_data[3]))+' 0 '+((transformY*(-octet_data[1]*octet_data[4]))));
@@ -578,6 +575,10 @@
         $(gis_elevation).append('0 0 0 0');
 
         $(data_terrain).append(gis_dimension,gis_elevation);
+        $('#defs').append(data_terrain);
+        //console.log(octet_data[0]); 
+        $("#"+IdName+"_gis_dimension").text(octet_data[0] + " " + octet_data[1]);
+        $("#"+IdName+"_gis_elevation")[0].setScriptValue(octet_data[2]);
 
         // <!-- Generate Grid: -->  
         var generatedGrid = document.createElement('data');
@@ -597,6 +598,7 @@
             displace.setAttribute('compute', "position = xflow.morph(position, scale, "+IdName+"_elevation)");
                 var displaceFloat3 = document.createElement('float3');
                 displaceFloat3.setAttribute('name','scale');        
+                displaceFloat3.setAttribute('id','scale');
                 $(displaceFloat3).append('0 0.0054 0');
                 $(displace).append(displaceFloat3);
                 var displacedata = document.createElement('data');
@@ -605,7 +607,8 @@
         $(surface).append(displace);
 
 
-        $('#defs').append(layerShader,transformation,data_terrain, generatedGrid, surface);
+        //$('#defs').append(layerShader,transformation,data_terrain, generatedGrid, surface);
+        $('#defs').append(layerShader,transformation,generatedGrid, surface);
 
         newGroup.setAttribute('id',IdName);
         newGroup.setAttribute('xmlns',xmlnsTagContent);
@@ -622,14 +625,6 @@
 
 
         $("#MaxScene").append(newGroup);
-
-
-        // $("#gis_dimension").text(s + " " + t);
-        console.log(octet_data[0]);
-        $("#"+IdName+"_gis_dimension").text(octet_data[0] + " " + octet_data[1]);
-
-        // $("#gis_elevation")[0].setScriptValue(c);
-        $("#"+IdName+"_gis_elevation")[0].setScriptValue(octet_data[2]);
 
         if (newLayer) {
             // getTerrainElevationRefPoint();
