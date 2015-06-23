@@ -448,9 +448,8 @@
         //console.log("addXml3DContent(): "+layerName, textureUrl, transformX, transformY);
         //console.log("addXml3DContent(): "+xml3dData);
 
-        // startSpinner();
+        startSpinner();
 
-        var newGroup = document.createElement('group');
         var IdName = layerName+transformX+transformY;
         var xmlnsTagContent = 'http://www.xml3d.org/2009/xml3d';
         
@@ -480,16 +479,13 @@
 
         $('#defs').append(layerShader,transformation);
 
-        newGroup.setAttribute('id',IdName);
-        newGroup.setAttribute('xmlns',xmlnsTagContent);
-
         var model = document.createElement('model');
+        model.setAttribute('id',IdName);
+        model.setAttribute('onload','stopSpinner()');
         model.setAttribute('src', xml3dAssetUrl);
         model.setAttribute('transform','#'+IdName+'transform');
         model.setAttribute('shader','#'+IdName+'shader');
         $("#MaxScene").append(model);
-
-        $("#MaxScene").append(newGroup);
 
         if (newLayer) {
             // getTerrainElevationRefPoint();
