@@ -53,7 +53,7 @@
   <div id="loading" class="wrapper"></div>
 
   <div style="max-width: 250px; margin-top:5px;" align="middle">  
-    <img src="http://cyberlightning.com/wp-content/uploads/2014/01/Cyberlightning-Logo-Landscape-140128-Uusi-e1398866908607.png" style="max-width: 250px; height:auto; width:150px;"></img>
+    <img src="../images/Cyberlightning.png" style="max-width: 250px; height:auto; width:150px;"></img>
   </div>
 
   <div style="position:absolute;top:5px;left:270px;background-color:white;font-size:large;">
@@ -63,27 +63,32 @@
       <b>Querying XML3D terrain object..</b>
   </div>
 
-  <div id="menu" class="menu" style="max-width: 240px">
-    Scene initialization values needs to be set first. At least layer selection needs to be done. After selections are done, terrain can be loaded "<i>Load selected layer data</i>"-button.<hr/>
+	<div id="menu" class="menu" style="max-width: 240px">
+		<img src="../images/help.png" title="Scene initialization values needs to be set first. At least layer selection needs to be done." width="22" height="22"> </img>
+	  <hr/>  
+
     <div id="select_Layer_div" style="max-width: 250px"><b>Select terrain layer:</b> 
       <select id="select_Layer" style="max-width: 200px" title="Select terrain layer to be displayed"></select>
     </div> 
     
+    <hr style="border: dashed 1px;" />
     <div id="select3DobjectLayer" style="max-width: 250px"><b>Select objects:</b> </div> 
     
+    <hr style="border: dashed 1px;" />
     <b> Select terrain texture:</b> 
     <select id="selectTexture" style="max-width: 200px" title="Select texture for the terrain"></select>
-    <br/>
-    <b>Set terrain texture resolution:</b><br/>
-    (default 512)<br/> 
     
+    <hr style="border: dashed 1px;" />
+    <b>Set terrain texture resolution:</b><br/>    
     <select id="selectTextureRes" style="max-width: 200px" title="Select terrain texture resolution"></select>
-    <br/>
-    <b>Set Level Of Details</b> (default 4):
+
+
+    <hr style="border: dashed 1px;" />
+    <b>Set Level Of Details:</b>
     <br/> 
     <select id="selectLodLevel" style="max-width: 200px" title="Select level of details"></select>
     
-    <br/>
+    <hr style="border: dashed 1px;" />
     "<i>Reset view</i>"-button needs to be used before modifying grid block value. (Default grid value 5)
     <br/> 
 
@@ -97,8 +102,7 @@
     </div>
 
     <div id="octet_test" style="margin-top: 20px;">
-    <button id="Octet_query_Button" style="background-color:#00FFFF">Test octet-stream query</button>
-    <button id="connect_button" onclick="WebSocketTest()">Connect RealWorldIntegration</button>
+      <button id="connect_button" onclick="WebSocketTest()">Connect RealWorldIntegration</button>
     </div>
   </div> 
 

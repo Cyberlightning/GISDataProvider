@@ -119,29 +119,30 @@ var oldCoordinates = null;
      $(function() {
         $("#SelectLayersButton").click(function(e) {
             console.log("SelectLayersButton clicked");
-            // console.log("Selection list item: "+this.options[this.selectedIndex].value);
-            
-            var selectedObjectLayers = [];
-            console.log(selectedObjectLayers.length);
+            if(selectedTerrainLayer !== null){                
+                var selectedObjectLayers = [];
+                console.log(selectedObjectLayers.length);
 
-            // Check which 3D object layers are selected
-            for (i=0; i<layerNames.length; i++){
-                console.log(layerNames[i]);
-                console.log(document.getElementById(layerNames[i]).value);
-                // console.log($('#'+layerNames[i]).name);
-                    if ($('#'+layerNames[i]).is(':checked')){
-                    console.log(layerNames[i]+" is checked");
-                    selectedObjectLayers.push(layerNames[i]);
-                    
+                // Check which 3D object layers are selected
+                for (i=0; i<layerNames.length; i++){
+                    console.log(layerNames[i]);
+                    console.log(document.getElementById(layerNames[i]).value);
+                    // console.log($('#'+layerNames[i]).name);
+                        if ($('#'+layerNames[i]).is(':checked')){
+                        console.log(layerNames[i]+" is checked");
+                        selectedObjectLayers.push(layerNames[i]);                        
+                    }
                 }
+
+                newLayer = true;
+                getLayerDetails(selectedTerrainLayer, selectedObjectLayers);
+
+                $(this).blur();
+                e.preventDefault();
+            }else{
+                alert("Scene initialization values needs to be set first. At least layer selection needs to be done.");
             }
-
-            newLayer = true;
-            getLayerDetails(selectedTerrainLayer, selectedObjectLayers);
-
-            // Unfocus button to prevent accidental buttons pressing
-            $(this).blur();
-            e.preventDefault(); // if desired...
+            
         });
       });
 
@@ -317,6 +318,7 @@ function initTexttureSelection(){
             combo.add(option); // IE only
         }
     }
+    $("#selectTextureRes").val(getTextureResolution());
 };
 
 function initTextureSelection(){
@@ -416,6 +418,8 @@ function initLODSelection(){
             combo.add(option); // IE only
         }
     }
+
+    $("#selectLodLevel").val(getLODlevel());
 };
 
 function WebSocketTest(){

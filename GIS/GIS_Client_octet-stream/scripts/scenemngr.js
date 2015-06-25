@@ -17,6 +17,7 @@
     var textureResolution = 512;
     var terrainTextureCRS = 0;
     var LodLevel = 4;
+    var octet_stream_resolution = 128;
     // var selectedTerrainTextureName = null;
     // var selectedTerrainTextureCRS = null;
 
@@ -38,9 +39,27 @@
     this.setTextureResolution = function(resolution){
         textureResolution = resolution;
     }
+    
+    this.getTextureResolution = function(){
+        return textureResolution;
+    }
 
     this.setLODlevel = function(LODlevel){
+        console.log("Change LOD level to "+LODlevel);
         LodLevel = LODlevel;
+    }
+
+    this.getLODlevel = function(){
+        return LodLevel;
+    }
+
+    this.setOctet_streamResolution = function(resolution){
+        console.log("Change octet stream resolution to "+resolution);
+        octet_stream_resolution = resolution;
+    }
+
+    this.getCurrentOctet_streamResolution = function(){
+        return octet_stream_resolution;
     }
 
     this.setTextureInfo = function(texture, textureCRS){
@@ -312,12 +331,17 @@
         // var repType = "&responsetype=ArrayBuffer";
         var dataType = "&DataType=Binary";
 
+        var octet_stream_resolution_complete = "&width="+octet_stream_resolution+"&height="+octet_stream_resolution;
+
+        requestUrl = baseUrl + service + request + crs + format+"&layers="+layer+"&boundingbox="+boundingbox+octet_stream_resolution_complete;
+
         // If user hasn't defined LOD level, LOD level is not included to request at all
         if (LodLevel !== -1){
-            requestUrl = baseUrl + service + request + crs + format+"&layers="+layer+"&boundingbox="+boundingbox+"&LOD="+LodLevel;
-        }else{
-            requestUrl = baseUrl + service + request + crs + format+"&layers="+layer+"&boundingbox="+boundingbox;
+            requestUrl = requestUrl+"&LOD="+LodLevel;
         }
+        // if (octet_stream_resolution !== -1){
+        //     requestUrl = requestUrl+octet_stream_resolution_complete;
+        // }
         
         // console.log(requestUrl);
         return requestUrl;

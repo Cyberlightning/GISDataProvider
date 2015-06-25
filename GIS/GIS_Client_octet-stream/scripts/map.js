@@ -6,6 +6,7 @@ var spinnerCounter = 0;
 var ip = location.host;
 var baseUrl = "http://"+ip+"/geoserver/";
 
+
 var oldCoordinates = null;
 
 (function() {
@@ -35,7 +36,7 @@ var oldCoordinates = null;
 
     // var baseUrl = "http://localhost:9090/geoserver/";
     // var baseUrl = "http://dev.cyberlightning.com:9091/geoserver/";
-    
+
 
     function parseServerCapabilities(response) {
         // console.log(response);
@@ -120,29 +121,30 @@ var oldCoordinates = null;
      $(function() {
         $("#SelectLayersButton").click(function(e) {
             console.log("SelectLayersButton clicked");
-            // console.log("Selection list item: "+this.options[this.selectedIndex].value);
-            
-            var selectedObjectLayers = [];
-            console.log(selectedObjectLayers.length);
+            if(selectedTerrainLayer !== null){                
+                var selectedObjectLayers = [];
+                console.log(selectedObjectLayers.length);
 
-            // Check which 3D object layers are selected
-            for (i=0; i<layerNames.length; i++){
-                console.log(layerNames[i]);
-                console.log(document.getElementById(layerNames[i]).value);
-                // console.log($('#'+layerNames[i]).name);
-                    if ($('#'+layerNames[i]).is(':checked')){
-                    console.log(layerNames[i]+" is checked");
-                    selectedObjectLayers.push(layerNames[i]);
-                    
+                // Check which 3D object layers are selected
+                for (i=0; i<layerNames.length; i++){
+                    console.log(layerNames[i]);
+                    console.log(document.getElementById(layerNames[i]).value);
+                    // console.log($('#'+layerNames[i]).name);
+                        if ($('#'+layerNames[i]).is(':checked')){
+                        console.log(layerNames[i]+" is checked");
+                        selectedObjectLayers.push(layerNames[i]);                        
+                    }
                 }
+
+                newLayer = true;
+                getLayerDetails(selectedTerrainLayer, selectedObjectLayers);
+
+                $(this).blur();
+                e.preventDefault();
+            }else{
+                alert("Scene initialization values needs to be set first. At least layer selection needs to be done.");
             }
-
-            newLayer = true;
-            getLayerDetails(selectedTerrainLayer, selectedObjectLayers);
-
-            // Unfocus button to prevent accidental buttons pressing
-            $(this).blur();
-            e.preventDefault(); // if desired...
+            
         });
       });
 
@@ -186,6 +188,22 @@ var oldCoordinates = null;
             }
         });
       });
+
+
+    $(function() {
+        $("#selectOctetstreamResolution").change(function(e) {
+            // console.log("Selection list item: "+this.options[this.selectedIndex].value);
+            e.preventDefault();
+            if (this.options[this.selectedIndex].value === 'Select_oct_res'){
+                // Select layer-option pressed, do nothing
+                console.log("Select_oct_res");
+            }
+            else{
+                setOctet_streamResolution(this.options[this.selectedIndex].text);
+            }
+        });
+      });
+     
 
      // gets user selected value for grid division
     $(function() {
@@ -263,6 +281,7 @@ var oldCoordinates = null;
         // initGridBlockSelection();
         initTextureSelection();
         initLODSelection();
+        initOctetResSelection();
     }
 
     window.onload = init();
@@ -318,6 +337,7 @@ function initTexttureSelection(){
             combo.add(option); // IE only
         }
     }
+    $("#selectTextureRes").val(getTextureResolution());
 };
 
 function initTextureSelection(){
@@ -345,8 +365,7 @@ function initTextureSelection(){
             var xmlDoc = new DOMParser().parseFromString(xmlhttp.responseText,'text/xml');
             var x = xmlDoc.getElementsByTagNameNS("http://www.opengis.net/wms", "Layer");
 
-            for (i=0;i<x.length;i++)
-                { 
+            for (i=0;i<x.length;i++){ 
                 var textureName = x[i].getElementsByTagNameNS("http://www.opengis.net/wms", "Name")[0].childNodes[0].nodeValue;
                 var textureCRS = x[i].getElementsByTagNameNS("http://www.opengis.net/wms", "CRS")[0].childNodes[0].nodeValue;
                 if (textureName.indexOf('texture')!=-1 && textureCRS.indexOf('AUTO')==-1){
@@ -362,7 +381,7 @@ function initTextureSelection(){
                         combo.add(option); // IE only
                     }
                 }
-            }
+            }            
         }
     }
 
@@ -417,6 +436,34 @@ function initLODSelection(){
             combo.add(option); // IE only
         }
     }
+
+    $("#selectLodLevel").val(getLODlevel());
+};
+
+function initOctetResSelection(){
+    var combo = document.getElementById('selectOctetstreamResolution');
+    var option = document.createElement('option');
+    option.text = "Select octet-stream resolution";
+    option.value = "Select_oct_res";
+    try {
+        combo.add(option, null); //Standard 
+    } catch(error) {
+        combo.add(option); // IE only
+    }
+
+    for (i=8;i<=256;i=i*2){ 
+        var combo = document.getElementById("selectOctetstreamResolution");
+        var option = document.createElement("option");
+        option.text = i;
+        option.value = i;
+        try {
+            combo.add(option, null); //Standard 
+        } catch(error) {
+            combo.add(option); // IE only
+        }
+    }
+
+    $("#selectOctetstreamResolution").val(getCurrentOctet_streamResolution());
 };
 
 // Traps camera movement, used for analyzing when new layer data should be requested

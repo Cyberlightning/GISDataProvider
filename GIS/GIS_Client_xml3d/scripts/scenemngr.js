@@ -38,9 +38,18 @@
     this.setTextureResolution = function(resolution){
         textureResolution = resolution;
     }
+    
+    this.getTextureResolution = function(){
+        return textureResolution;
+    }
 
     this.setLODlevel = function(LODlevel){
+        console.log("Change LOD level to "+LODlevel);
         LodLevel = LODlevel;
+    }
+
+    this.getLODlevel = function(){
+        return LodLevel;
     }
 
     this.setTextureInfo = function(texture, textureCRS){
