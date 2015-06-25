@@ -3,6 +3,9 @@ Files related to GIS EPIC
 Folders:
 ---------
 
+GIS_Client_assetInstancing:
+Reference client for asset instance usage
+
 GIS_Client_octet-stream:
 Contains GIS GE reference client for requesting and using 3D terrain objects based on octet-stream -data.
 
