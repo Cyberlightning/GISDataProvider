@@ -1,4 +1,5 @@
 var xmlDocW3DS;
+var xmlDocWMS;
 var spinner;
 //var baseUrl = "http://130.206.81.238:8080/geoserver/";
 var spinnerCounter = 0;
@@ -6,13 +7,13 @@ var spinnerCounter = 0;
 var ip = location.host;
 var baseUrl = "http://"+ip+"/geoserver/";
 
-
 var oldCoordinates = null;
 
 (function() {
     var layerNames = [];
 
     var selectedTerrainLayer = null;
+    var selectedTerrainLayerDetails = null;
 
     var spinOpts = {
           lines: 30, // The number of lines to draw
@@ -34,68 +35,7 @@ var oldCoordinates = null;
     spinner = new Spinner(spinOpts).spin();
     $("#loading").append(spinner.el);
 
-    // var baseUrl = "http://localhost:9090/geoserver/";
-    // var baseUrl = "http://dev.cyberlightning.com:9091/geoserver/";
-
-
-    function parseServerCapabilities(response) {
-        // console.log(response);
-
-        xmlDocW3DS = new DOMParser().parseFromString(response,'text/xml');
-        var x = xmlDocW3DS.getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "Layer");
-
-        var combo = document.getElementById('select_Layer');
-        var option = document.createElement('option');
-        option.text = "Select terrain layer";
-        option.value = "select_terrain_layer";
-        try {
-            combo.add(option, null); //Standard 
-        } catch(error) {
-            combo.add(option); // IE only
-        }
-
-        for (i=4;i<=10;i++){ 
-
-        }
-
-        $('#select3DobjectLayer').append('<br/>');
-        for (i=0;i<x.length;i++)
-            { 
-            var layerText = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue;
-            var layerValue = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Title")[0].childNodes[0].nodeValue;
-            // Add only those layers to terrain selection which contains "terrain" in their name
-            if (layerText.indexOf('terrain')===-1){
-                $('#select3DobjectLayer').append(
-                   $(document.createElement('input')).attr({
-                       id:    layerValue
-                      ,name:  layerValue
-                      ,value: layerText
-                      ,type:  'checkbox'
-                   })
-                );
-                $('#select3DobjectLayer').append(
-                   $(document.createElement('label')).text(layerText));
-                $('#select3DobjectLayer').append('<br/>');
-
-
-                layerNames.push(layerValue);    
-            } 
-            // Assumption is that layers which doesn't contain "terrain" in their name cointains points and URI for XML3D 
-            // definitions to be placed in the point location
-            else{
-                var combo = document.getElementById("select_Layer");
-                var option = document.createElement("option");
-                option.text = layerText;
-                option.value = layerValue;
-                try {
-                    combo.add(option, null); //Standard 
-                } catch(error) {
-                    combo.add(option); // IE only
-                }
-            }          
-        }
-    }
-
+    
     function getGeoserverCapabilities() {
         // console.log("getGeoserverCapabilities");
         var xmlhttp;
@@ -109,7 +49,7 @@ var oldCoordinates = null;
         xmlhttp.onreadystatechange = function() {
             if (xmlhttp.readyState==4 && xmlhttp.status==200) {
                 // console.log(xmlhttp.responseText);
-                parseServerCapabilities(xmlhttp.responseText);
+                // parseServerCapabilities(xmlhttp.responseText);
             }
         }
 
@@ -137,7 +77,7 @@ var oldCoordinates = null;
                 }
 
                 newLayer = true;
-                getLayerDetails(selectedTerrainLayer, selectedObjectLayers);
+                getDemLayerDetails(selectedTerrainLayer, selectedTerrainLayerDetails);
 
                 $(this).blur();
                 e.preventDefault();
@@ -174,21 +114,7 @@ var oldCoordinates = null;
         });
       });
 
-     // user selected LOD level
-     $(function() {
-        $("#selectLodLevel").change(function(e) {
-            // console.log("Selection list item: "+this.options[this.selectedIndex].value);
-            e.preventDefault();
-            if (this.options[this.selectedIndex].value === 'select_LOD_level'){
-                // Select layer-option pressed, do nothing
-                console.log("select_LOD_level");
-            }
-            else{
-                setLODlevel(this.options[this.selectedIndex].text);
-            }
-        });
-      });
-
+     
 
     $(function() {
         $("#selectOctetstreamResolution").change(function(e) {
@@ -231,6 +157,7 @@ var oldCoordinates = null;
             }
             else{
                 selectedTerrainLayer = this.options[this.selectedIndex].text;
+                selectedTerrainLayerDetails = this.options[this.selectedIndex].value;
             }
         });
       });
@@ -240,7 +167,6 @@ var oldCoordinates = null;
         getGeoserverCapabilities();
         initTexttureSelection();
         initTextureSelection();
-        initLODSelection();
         initOctetResSelection();
     }
 
@@ -308,8 +234,9 @@ function initTextureSelection(){
         xmlhttp = new XDomainRequest();
     }
 
-        xmlhttp.onreadystatechange = function() {
+    xmlhttp.onreadystatechange = function() {
         if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+            // console.log(xmlhttp.responseText);
             var combo = document.getElementById('selectTexture');
             var option = document.createElement('option');
             option.text = "Select texture";
@@ -320,8 +247,20 @@ function initTextureSelection(){
                 combo.add(option); // IE only
             }
 
-            var xmlDoc = new DOMParser().parseFromString(xmlhttp.responseText,'text/xml');
-            var x = xmlDoc.getElementsByTagNameNS("http://www.opengis.net/wms", "Layer");
+            var comboDem = document.getElementById("select_Layer");
+            var optionDem = document.createElement('option');
+            if(comboDem.length==0){ //Selection list for DEM layer is empty, add default item
+                optionDem.text = "Select terrain layer";
+                optionDem.value = "select_terrain_layer";
+                try {
+                    comboDem.add(optionDem, null); //Standard 
+                } catch(error) {
+                    comboDem.add(optionDem); // IE only
+                }
+            }
+
+            var xmlDocWMS = new DOMParser().parseFromString(xmlhttp.responseText,'text/xml');
+            var x = xmlDocWMS.getElementsByTagNameNS("http://www.opengis.net/wms", "Layer");
 
             for (i=0;i<x.length;i++){ 
                 var textureName = x[i].getElementsByTagNameNS("http://www.opengis.net/wms", "Name")[0].childNodes[0].nodeValue;
@@ -329,14 +268,41 @@ function initTextureSelection(){
                 if (textureName.indexOf('texture')!=-1 && textureCRS.indexOf('AUTO')==-1){
                     console.log(textureName);
                     console.log(textureCRS);
-                    var combo = document.getElementById("selectTexture");
-                    var option = document.createElement("option");
+                    
+                    var option = document.createElement("option");                    
                     option.text = textureName;
                     option.value = textureCRS;
                     try {
                         combo.add(option, null); //Standard 
                     } catch(error) {
                         combo.add(option); // IE only
+                    }
+                }
+                /* Read DEM files and add details of them to the option list */
+                else if(textureName.indexOf('DEM')!=-1 && textureCRS.indexOf('AUTO')==-1){
+                    var boundingBoxInfo = x[i].getElementsByTagNameNS("http://www.opengis.net/wms", "BoundingBox");
+                    console.log(boundingBoxInfo.length);
+                    ii=0
+                    while (ii<boundingBoxInfo.length){
+                        if(boundingBoxInfo[ii].attributes['CRS'].value === textureCRS){
+                            var DemDetails = (boundingBoxInfo[ii].attributes['CRS'].value+"; "+
+                                            boundingBoxInfo[ii].attributes['minx'].value+" "+
+                                            boundingBoxInfo[ii].attributes['miny'].value+", "+
+                                            boundingBoxInfo[ii].attributes['maxx'].value+" "+
+                                            boundingBoxInfo[ii].attributes['maxy'].value);
+
+                            var comboDem = document.getElementById("select_Layer");
+                            var optionDem = document.createElement("option");
+                            optionDem.text = textureName;
+                            optionDem.value = DemDetails;
+                            try {
+                                comboDem.add(optionDem, null); //Standard 
+                            } catch(error) {
+                                comboDem.add(optionDem); // IE only
+                            }
+                            console.log("DEM details added to optionlist: "+DemDetails);
+                            }
+                        ii++
                     }
                 }
             }            
@@ -372,31 +338,6 @@ function initGridBlockSelection(){
     }
 };
 
-function initLODSelection(){
-    var combo = document.getElementById('selectLodLevel');
-    var option = document.createElement('option');
-    option.text = "Select LOD level";
-    option.value = "select_LOD_level";
-    try {
-        combo.add(option, null); //Standard 
-    } catch(error) {
-        combo.add(option); // IE only
-    }
-
-    for (i=4;i<=10;i++){ 
-        var combo = document.getElementById("selectLodLevel");
-        var option = document.createElement("option");
-        option.text = i;
-        option.value = i;
-        try {
-            combo.add(option, null); //Standard 
-        } catch(error) {
-            combo.add(option); // IE only
-        }
-    }
-
-    $("#selectLodLevel").val(getLODlevel());
-};
 
 function initOctetResSelection(){
     var combo = document.getElementById('selectOctetstreamResolution');

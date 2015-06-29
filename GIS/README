@@ -9,6 +9,9 @@ Reference client for asset instance usage
 GIS_Client_octet-stream:
 Contains GIS GE reference client for requesting and using 3D terrain objects based on octet-stream -data.
 
+GIS_Client_DEM:
+It is possible to query elevation information from the DEM files, 
+this example demonstrates how octet-stream response got from  DEM file can be utilized for creating terrain.
 
 GIS_Client_xml3d:
 GIS GE reference client for XML3D response type.

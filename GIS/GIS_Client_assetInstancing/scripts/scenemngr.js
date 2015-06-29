@@ -16,7 +16,7 @@
     var layerBlockGridsplit = 5;
     var textureResolution = 512;
     var terrainTextureCRS = 0;
-    var LodLevel = 4;
+    var LodLevel = 10;
     // var selectedTerrainTextureName = null;
     // var selectedTerrainTextureCRS = null;
 
