@@ -244,17 +244,17 @@
                                             higherCornerX+","+
                                             higherCornerY,
                                             layerCRS);
-            httpRequest(octetStreamRequest, layerName, transformX, transformY, texture, addOctetstreamContent);
+        httpRequest(octetStreamRequest, layerName, transformX, transformY, texture, addOctetstreamContent);
     }
 
-        function createDEMRequest(baseUrl, layer, boundingbox, layerCRS) {
+    function createDEMRequest(baseUrl, layer, boundingbox, layerCRS) {
         var requestUrl;
         var service = "fiware/wms?service=WMS&version=1.1.0";
         
         // Octet-stream specific format
         var format = "&format=application%2Foctet-stream";
 
-        var srs = "&srs=EPSG:3067";
+        var srs = "&srs="+layerCRS;
         var request = "&request=GetMap";
         var bbox = "&bbox="+boundingbox;
 
