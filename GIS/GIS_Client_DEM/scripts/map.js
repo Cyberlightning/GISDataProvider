@@ -2,11 +2,11 @@ var xmlDocW3DS;
 var xmlDocWMS;
 var spinner;
 //var baseUrl = "http://130.206.81.238:8080/geoserver/";
-var baseUrl = "http://localhost:8080/geoserver/";
+//var baseUrl = "http://localhost:8080/geoserver/";
 var spinnerCounter = 0;
 
 var ip = location.host;
-//var baseUrl = "http://"+ip+"/geoserver/";
+var baseUrl = "http://"+ip+"/geoserver/";
 
 var oldCoordinates = null;
 
