@@ -37,40 +37,41 @@
 
     this.setTextureResolution = function(resolution){
         textureResolution = resolution;
-    }
-    
+
+    };
+
     this.getTextureResolution = function(){
         return textureResolution;
-    }
+    };
 
     this.setLODlevel = function(LODlevel){
         console.log("Change LOD level to "+LODlevel);
         LodLevel = LODlevel;
-    }
+    };
 
     this.getLODlevel = function(){
         return LodLevel;
-    }
+    };
 
     this.setOctet_streamResolution = function(resolution){
         console.log("Change octet stream resolution to "+resolution);
         octet_stream_resolution = resolution;
-    }
+    };
 
     this.getCurrentOctet_streamResolution = function(){
         return octet_stream_resolution;
-    }
+    };
 
     this.setTextureInfo = function(texture, textureCRS){
         TerrainTextureName = texture;
         TerrainTextureCRS = textureCRS;
-    }
+    };
 
     // setter function for changing layerBlockGridsplit variable on runtime
     // NOTE: scene must be reloaded after changing this value
     this.setGridRowCol = function(gridsplit){
         layerBlockGridsplit = gridsplit;
-    }
+    };
 
     this.getDemLayerDetails = function(selectedLayer, selectedTerrainLayerDetails) {
         var terrainDetailsplitted = selectedTerrainLayerDetails.split("; ");
@@ -94,7 +95,7 @@
             );
 
         }        
-    }
+    };
 
     // Creates square below terrain to give guidance what is the maximum area for the terrain to be loaded
     function createLayerGuideBlock(){
@@ -104,7 +105,7 @@
         var layerBorder = "<group id=\"layerguide\" xmlns=\"http://www.xml3d.org/2009/xml3d\" shader=\"#phong\"  transform=\"#layerguideTransform\">";
 
         layerBorder += "<mesh type=\"triangles\" transform=\"#layerguideTransform\"> <int name=\"index\">0 1 2  1 2 3</int>";
-        layerBorder += "<float3 name=\"position\"> 0 20 0 "+(blocklengthX*layerBlockGridsplit)+" 20 0 0 20 "+(-(blocklengthY*layerBlockGridsplit))+" "+(blocklengthX*layerBlockGridsplit)+" 20 "+(-(blocklengthY*layerBlockGridsplit))+"</float3>";
+        layerBorder += "<float3 name=\"position\"> 0 -10 0 "+(blocklengthX*layerBlockGridsplit)+" -10 0  0 -10 "+(-(blocklengthY*layerBlockGridsplit))+" "+(blocklengthX*layerBlockGridsplit)+" -10 "+(-(blocklengthY*layerBlockGridsplit))+"</float3>";
         layerBorder += "<float3 name=\"normal\">0 0 1  0 0 1  0 0 1  0 0 1</float3>";
         layerBorder += "<float2 name=\"texcoord\">0.0 0.0 1.0 0.0 0.0 1.0 1.0 1.0</float2>";
         layerBorder += "</mesh></group>";
@@ -198,9 +199,14 @@
         }
         // console.log("minmax arvot BB "+LayerMinX, LayerMinY, LayerMaxX, LayerMaxY);
 
+        console.log("LayerMaxX-LayerMinX= "+parseFloat(LayerMaxX-LayerMinX));
+        console.log("LayerMaxY-LayerMinY= "+parseFloat(LayerMaxY-LayerMinY));
+        console.log("(LayerMaxX-LayerMinX)/layerBlockGridsplit)= "+parseFloat((LayerMaxX-LayerMinX)/layerBlockGridsplit));
+        console.log("(LayerMaxY-LayerMinY)/layerBlockGridsplit)= "+parseFloat((LayerMaxY-LayerMinY)/layerBlockGridsplit));
+
         blocklengthX = parseFloat((LayerMaxX-LayerMinX)/layerBlockGridsplit);
         blocklengthY = parseFloat((LayerMaxY-LayerMinY)/layerBlockGridsplit);
-    }
+    };
 
 
     // Parses data for GeoServer GIS request
@@ -254,9 +260,12 @@
         // Octet-stream specific format
         var format = "&format=application%2Foctet-stream";
 
+        // var srs = "&srs=EPSG:3067";
         var srs = "&srs="+layerCRS;
         var request = "&request=GetMap";
         var bbox = "&bbox="+boundingbox;
+
+        // var bbox = "&bbox=23.97579529439363,68.01837510417197,24.126530896440894,68.07478098246935";
 
         var octet_stream_resolution_attributes = "&width="+octet_stream_resolution+"&height="+octet_stream_resolution;
 
@@ -266,28 +275,7 @@
         return requestUrl;
     }
 
-    // function createGisXml3dRequest(baseUrl, layer, boundingbox, layerCRS) {
-    //     // console.log("createGISRequest");
-    //     var requestUrl;
-    //     var service = "w3ds?version=0.4&service=w3ds";
-        
-    //     var format = "&format=model/xml3d+xml";
 
-    //     var crs = "&crs="+layerCRS;
-    //     var request = "&request=GetScene";
-
-    //     // If user hasn't defined LOD level, LOD level is not included to request at all
-    //     if (LodLevel !== -1){
-    //         requestUrl = baseUrl + service + request + crs + format+"&layers="+layer+"&boundingbox="+boundingbox+"&LOD="+LodLevel;
-    //     }else{
-    //         requestUrl = baseUrl + service + request + crs + format+"&layers="+layer+"&boundingbox="+boundingbox;
-    //     }
-        
-    //     // console.log(requestUrl);
-    //     return requestUrl;
-    // }
-
- 
     function httpRequest(requestUrl, layerName, transformX, transformY, texture, callback) {
         // console.log("httpRequest(): "+requestUrl, layerName, transformX, transformY, texture);
         startSpinner();
@@ -302,10 +290,9 @@
         // Set callback function
         xmlhttp.onreadystatechange = function() {
             if (xmlhttp.readyState==4 && xmlhttp.status==200) {       
-                // callback(xmlhttp.responseText, layerName, texture, transformX, transformY);
                 callback(xmlhttp.response, layerName, texture, transformX, transformY);
             }
-        }
+        };
         xmlhttp.open("GET", requestUrl , true);
         xmlhttp.responseType = "arraybuffer";
         xmlhttp.send();
@@ -325,7 +312,7 @@
             if (xmlhttp.readyState==4 && xmlhttp.status==200) {       
                 callback(xmlhttp.responseText, transformX, transformY);
             }
-        }
+        };
         xmlhttp.open("GET", requestUrl , true);
         xmlhttp.send();
     }
@@ -389,7 +376,7 @@
                     addMeshtoHtml(meshNameArray, translation);
                     });
                 }
-            }
+            };
             xmlhttp.open("GET",meshSrc,false);
             xmlhttp.send();
         }
@@ -420,9 +407,7 @@
         var camera_node = document.getElementById("t_node-camera_player");
         var camera_player = document.getElementById("camera_player-camera");
         camera_player.setAttribute("orientation", "0 -1 -0.11 2.6");
-        camera_player.setAttribute("position", 
-                                   "0 "+
-                                   parseFloat(currentTerrainElevRefPoint+camHeightOffset)+" 0");
+        camera_player.setAttribute("position", "0 " + parseFloat(currentTerrainElevRefPoint+camHeightOffset)+" 0");
     }
 
 
@@ -477,8 +462,15 @@
         var c = new Float32Array(octetStreamData, dataOffset);
         
         // convert big endian to host endianess
-        for (var i = 0; dataOffset < dv.byteLength; dataOffset += L_FLOAT32, i++) // {
-            c[i] = dv.getFloat32(dataOffset, false);
+        for (var i = 0; dataOffset < dv.byteLength; dataOffset += L_FLOAT32, i++) {
+            //Check no-data-values for elevation, assume that all negative numbers are no-data-values
+            if (dv.getFloat32(dataOffset, false) < 0){
+                //no-data-value detected, replace it with zero elevation
+                c[i] = 0;
+            }else {
+                c[i] = dv.getFloat32(dataOffset, false);
+            }
+        }
 
         console.log(c);
         returnData.push(c);
@@ -521,10 +513,11 @@
         var transformation = document.createElement('transform');
         transformation.setAttribute('id',IdName+"transform");
         transformation.setAttribute('rotation','0.0 0.0 0.0 0.0');
-        // transformation.setAttribute('scale', '603 180 606');
-        transformation.setAttribute('scale', '602 180 602');
+        //transformation.setAttribute('scale', '7275 180 5550'); // X, Z, Y
+        //transformation.setAttribute('scale', '14545 500 11100'); // X, Z, Y
+        transformation.setAttribute('scale', blocklengthX/2 +' 200 '+ blocklengthY/2); // X, Z, Y
+
         transformation.setAttribute('translation',(transformX*blocklengthX)+' 0 '+((-transformY*blocklengthY)));
-        // transformation.setAttribute('translation',(transformX*(octet_data[0]*octet_data[3]))+' 0 '+((transformY*(-octet_data[1]*octet_data[4]))));
 
         // <!-- Load terrain data: --> 
         var data_terrain = document.createElement('data');
@@ -592,7 +585,7 @@
 
         if (newLayer) {
             // getTerrainElevationRefPoint();
-            setCameraPosition(); 
+            setCameraPosition();
             newLayer = false;
         }
         stopSpinner();

@@ -2,10 +2,11 @@ var xmlDocW3DS;
 var xmlDocWMS;
 var spinner;
 //var baseUrl = "http://130.206.81.238:8080/geoserver/";
+var baseUrl = "http://localhost:8080/geoserver/";
 var spinnerCounter = 0;
 
 var ip = location.host;
-var baseUrl = "http://"+ip+"/geoserver/";
+//var baseUrl = "http://"+ip+"/geoserver/";
 
 var oldCoordinates = null;
 
@@ -51,7 +52,7 @@ var oldCoordinates = null;
                 // console.log(xmlhttp.responseText);
                 // parseServerCapabilities(xmlhttp.responseText);
             }
-        }
+        };
 
         xmlhttp.open("GET", baseUrl + "ows?service=w3ds&version=0.4.0&request=GetCapabilities", true);
         xmlhttp.send();
@@ -186,7 +187,7 @@ function startSpinner(){
     spinnerCounter += 1;
     console.log("startSpinner()"+spinnerCounter);
     
-};
+}
 
 // Stop function for stopping spinner.
 // Every time function is called "spinnerCounter" counter is decreased. 
@@ -199,7 +200,7 @@ function stopSpinner(){
     }
     console.log("stopSpinner()"+spinnerCounter);
     
-};
+}
 
 function initTexttureSelection(){
     var combo = document.getElementById('selectTextureRes');
@@ -224,7 +225,7 @@ function initTexttureSelection(){
         }
     }
     $("#selectTextureRes").val(getTextureResolution());
-};
+}
 
 function initTextureSelection(){
     var xmlhttp;
@@ -282,7 +283,7 @@ function initTextureSelection(){
                 else if(textureName.indexOf('DEM')!=-1 && textureCRS.indexOf('AUTO')==-1){
                     var boundingBoxInfo = x[i].getElementsByTagNameNS("http://www.opengis.net/wms", "BoundingBox");
                     console.log(boundingBoxInfo.length);
-                    ii=0
+                    ii=0;
                     while (ii<boundingBoxInfo.length){
                         if(boundingBoxInfo[ii].attributes['CRS'].value === textureCRS){
                             var DemDetails = (boundingBoxInfo[ii].attributes['CRS'].value+"; "+
@@ -312,7 +313,7 @@ function initTextureSelection(){
     xmlhttp.open("GET", baseUrl + "ows?service=wms&version=1.3.0&request=GetCapabilities" , true);
     xmlhttp.send();
 
-};
+}
 
 function initGridBlockSelection(){
     var combo = document.getElementById('selectGridRowColNumber');
@@ -336,7 +337,7 @@ function initGridBlockSelection(){
             combo.add(option); // IE only
         }
     }
-};
+}
 
 
 function initOctetResSelection(){
@@ -363,7 +364,7 @@ function initOctetResSelection(){
     }
 
     $("#selectOctetstreamResolution").val(getCurrentOctet_streamResolution());
-};
+}
 
 // Traps camera movement, used for analyzing when new layer data should be requested
 window.MutationObserver = window.MutationObserver
