@@ -5,6 +5,7 @@
     <script type="text/javascript" src="scripts/xflow_gis.js"></script>
     <script type="text/javascript" src="../deps/jquery-1.11.3.min.js"></script>
     <script type="text/javascript" src="../deps/spin.min.js"></script>
+    <script type="text/javascript" src="../deps/proj4.js"></script>
 
     <title>GIS Data Provider test client</title>
 
@@ -99,6 +100,61 @@
       <button id="SelectLayersButton" style="background-color:#33FF00;margin-top:20px;margin-right: 10px;" title="Load selected terrain data to the display">Load data</button>
       <button id="resetScreenButton" style="background-color:#FF6600;" onclick="reloadPage()" title="Clear screen and selected values">Reset view</button>
     </div>
+
+  <hr></hr>
+      <div id="div_loadedLayerDetails" style="display: none">
+          <table id="loadedLayerDetails" border="1" >
+              <tr>
+                  <th colspan="2">
+                      Loaded layer details:
+                  </th>
+              </tr>
+              <tr>
+                  <td>
+                      Length:
+                  </td>
+                  <td id="layerLength">
+
+                  </td>
+              </tr>
+              <tr>
+                  <td>
+                      Height:
+                  </td>
+                  <td id="layerHeight">
+
+                  </td>
+              </tr>
+              <tr>
+                  <td rowspan="2">
+                      Lower left<br/> Lat/Long coords
+                  </td>
+                  <td id="minLat">
+                    minLat
+                  </td>
+              </tr>
+              <tr>
+                  <td id="minLong">
+                    minLong
+                  </td>
+              </tr>
+              <tr>
+                  <td rowspan="2" style="padding-top: 10px">
+                      Upper right <br/> Lat/Long coords
+                  </td>
+                  <td id="maxlat">
+                    maxLat
+                  </td>
+              </tr>
+              <tr>
+                  <td id="maxLong">
+                    maxLong
+                  </td>
+              </tr>
+          </table>
+
+
+      </div>
 
     
   </div> 

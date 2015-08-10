@@ -280,12 +280,14 @@ function initTextureSelection(){
                     }
                 }
                 /* Read DEM files and add details of them to the option list */
-                else if(textureName.indexOf('DEM')!=-1 && textureCRS.indexOf('AUTO')==-1){
+                else if((textureName.indexOf('DEM')!=-1 && textureCRS.indexOf('AUTO')==-1) ||
+                        (textureName.indexOf('_terrain')!=-1 && textureCRS.indexOf('AUTO')==-1)){
                     var boundingBoxInfo = x[i].getElementsByTagNameNS("http://www.opengis.net/wms", "BoundingBox");
                     console.log(boundingBoxInfo.length);
-                    ii=0;
+                    var ii=0;
                     while (ii<boundingBoxInfo.length){
-                        if(boundingBoxInfo[ii].attributes['CRS'].value === textureCRS){
+                        //Only CRS:84 coordinates are used for layer queries
+                        if(boundingBoxInfo[ii].attributes['CRS'].value === "CRS:84"){
                             var DemDetails = (boundingBoxInfo[ii].attributes['CRS'].value+"; "+
                                             boundingBoxInfo[ii].attributes['minx'].value+" "+
                                             boundingBoxInfo[ii].attributes['miny'].value+", "+
