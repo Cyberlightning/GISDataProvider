@@ -36,6 +36,36 @@ var oldCoordinates = null;
     spinner = new Spinner(spinOpts).spin();
     $("#loading").append(spinner.el);
 
+
+    function parseServerCapabilities(response) {
+        // console.log(response);
+
+        xmlDocW3DS = new DOMParser().parseFromString(response,'text/xml');
+        var x = xmlDocW3DS.getElementsByTagNameNS("http://www.opengis.net/w3ds/0.4.0", "Layer");
+
+        $('#select3DobjectLayer').append('<br/>');
+        for (i=0;i<x.length;i++){
+            var layerText = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue;
+            var layerValue = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Title")[0].childNodes[0].nodeValue;
+            // Add only those layers to object selection which name contains "building_coordinates"
+            if (layerText.indexOf('building_coordinates') > -1){
+                $('#select3DobjectLayer').append(
+                   $(document.createElement('input')).attr({
+                       id:    layerValue
+                      ,name:  layerValue
+                      ,value: layerText
+                      ,type:  'checkbox'
+                   })
+                );
+                $('#select3DobjectLayer').append(
+                   $(document.createElement('label')).text(layerText));
+                $('#select3DobjectLayer').append('<br/>');
+
+
+                layerNames.push(layerValue);
+                }
+        }
+    }
     
     function getGeoserverCapabilities() {
         // console.log("getGeoserverCapabilities");
@@ -50,7 +80,7 @@ var oldCoordinates = null;
         xmlhttp.onreadystatechange = function() {
             if (xmlhttp.readyState==4 && xmlhttp.status==200) {
                 // console.log(xmlhttp.responseText);
-                // parseServerCapabilities(xmlhttp.responseText);
+                 parseServerCapabilities(xmlhttp.responseText);
             }
         };
 
@@ -58,7 +88,7 @@ var oldCoordinates = null;
         xmlhttp.send();
     }
 
-    // Traps selection list click event and launch layer detail fetching funtion
+    // Traps selection list click event and launch layer detail fetching function
      $(function() {
         $("#SelectLayersButton").click(function(e) {
             console.log("SelectLayersButton clicked");
@@ -78,7 +108,7 @@ var oldCoordinates = null;
                 }
 
                 newLayer = true;
-                getDemLayerDetails(selectedTerrainLayer, selectedTerrainLayerDetails);
+                getDemLayerDetails(selectedTerrainLayer, selectedTerrainLayerDetails, selectedObjectLayers);
 
                 $(this).blur();
                 e.preventDefault();
@@ -135,8 +165,7 @@ var oldCoordinates = null;
      // gets user selected value for grid division
     $(function() {
         $("#selectGridRowColNumber").change(function(e) {
-            // console.log("Selection list item: "+this.options[this.selectedIndex].value);
-            e.preventDefault(); // if desired...
+            e.preventDefault();
             if (this.options[this.selectedIndex].value === 'select_grid_block_division'){
                 // Select layer-option pressed, do nothing
                 console.log("select_grid_block_division");
@@ -150,8 +179,7 @@ var oldCoordinates = null;
     // handles terrain layer selection
     $(function() {
         $("#select_Layer").change(function(e) {
-            // console.log("Selection list item: "+this.options[this.selectedIndex].text);
-            e.preventDefault(); // if desired...
+            e.preventDefault();
             if (this.options[this.selectedIndex].value === 'select_terrain_layer'){
                 // Select layer-option pressed, do nothing
                 console.log("select_terrain_layer");
@@ -169,6 +197,7 @@ var oldCoordinates = null;
         initTexttureSelection();
         initTextureSelection();
         initOctetResSelection();
+        initGridBlockSelection();
     }
 
     window.onload = init();
@@ -176,8 +205,7 @@ var oldCoordinates = null;
 }());
 
 
-// Start function for spinner start.
-// Every time function is called "spinnerCounter" counter is increased.
+/* Start function for spinner start. Every time function is called "spinnerCounter" counter is increased. */
 function startSpinner(){    
     if (spinnerCounter === 0){
         $("#loading").show();
@@ -189,9 +217,8 @@ function startSpinner(){
     
 }
 
-// Stop function for stopping spinner.
-// Every time function is called "spinnerCounter" counter is decreased. 
-// Spinner is stopped when counter value is "0"
+/*  Stop function for stopping spinner. Every time function is called "spinnerCounter" counter is decreased.
+    Spinner is stopped when counter value is "0".*/
 function stopSpinner(){
     spinnerCounter -= 1;
     if (spinnerCounter === 0){
@@ -317,18 +344,27 @@ function initTextureSelection(){
 
 }
 
+
+/*Initialization of the terrain grid values. Whole terrain layer is divided to the grid based on this setting.
+* e.g when gridblock is defined to 5, it means that whole terrain layer is divided to the 5x5 grid. Each block in the grid
+* needs to be loaded separately .*/
 function initGridBlockSelection(){
-    var combo = document.getElementById('selectGridRowColNumber');
-    var option = document.createElement('option');
-    option.text = "Select grid";
-    option.value = "select_grid_block_division";
-    try {
-        combo.add(option, null); //Standard 
-    } catch(error) {
-        combo.add(option); // IE only
+    function addOptionItem(text, value){
+        var combo = document.getElementById('selectGridRowColNumber');
+        var option = document.createElement('option');
+        option.text = text;
+        option.value = value;
+        try {
+            combo.add(option, null); //Standard
+        } catch(error) {
+            combo.add(option); // IE only
+        }
     }
 
-    for (i=5;i<=10;i=i+5){ 
+    addOptionItem("Select grid", "select_grid_block_division");
+    addOptionItem("1", "1"); // When grid value is set to 1, whole layer will be loaded in to single terrain block
+
+    for (i=5;i<=40;i=i+5){
         var combo = document.getElementById("selectGridRowColNumber");
         var option = document.createElement("option");
         option.text = i;
@@ -339,6 +375,8 @@ function initGridBlockSelection(){
             combo.add(option); // IE only
         }
     }
+
+    $("#selectGridRowColNumber").val(getGridRowCol());
 }
 
 
@@ -368,11 +406,12 @@ function initOctetResSelection(){
     $("#selectOctetstreamResolution").val(getCurrentOctet_streamResolution());
 }
 
-// Traps camera movement, used for analyzing when new layer data should be requested
+/*
+Traps camera movement, used for analyzing when new layer data should be requested
+*/
 window.MutationObserver = window.MutationObserver
     || window.WebKitMutationObserver
     || window.MozMutationObserver;
-// Find the element that you want to "watch"
 var target = document.querySelector('#camera_player-camera'),
 
     observer = new MutationObserver(function(mutation) {
