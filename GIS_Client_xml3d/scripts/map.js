@@ -61,7 +61,8 @@ var oldCoordinates = null;
             { 
             var layerText = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Identifier")[0].childNodes[0].nodeValue;
             var layerValue = x[i].getElementsByTagNameNS("http://www.opengis.net/ows/1.1", "Title")[0].childNodes[0].nodeValue;
-            // Add only those layers to terrain selection which contains "terrain" in their name
+            // Assumption is that layers which doesn't contain "terrain" in their name contains points and URI for XML3D
+            // definitions to be placed in the point location
             if (layerText.indexOf('terrain')===-1){
                 $('#select3DobjectLayer').append(
                    $(document.createElement('input')).attr({
@@ -78,8 +79,6 @@ var oldCoordinates = null;
 
                 layerNames.push(layerValue);    
             } 
-            // Assumption is that layers which doesn't contain "terrain" in their name cointains points and URI for XML3D 
-            // definitions to be placed in the point location
             else{
                 var combo = document.getElementById("select_Layer");
                 var option = document.createElement("option");

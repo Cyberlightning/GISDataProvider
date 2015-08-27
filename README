@@ -1,20 +1,29 @@
-Files related to GIS EPIC
+This is reference client implementation for the GIS Data Provider GE
 
-Folders:
+Folder content:
 ---------
 
 GIS_Client_assetInstancing:
-Reference client for asset instance usage
+- Reference client for asset instance usage
 
 GIS_Client_octet-stream:
-Contains GIS GE reference client for requesting and using 3D terrain objects based on octet-stream -data.
+- Contains GIS GE reference client for requesting and using 3D terrain objects based on octet-stream -data.
 
 GIS_Client_DEM:
-It is possible to query elevation information from the DEM files, 
-this example demonstrates how octet-stream response got from  DEM file can be utilized for creating terrain.
+- It is possible to query elevation information from the DEM files,
+- This example demonstrates how octet-stream response got from  DEM file can be utilized for creating terrain.
+- Latitude / Longitude support
 
 GIS_Client_xml3d:
-GIS GE reference client for XML3D response type.
+- GIS GE reference client for XML3D response type.
+- Metric coordinates supported (TM35)
 
 Demos/RvI_GIS_demo:
-compiled jar package of the RealVirtualInteraction GE, can be used with GIS_Client_xml3d for demosntrating RvI visualization.
+- compiled jar package of the RealVirtualInteraction GE, can be used with GIS_Client_xml3d for demonstrating RvI visualization.
+
+---------------------------------------------------------------------------------------------------------
+This project is part of FIWARE.
+https://www.fiware.org/
+
+Link to the GIS Data Provider FIWARE catalogue:
+http://catalogue.fiware.org/enablers/gis-data-provider-geoserver3d

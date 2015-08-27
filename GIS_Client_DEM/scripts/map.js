@@ -364,7 +364,7 @@ function initGridBlockSelection(){
     addOptionItem("Select grid", "select_grid_block_division");
     addOptionItem("1", "1"); // When grid value is set to 1, whole layer will be loaded in to single terrain block
 
-    for (i=5;i<=40;i=i+5){
+    for (i=5;i<=50;i=i+5){
         var combo = document.getElementById("selectGridRowColNumber");
         var option = document.createElement("option");
         option.text = i;
@@ -391,7 +391,7 @@ function initOctetResSelection(){
         combo.add(option); // IE only
     }
 
-    for (i=70;i<=120;i=i+10){ 
+    for (i=50;i<=150;i=i+10){
         var combo = document.getElementById("selectOctetstreamResolution");
         var option = document.createElement("option");
         option.text = i;
