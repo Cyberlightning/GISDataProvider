@@ -210,16 +210,16 @@
         // Purpose is to adjust scene BB area during initializing phase so that scene BB covers all loaded layers area.
         var lowerCornerSplit = LowerCorner.split(" ");
         var higherCornerSplit = UpperCorner.split(" ");                
-        if (LayerMinX>parseFloat(lowerCornerSplit[0]) || LayerMinX===null ){
+        if (LayerMinX>parseFloat(lowerCornerSplit[0]) || LayerMinX === null ){
             LayerMinX = parseFloat(lowerCornerSplit[0]);
         }
-        if (LayerMinY>parseFloat(lowerCornerSplit[1]) || LayerMinY===null){
+        if (LayerMinY>parseFloat(lowerCornerSplit[1]) || LayerMinY === null){
             LayerMinY = parseFloat(lowerCornerSplit[1]);
         }
-        if (LayerMaxX < parseFloat(higherCornerSplit[0]) || LayerMaxX ===null){
+        if (LayerMaxX < parseFloat(higherCornerSplit[0]) || LayerMaxX === null){
             LayerMaxX = parseFloat(higherCornerSplit[0]);
         }
-        if (LayerMaxY < parseFloat(higherCornerSplit[1]) || LayerMaxX ===null){
+        if (LayerMaxY < parseFloat(higherCornerSplit[1]) || LayerMaxY === null){
             LayerMaxY = parseFloat(higherCornerSplit[1]);
         }
         // console.log("minmax arvot BB "+LayerMinX, LayerMinY, LayerMaxX, LayerMaxY);

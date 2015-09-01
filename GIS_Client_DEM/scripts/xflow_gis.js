@@ -108,8 +108,8 @@ Xflow.registerOperator("xflow.mygrid", {
         // Create Texture Coordinates
 		for(var i = 0; i < l; i++) {
 			var offset = i*2;
-            texcoord[offset] = (i%s) / s;
-            texcoord[offset+1] = 1.0 - (Math.floor(i/t) / t);
+            texcoord[offset] = (i%s) / (s-1);
+            texcoord[offset+1] = 1.0 - (Math.floor(i/t) / (t-1));
 		}
 
         // Create Indices for triangles
