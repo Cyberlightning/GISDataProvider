@@ -1,0 +1,1913 @@
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GIS Data Provider Specification</title>
+    <link href="css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
+    <link href="css/font-awesome.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/idea.css">
+    <script src="js/highlight.pack.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <link rel="stylesheet" type="text/css" href="css/api-specification.css"> 
+
+    
+</head>
+<body id="respecDocument" class="h-entry">
+<div class="container">
+  <div id="TOC-container">
+    
+<section id="toc">
+
+        <div id="fiware-logo"></div>
+    <ul class="toc">
+
+
+    
+    
+
+
+
+
+
+<li><a href="#API_specification">API Specification</a>
+    <ul class="toc">
+    
+
+                        <li>
+                            
+                                <a href="#resource_group_geoserver" title = "Group Geoserver">Group Geoserver</a>
+                            
+                            <ul class="toc">
+                              
+                                
+                                    <li>
+                                        <a href="#resource_getcapabilities" title = "Resource GetCapabilities">Resource GetCapabilities</a>
+                                        <ul class="toc  ">
+                                        
+                                            
+                                                <li><a href="#action_view-a-getcapabilities-request-details" title ="GET - View a GetCapabilities request details">GET - View a GetCapabilities request details</a></li>
+                                            
+
+                                        
+                                        </ul>
+                                    </li>
+                                
+                              
+                            </ul>
+                        </li>
+                      
+
+                        <li>
+                            
+                                <a href="#resource_group_w3ds" title = "Group W3DS">Group W3DS</a>
+                            
+                            <ul class="toc">
+                              
+                                
+                                    <li>
+                                        <a href="#resource_getscene" title = "Resource GetScene">Resource GetScene</a>
+                                        <ul class="toc  ">
+                                        
+                                            
+                                                <li><a href="#action_view-a-getscene-detail" title ="GET - View a GetScene Detail">GET - View a GetScene Detail</a></li>
+                                            
+
+                                        
+                                        </ul>
+                                    </li>
+                                
+                              
+                            </ul>
+                        </li>
+                      
+
+                        <li>
+                            
+                                <a href="#resource_group_wms" title = "Group WMS">Group WMS</a>
+                            
+                            <ul class="toc">
+                              
+                                
+                                    <li>
+                                        <a href="#resource_getmap" title = "Resource GetMap">Resource GetMap</a>
+                                        <ul class="toc  ">
+                                        
+                                            
+                                                <li><a href="#action_view-a-getmap-details" title ="GET - View a GetMap details">GET - View a GetMap details</a></li>
+                                            
+
+                                        
+                                        </ul>
+                                    </li>
+                                
+                              
+                            </ul>
+                        </li>
+                      
+    <li><a href="#examples">Examples</a></li>
+    </ul>
+</li>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+        <li><a href="#references">References</a></li>
+    
+   </ul>
+</section>
+
+  </div>
+  <div id="API-content">
+  
+	
+
+	
+
+	
+		<h1>GIS Data Provider Specification </h1>
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+		<span class="dateLabel">DATE:</span> <span class="dateValue"> 4 September 2015 </span>
+	
+
+	
+
+	
+
+
+
+
+	
+
+	
+		
+		<dl>
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+				<dt class="versionLabel">This version:</dt> 
+				<dd class="versionValue"> <a href="http://GISDataProvider.apiblueprint.org/1.0">
+					http://GISDataProvider.apiblueprint.org/1.0</a> </dd>
+			
+		
+			
+		
+
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+			
+		
+
+		<dt class="versionLabel">Latest version:</dt> 
+		<dd class="versionValue"> <a href="http://GISDataProvider.apiblueprint.org/latest">http://GISDataProvider.apiblueprint.org/latest</a> </dd>
+
+
+		</dl>
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+
+	
+		<h2 id="editors">Editors</h2>
+		<ul>
+<li>Juha Hyvärinen, Cyberlightning Ltd.</li>
+</ul>
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+		<h2 id="copyright">Copyright</h2>
+		<p>All rights reserved. No part of this publication may be reproduced, distributed, or transmitted in any form or by any means, including photocopying, recording, or other electronic or mechanical methods, without the prior written permission of the publisher, except in the case of brief quotations embodied in critical reviews and certain other noncommercial uses permitted by copyright law. For permission requests, write to the publisher, addressed “Attention: Permissions Coordinator,” at the address below.</p>
+	
+
+
+<hr>
+
+
+	<h2 id="abstract">Abstract</h2>
+	This specification defines GIS Data Provider version 1.0 API.
+
+"GIS (Geographic Information System) Data Provider" is a GE, which is able to serve both outdoor and indoor 3D data. The data shall be served roughly speaking in two fashions:
+
+1. For single user apps, which can make queries to GIS GE, to download specific a single object or a set of geolocated 3D objects (i.e. building and terrain model of a named city centre)
+
+2. For multi-user apps, which communicate via collaborative client platform (e.g. with Synchronization GE) and in which case this component/GE/Enabler/platform takes care of providing the 3D models for the client application.
+
+The GIS DP GE itself is a server, which is able to process geolocated queries, an extension to it which is able to manage web-optimized 3D data and a backend database where all geolocated data is saved. Because the GIS GE needs to serve both single user client apps (browsers) and multi-user enabled virtual spaces, an API will be defined to serve fluently both of the cases. In this API is a RESTful one, and allows both the browser app as well as other platforms to use it for downloading geolocated data.
+
+
+
+
+
+
+	
+
+	
+		<h2 id="status">Status of this document</h2>
+		<p>This API is final version.</p>
+<p>This specification is licensed under the <a href="http://forge.fiware.org/plugins/mediawiki/wiki/fiware/index.php/FI-WARE_Open_Specification_Legal_Notice_%28essential_patents_license%29">FIWARE Open Specification License</a>.</p>
+	
+
+	
+
+<hr>
+
+    
+    
+
+
+
+
+	
+		
+	
+	
+		
+	
+		
+	
+		
+	
+
+
+
+
+	
+	
+	
+		
+	
+		
+	
+		
+	
+
+
+
+    
+
+  
+  <section id="API_specification">
+      <h1>API Specification</h1>
+      
+
+
+
+
+        
+            <section id="resource_group_geoserver" class="resourceGroup">
+            <h2 id="h-resource_group_geoserver">Geoserver</h2>
+        
+	
+        
+            <section id="resource_getcapabilities" class="resource">
+                <h3 id="h-resource_getcapabilities">GetCapabilities [/geoserver/ows?service={service}&version={version}&request=GetCapabilities]</h3>
+                <p>Capabilities request returns all layers  and supported formats from server which can be processed with used module</p>
+                
+                
+
+		        
+                
+                
+
+
+
+
+
+
+    
+
+
+                
+
+	<span class="parameters-title">Parameters</span>
+	<dl>
+		
+			<dt>
+				service (Required, string)
+			</dt>
+			<dd>
+				Requested Service
+				
+			</dd>
+		
+			<dt>
+				version (Required, string)
+			</dt>
+			<dd>
+				Service version
+				
+			</dd>
+		
+	</dl>
+
+
+                    
+                        
+                            <div id="action_view-a-getcapabilities-request-details" class="action GET">
+                        
+
+                        
+    <h4 id="h-action_view-a-getcapabilities-request-details">
+        View a GetCapabilities request details -
+        GET
+        
+            /geoserver/ows?service={service}&version={version}&request=GetCapabilities
+        
+    </h4>
+
+        
+                            <div id="view-a-getcapabilities-request-details_body" class="">
+                                
+                                
+                                
+                                
+			
+                                
+                                
+      
+                                    
+        	                            
+    
+        	                            
+        		                            
+                                        
+                                        
+                                        
+
+<div class="rest-packet-div">
+
+            <span class="packetType">Response 200</span> 
+        
+            (application/xml)
+        
+    
+            
+            
+     
+</div>
+        	                            
+                                    
+                                    <div class="goExample">
+                                        <a href="#action_view-a-getcapabilities-request-details_examples">Go to example</a>
+                                    </div>
+                                    
+                                        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+            <div class="goApiary">
+                <a target="_blank" href="http://docs.GISDataProvider.apiary.io/#reference/geoserver/getcapabilities/view-a-getcapabilities-request-details">View in Apiary</a>
+            </div>
+        
+    
+
+                                    
+                            </div>
+                        </div>
+                    
+            </section>
+        
+    </section>
+
+        
+            <section id="resource_group_w3ds" class="resourceGroup">
+            <h2 id="h-resource_group_w3ds">W3DS</h2>
+        
+	<h2>W3DS module requests [GET]</h2>
+<p>W3DS module can generate 3D models from polygonal data stored in shapefiles or in databases. Supported response dataformats are:</p>
+<ul>
+<li>
+<p>model/xml3d+xml</p>
+</li>
+<li>
+<p>application/xml</p>
+</li>
+<li>
+<p>application/octet-stream</p>
+</li>
+</ul>
+        
+            <section id="resource_getscene" class="resource">
+                <h3 id="h-resource_getscene">GetScene [/geoserver/w3ds?version=0.4&service=w3ds&crs={CRS}&format={format}&boundingbox={boundingbox}&layers={layers}&LOD={lod}]</h3>
+                <p>The GetScene operation returns a 3D scene representing a subset of the natural or man made structures on the earth surface. 
+Upon receiving a GetScene request, a W3DS shall either satisfy the request or issue a service exception. </p>
+<p>The required parameters for retrieving a 3D scene from a W3DS comprise spatial, thematic, and other constraints. The minimum set of parameters include, in addition to the mandatory parameters service, request and version, which are part of every W3DS operation, the spatial extent of the scene given as bounding box, the CRS in which the scene shall be provided, the format, and the list of layers. The bounding box defines a rectangular region with edges perpendicular to the selected CRS. LOD is Level of details definition value, this is optional parameter. In order to get LOD working properly, defined layer needs to support LOD data.</p>
+<p>Format is the definition of the response data format, there is 3 alternative response data formats available: application/xml3d, application/xml and application/octet-stream. application/xml3d returns XML3D presentation of the requested area, application/xml return xml-file which can be used with asset instancing feature and application/octet-stream return binary data in octet-stream format.</p>
+<p>A GetScene query has the following parameters:</p>
+                
+                
+
+		        
+                
+                
+
+
+
+
+
+
+    
+
+
+                
+
+	<span class="parameters-title">Parameters</span>
+	<dl>
+		
+			<dt>
+				CRS (Required, string)
+			</dt>
+			<dd>
+				Coordinate Reference System in EPSG format
+				
+			</dd>
+		
+			<dt>
+				format (Required, string)
+			</dt>
+			<dd>
+				Requested response format
+				
+			</dd>
+		
+			<dt>
+				boundingbox (Required, string)
+			</dt>
+			<dd>
+				bounding box defines a rectangular region with edges perpendicular to the selected CRS
+				
+			</dd>
+		
+			<dt>
+				layers (Required, string)
+			</dt>
+			<dd>
+				Terrain layer name
+				
+			</dd>
+		
+			<dt>
+				lod (Optional, number)
+			</dt>
+			<dd>
+				Level Of Detail for terrain
+				
+			</dd>
+		
+	</dl>
+
+
+                    
+                        
+                            <div id="action_view-a-getscene-detail" class="action GET">
+                        
+
+                        
+    <h4 id="h-action_view-a-getscene-detail">
+        View a GetScene Detail -
+        GET
+        
+            /geoserver/w3ds?version=0.4&service=w3ds&crs={CRS}&format={format}&boundingbox={boundingbox}&layers={layers}&LOD={lod}
+        
+    </h4>
+
+        
+                            <div id="view-a-getscene-detail_body" class="">
+                                
+                                
+                                
+                                
+			
+                                
+                                
+      
+                                    
+        	                            
+                                            
+                                            
+                                            
+                                            
+
+<div class="rest-packet-div">
+
+            <span class="packetType">Request XML3D model</span> 
+        
+    
+            
+            
+     
+</div>
+        	                            
+    
+        	                            
+        		                            
+                                        
+                                        
+                                        
+
+<div class="rest-packet-div">
+
+            <span class="packetType">Response 200</span> 
+        
+            (model/xml3d+xml)
+        
+    
+            
+            
+     
+</div>
+        	                            
+                                    
+        	                            
+                                            
+                                            
+                                            
+                                            
+
+<div class="rest-packet-div">
+
+            <span class="packetType">Request XML file with XML3D content</span> 
+        
+    
+            
+            
+     
+</div>
+        	                            
+    
+        	                            
+        		                            
+                                        
+                                        
+                                        
+
+<div class="rest-packet-div">
+
+            <span class="packetType">Response 200</span> 
+        
+            (application/xml)
+        
+    
+            
+            
+     
+</div>
+        	                            
+                                    
+        	                            
+                                            
+                                            
+                                            
+                                            
+
+<div class="rest-packet-div">
+
+            <span class="packetType">Request Octet-Stream</span> 
+        
+    
+            
+            
+     
+</div>
+        	                            
+    
+        	                            
+        		                            
+                                        
+                                        
+                                        
+
+<div class="rest-packet-div">
+
+            <span class="packetType">Response 200</span> 
+        
+            (application/octet-stream)
+        
+    
+            
+            
+     
+</div>
+        	                            
+                                    
+                                    <div class="goExample">
+                                        <a href="#action_view-a-getscene-detail_examples">Go to example</a>
+                                    </div>
+                                    
+                                        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+            <div class="goApiary">
+                <a target="_blank" href="http://docs.GISDataProvider.apiary.io/#reference/w3ds/getscene/view-a-getscene-detail">View in Apiary</a>
+            </div>
+        
+    
+
+                                    
+                            </div>
+                        </div>
+                    
+            </section>
+        
+    </section>
+
+        
+            <section id="resource_group_wms" class="resourceGroup">
+            <h2 id="h-resource_group_wms">WMS</h2>
+        
+	<h2>WMS module requests [GET]</h2>
+<p>WMS module can process both vector and raster data types and it produces image and height maps.</p>
+        
+            <section id="resource_getmap" class="resource">
+                <h3 id="h-resource_getmap">GetMap [/geoserver/wms?service={service}&version={version}&request={request}&srs={srs}&format={format}&layers={layers}&bbox={boundingbox}&width={width}&height={height}]</h3>
+                <p>GetMap returns rendered map or a heightmap from requested area.</p>
+<p>Supported output formats are:</p>
+<ul>
+<li>
+<p>image/png</p>
+</li>
+<li>
+<p>application/atom xml</p>
+</li>
+<li>
+<p>application/atom+xml</p>
+</li>
+<li>
+<p>application/bil</p>
+</li>
+<li>
+<p>application/bil16</p>
+</li>
+<li>
+<p>application/bil32</p>
+</li>
+<li>
+<p>application/bil8</p>
+</li>
+<li>
+<p>application/octet-stream</p>
+</li>
+<li>
+<p>application/openlayers</p>
+</li>
+<li>
+<p>application/pdf</p>
+</li>
+<li>
+<p>application/rss xml</p>
+</li>
+<li>
+<p>application/rss+xml</p>
+</li>
+<li>
+<p>application/vnd.google-earth.kml</p>
+</li>
+<li>
+<p>application/vnd.google-earth.kml xml</p>
+</li>
+<li>
+<p>application/vnd.google-earth.kml+xml</p>
+</li>
+<li>
+<p>application/vnd.google-earth.kml+xml;mode=networklink</p>
+</li>
+<li>
+<p>application/vnd.google-earth.kmz</p>
+</li>
+<li>
+<p>application/vnd.google-earth.kmz xml</p>
+</li>
+<li>
+<p>application/vnd.google-earth.kmz+xml</p>
+</li>
+<li>
+<p>application/vnd.google-earth.kmz;mode=networklink</p>
+</li>
+<li>
+<p>atom</p>
+</li>
+<li>
+<p>image/bil</p>
+</li>
+<li>
+<p>image/dds</p>
+</li>
+<li>
+<p>image/dds; format=DXT1</p>
+</li>
+<li>
+<p>image/dds; format=DXT3</p>
+</li>
+<li>
+<p>image/dds; format=ETC1</p>
+</li>
+<li>
+<p>image/geotiff</p>
+</li>
+<li>
+<p>image/geotiff8</p>
+</li>
+<li>
+<p>image/gif</p>
+</li>
+<li>
+<p>image/gif;subtype=animated</p>
+</li>
+<li>
+<p>image/jpeg</p>
+</li>
+<li>
+<p>image/png8</p>
+</li>
+<li>
+<p>image/png; mode=8bit</p>
+</li>
+<li>
+<p>image/svg</p>
+</li>
+<li>
+<p>image/svg xml</p>
+</li>
+<li>
+<p>image/svg+xml</p>
+</li>
+<li>
+<p>image/tiff</p>
+</li>
+<li>
+<p>image/tiff8</p>
+</li>
+<li>
+<p>kml</p>
+</li>
+<li>
+<p>kmz</p>
+</li>
+<li>
+<p>openlayers</p>
+</li>
+<li>
+<p>rss</p>
+</li>
+<li>
+<p>text/html; subtype=openlayers</p>
+</li>
+</ul>
+                
+                
+
+		        
+                
+                
+
+
+
+
+
+
+    
+
+
+                
+
+	<span class="parameters-title">Parameters</span>
+	<dl>
+		
+			<dt>
+				service (Required, string)
+			</dt>
+			<dd>
+				
+				
+			</dd>
+		
+			<dt>
+				version (Required, string)
+			</dt>
+			<dd>
+				
+				
+			</dd>
+		
+			<dt>
+				request (Required, string)
+			</dt>
+			<dd>
+				
+				
+			</dd>
+		
+			<dt>
+				srs (Required, string)
+			</dt>
+			<dd>
+				
+				
+			</dd>
+		
+			<dt>
+				format (Required, string)
+			</dt>
+			<dd>
+				
+				
+			</dd>
+		
+			<dt>
+				layers (Required, string)
+			</dt>
+			<dd>
+				
+				
+			</dd>
+		
+			<dt>
+				boundingbox (Required, string)
+			</dt>
+			<dd>
+				
+				
+			</dd>
+		
+			<dt>
+				width (Required, number)
+			</dt>
+			<dd>
+				
+				
+			</dd>
+		
+			<dt>
+				height (Required, number)
+			</dt>
+			<dd>
+				
+				
+			</dd>
+		
+	</dl>
+
+
+                    
+                        
+                            <div id="action_view-a-getmap-details" class="action GET">
+                        
+
+                        
+    <h4 id="h-action_view-a-getmap-details">
+        View a GetMap details -
+        GET
+        
+            /geoserver/wms?service={service}&version={version}&request={request}&srs={srs}&format={format}&layers={layers}&bbox={boundingbox}&width={width}&height={height}
+        
+    </h4>
+
+        
+                            <div id="view-a-getmap-details_body" class="">
+                                
+                                
+                                
+                                
+			
+                                
+                                
+      
+                                    
+        	                            
+                                            
+                                            
+                                            
+                                            
+
+<div class="rest-packet-div">
+
+            <span class="packetType">Request Octet-Stream</span> 
+        
+    
+            
+            
+     
+</div>
+        	                            
+    
+        	                            
+        		                            
+                                        
+                                        
+                                        
+
+<div class="rest-packet-div">
+
+            <span class="packetType">Response 200</span> 
+        
+            (application/octet-stream)
+        
+    
+            
+            
+     
+</div>
+        	                            
+                                    
+                                    <div class="goExample">
+                                        <a href="#action_view-a-getmap-details_examples">Go to example</a>
+                                    </div>
+                                    
+                                        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+            <div class="goApiary">
+                <a target="_blank" href="http://docs.GISDataProvider.apiary.io/#reference/wms/getmap/view-a-getmap-details">View in Apiary</a>
+            </div>
+        
+    
+
+                                    
+                            </div>
+                        </div>
+                    
+            </section>
+        
+    </section>
+
+<section id="examples">
+    <h2>Examples</h2>
+    
+        
+            <section id="resource_group_geoserver_example" class="resourceGroupExample">
+                <h3 id="h-resource_group_geoserver_example">Geoserver</h3>
+        
+
+                
+                    <section id="resource_getcapabilities_example" class="resourceExample">
+                        <h4 id="h-resource_getcapabilities_example">GetCapabilities [/geoserver/ows?service={service}&version={version}&request=GetCapabilities]</h4>
+                            
+                            
+                            
+
+                            
+                            
+                            
+
+                            
+
+	<span class="parameters-title">Parameters</span>
+	<dl>
+		
+			<dt>
+				service (Required, string)
+			</dt>
+			<dd>
+				Requested Service
+				
+			</dd>
+		
+			<dt>
+				version (Required, string)
+			</dt>
+			<dd>
+				Service version
+				
+			</dd>
+		
+	</dl>
+
+
+                            
+                                <div id="action_view-a-getcapabilities-request-details_examples" class="actionExample GET">
+
+                                    
+    <h4 id="h-action_view-a-getcapabilities-request-details_examples">
+        View a GetCapabilities request details -
+        GET
+        
+            /geoserver/ows?service={service}&version={version}&request=GetCapabilities
+        
+    </h4>
+
+                
+                                    <div id="action_view-a-getcapabilities-request-details_body" class=""> 
+                                        
+                                        
+                                        
+                                        
+         
+                                        
+                                            
+                                            
+                                                
+            
+                                                
+                                                    
+                                                
+                                                
+                                                
+
+<div class="rest-packet-div">
+
+            <span class="packetType">Response 200</span> 
+        
+            (application/xml)
+        
+    
+            
+            
+            
+            
+
+
+
+ 
+            <div id="action_view-a-getcapabilities-request-details_Response_1_body" class=" action-div-body">
+                <p></p>
+
+                
+        	        <p>Headers</p>
+                    
+                    
+                        
+                    
+
+        	        <pre><code>Content-Type: application/xml</code></pre>
+                
+
+                
+                    <p>Body</p>
+                    <pre><code>&lt;?xml version="1.0" encoding="UTF-8"?>
+&lt;w3ds:Capabilities version="0.4.0" xmlns="http://www.opengis.net/w3ds/0.4.0" xmlns:w3ds="http://www.opengis.net/w3ds/0.4.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink">
+&lt;ows:ServiceIdentification>
+&lt;ows:Title/>
+&lt;ows:Abstract/>
+&lt;ows:ServiceType>OGC W3DS&lt;/ows:ServiceType>
+&lt;ows:ServiceTypeVersion>0.4.0&lt;/ows:ServiceTypeVersion>
+&lt;ows:Fees/>
+&lt;ows:AccessConstraints/>
+&lt;/ows:ServiceIdentification>
+&lt;ows:OperationsMetadata>
+&lt;ows:Operation name="GetCapabilities">
+&lt;ows:DCP>
+&lt;ows:HTTP>
+&lt;ows:Get xlink:href="http://localhost:8080/geoserver/ows?">
+&lt;ows:Constraint name="GetEncoding">
+&lt;ows:AllowedValues>
+&lt;ows:Value>KVP&lt;/ows:Value>
+&lt;/ows:AllowedValues>
+&lt;/ows:Constraint>
+&lt;/ows:Get>
+&lt;/ows:HTTP>
+&lt;/ows:DCP>
+&lt;/ows:Operation>
+&lt;ows:Operation name="GetScene">
+&lt;ows:DCP>
+&lt;ows:HTTP>
+&lt;ows:Get xlink:href="http://localhost:8080/geoserver/ows?">
+&lt;ows:Constraint name="GetEncoding">
+&lt;ows:AllowedValues>
+&lt;ows:Value>KVP&lt;/ows:Value>
+&lt;/ows:AllowedValues>
+&lt;/ows:Constraint>
+&lt;/ows:Get>
+&lt;/ows:HTTP>
+&lt;/ows:DCP>
+&lt;/ows:Operation>
+&lt;ows:Operation name="GetTile">
+&lt;ows:DCP>
+&lt;ows:HTTP>
+&lt;ows:Get xlink:href="http://localhost:8080/geoserver/ows?">
+&lt;ows:Constraint name="GetEncoding">
+&lt;ows:AllowedValues>
+&lt;ows:Value>KVP&lt;/ows:Value>
+&lt;/ows:AllowedValues>
+&lt;/ows:Constraint>
+&lt;/ows:Get>
+&lt;/ows:HTTP>
+&lt;/ows:DCP>
+&lt;/ows:Operation>
+&lt;ows:Operation name="GetFeatureInfo">
+&lt;ows:DCP>
+&lt;ows:HTTP>
+&lt;ows:Get xlink:href="http://localhost:8080/geoserver/ows?">
+&lt;ows:Constraint name="GetEncoding">
+&lt;ows:AllowedValues>
+&lt;ows:Value>KVP&lt;/ows:Value>
+&lt;/ows:AllowedValues>
+&lt;/ows:Constraint>
+&lt;/ows:Get>
+&lt;/ows:HTTP>
+&lt;/ows:DCP>
+&lt;/ows:Operation>
+&lt;/ows:OperationsMetadata>
+&lt;w3ds:Contents>
+&lt;w3ds:Layer>
+&lt;ows:Title>terrain&lt;/ows:Title>
+&lt;ows:Abstract/>
+&lt;ows:Identifier>fiware:terrain&lt;/ows:Identifier>
+&lt;ows:BoundingBox crs="EPSG:3067">
+&lt;ows:LowerCorner>240070.40625 7179013.0&lt;/ows:LowerCorner>
+&lt;ows:UpperCorner>633889.625 7784407.0&lt;/ows:UpperCorner>
+&lt;/ows:BoundingBox>
+&lt;ows:OutputFormat>model/x3d+xml&lt;/ows:OutputFormat>
+&lt;ows:OutputFormat>text/html&lt;/ows:OutputFormat>
+&lt;w3ds:DefaultCRS>EPSG:3067&lt;/w3ds:DefaultCRS>
+&lt;w3ds:Queriable>true&lt;/w3ds:Queriable>
+&lt;w3ds:Tiled>false&lt;/w3ds:Tiled>
+&lt;/w3ds:Layer>
+&lt;/w3ds:Contents>
+&lt;/w3ds:Capabilities>
+</code></pre>
+                
+
+                
+            </div>
+            
+            
+     
+</div>
+                                                
+                                            
+                                            <div class="goActions">
+                                                <a href="#action_view-a-getcapabilities-request-details">Go to specification</a>
+                                            </div>
+                                    </div>
+                                </div>
+                            
+                    </section>
+            
+        </section>
+    
+        
+            <section id="resource_group_w3ds_example" class="resourceGroupExample">
+                <h3 id="h-resource_group_w3ds_example">W3DS</h3>
+        
+
+                
+                    <section id="resource_getscene_example" class="resourceExample">
+                        <h4 id="h-resource_getscene_example">GetScene [/geoserver/w3ds?version=0.4&service=w3ds&crs={CRS}&format={format}&boundingbox={boundingbox}&layers={layers}&LOD={lod}]</h4>
+                            
+                            
+                            
+
+                            
+                            
+                            
+
+                            
+
+	<span class="parameters-title">Parameters</span>
+	<dl>
+		
+			<dt>
+				CRS (Required, string)
+			</dt>
+			<dd>
+				Coordinate Reference System in EPSG format
+				
+			</dd>
+		
+			<dt>
+				format (Required, string)
+			</dt>
+			<dd>
+				Requested response format
+				
+			</dd>
+		
+			<dt>
+				boundingbox (Required, string)
+			</dt>
+			<dd>
+				bounding box defines a rectangular region with edges perpendicular to the selected CRS
+				
+			</dd>
+		
+			<dt>
+				layers (Required, string)
+			</dt>
+			<dd>
+				Terrain layer name
+				
+			</dd>
+		
+			<dt>
+				lod (Optional, number)
+			</dt>
+			<dd>
+				Level Of Detail for terrain
+				
+			</dd>
+		
+	</dl>
+
+
+                            
+                                <div id="action_view-a-getscene-detail_examples" class="actionExample GET">
+
+                                    
+    <h4 id="h-action_view-a-getscene-detail_examples">
+        View a GetScene Detail -
+        GET
+        
+            /geoserver/w3ds?version=0.4&service=w3ds&crs={CRS}&format={format}&boundingbox={boundingbox}&layers={layers}&LOD={lod}
+        
+    </h4>
+
+                
+                                    <div id="action_view-a-getscene-detail_body" class=""> 
+                                        
+                                        
+                                        
+                                        
+         
+                                        
+                                            
+                                            
+                                                
+                                                    
+                                                    
+                                                    
+                                                    
+
+<div class="rest-packet-div">
+
+            <span class="packetType">Request XML3D model</span> 
+        
+    
+            
+            
+            
+            
+
+
+
+ 
+            <div id="action_view-a-getscene-detail_Request_1_body" class=" action-div-body">
+                <p></p>
+
+                
+        	        <p>Headers</p>
+                    
+                    
+                        
+                    
+
+        	        <pre><code>Accept: model/xml3d+xml</code></pre>
+                
+
+                
+
+                
+            </div>
+            
+            
+     
+</div>
+                                                
+            
+                                                
+                                                    
+                                                
+                                                
+                                                
+
+<div class="rest-packet-div">
+
+            <span class="packetType">Response 200</span> 
+        
+            (model/xml3d+xml)
+        
+    
+            
+            
+            
+            
+
+
+
+ 
+            <div id="action_view-a-getscene-detail_Response_1_body" class=" action-div-body">
+                <p></p>
+
+                
+        	        <p>Headers</p>
+                    
+                    
+                        
+                    
+
+        	        <pre><code>Content-Type: model/xml3d+xml</code></pre>
+                
+
+                
+                    <p>Body</p>
+                    <pre><code>&lt;group xmlns="http://www.w3.org/1999/xhtml" id="outputGeometryCollection" class="NodeClassName">
+&lt;mesh type="triangles">
+&lt;int name="index">0 1 2  1 2 3&lt;/int>
+&lt;float3 name="position">0 -10 0 6273.50 -10 0  0 -10 -6271.72 6273.50 -10 -6271.74&lt;/float3>
+&lt;float3 name="normal">0 0 1  0 0 1  0 0 1  0 0 1&lt;/float3>
+&lt;float2 name="texcoord">0.0 0.0 1.0 0.0 0.0 1.0 1.0 1.0&lt;/float2>&lt;/mesh>&lt;/group>
+</code></pre>
+                
+
+                
+            </div>
+            
+            
+     
+</div>
+                                                
+                                            
+                                                
+                                                    
+                                                    
+                                                    
+                                                    
+
+<div class="rest-packet-div">
+
+            <span class="packetType">Request XML file with XML3D content</span> 
+        
+    
+            
+            
+            
+            
+
+
+
+ 
+            <div id="action_view-a-getscene-detail_Request_1_body" class=" action-div-body">
+                <p></p>
+
+                
+        	        <p>Headers</p>
+                    
+                    
+                        
+                    
+
+        	        <pre><code>Accept: application/xml</code></pre>
+                
+
+                
+
+                
+            </div>
+            
+            
+     
+</div>
+                                                
+            
+                                                
+                                                    
+                                                
+                                                
+                                                
+
+<div class="rest-packet-div">
+
+            <span class="packetType">Response 200</span> 
+        
+            (application/xml)
+        
+    
+            
+            
+            
+            
+
+
+
+ 
+            <div id="action_view-a-getscene-detail_Response_1_body" class=" action-div-body">
+                <p></p>
+
+                
+        	        <p>Headers</p>
+                    
+                    
+                        
+                    
+
+        	        <pre><code>Content-Type: application/xml</code></pre>
+                
+
+                
+                    <p>Body</p>
+                    <pre><code>&lt;?xml version=\"1.0\" encoding=\"utf-8\" ?>
+&lt;xml3d xmlns=\"http://www.xml3d.org/2009/xml3d\">
+&lt;asset id=\"asset\">
+&lt;group xmlns="http://www.w3.org/1999/xhtml" id="outputGeometryCollection" class="NodeClassName">
+&lt;mesh type="triangles">
+&lt;int name="index">0 1 2  1 2 3&lt;/int>
+&lt;float3 name="position">0 -10 0 6273.502 -10 0  0 -10 -6271.74 6273.50 -10 -6271.74&lt;/float3>
+&lt;float3 name="normal">0 0 1  0 0 1  0 0 1  0 0 1&lt;/float3>
+&lt;float2 name="texcoord">0.0 0.0 1.0 0.0 0.0 1.0 1.0 1.0&lt;/float2>
+&lt;/mesh>
+&lt;/group>
+&lt;/asset>
+&lt;/xml3d>
+</code></pre>
+                
+
+                
+            </div>
+            
+            
+     
+</div>
+                                                
+                                            
+                                                
+                                                    
+                                                    
+                                                    
+                                                    
+
+<div class="rest-packet-div">
+
+            <span class="packetType">Request Octet-Stream</span> 
+        
+    
+            
+            
+            
+            
+
+
+
+ 
+            <div id="action_view-a-getscene-detail_Request_1_body" class=" action-div-body">
+                <p></p>
+
+                
+        	        <p>Headers</p>
+                    
+                    
+                        
+                    
+
+        	        <pre><code>Accept: application/octet-stream</code></pre>
+                
+
+                
+
+                
+            </div>
+            
+            
+     
+</div>
+                                                
+            
+                                                
+                                                    
+                                                
+                                                
+                                                
+
+<div class="rest-packet-div">
+
+            <span class="packetType">Response 200</span> 
+        
+            (application/octet-stream)
+        
+    
+            
+            
+            
+            
+
+
+
+ 
+            <div id="action_view-a-getscene-detail_Response_1_body" class=" action-div-body">
+                <p></p>
+
+                
+        	        <p>Headers</p>
+                    
+                    
+                        
+                    
+
+        	        <pre><code>Content-Type: application/octet-stream</code></pre>
+                
+
+                
+                    <p>Body</p>
+                    <pre><code>0000 000a 0000 000a 42fb f5b2 42fb a6cb
+7fc0 0000 7fc0 0000 43a6 7e35 43af 7a3d
+43b3 cd0e 43b5 2e35 43b2 b4dd 43b0 3958
+43ad c20c 43ab 52f2 7fc0 0000 7fc0 0000
+43a5 bf7d 43ac d53f 43b1 bccd 43b1 ccee
+43b0 553f 43ae e168 43ab bdb2 43a8 6687
+7fc0 0000 7fc0 0000 43a5 1c8b 43ab 1fdf
+43ae e937 43af 2312 43ac e2b0 43a9 5c4a
+43a4 deb8 43a4 622d 7fc0 0000 7fc0 0000
+43a3 be77 43a9 2106 43ac 3b23 43aa d4bc
+43a8 7625 43a4 6312 43a4 bb44 43a7 50a4
+7fc0 0000 7fc0 0000 43a2 e810 43a7 02d1
+43a8 799a 43a7 89ba 43a4 9ac1 43a6 7604
+43aa 1375 43aa 8e35 7fc0 0000 7fc0 0000
+43a2 b4bc 43a6 199a 43a5 ff7d 43a4 c852
+43a7 824e 43ab 9581 43af 1efa 43ad 9810
+7fc0 0000 7fc0 0000 43a1 9b64 43a5 649c
+43a5 9979 43a7 c687 43ac 1042 43b2 b9ba
+43b5 90c5 43b9 b1aa 7fc0 0000 7fc0 0000
+43a0 4c4a 43a3 e021 43a6 9e98 43ab 80e5
+43b2 3c29 43b9 778d 43be 9e77 43bf 447b
+7fc0 0000 7fc0 0000 439e eaa0 43a4 bf5c
+43a8 3168 43af 32d1 43b5 0f5c 43bc 720c
+43c1 85a2 43c4 399a 7fc0 0000 7fc0 0000
+7fc0 0000 7fc0 0000 7fc0 0000 7fc0 0000
+7fc0 0000 7fc0 0000 7fc0 0000 7fc0 0000
+</code></pre>
+                
+
+                
+            </div>
+            
+            
+     
+</div>
+                                                
+                                            
+                                            <div class="goActions">
+                                                <a href="#action_view-a-getscene-detail">Go to specification</a>
+                                            </div>
+                                    </div>
+                                </div>
+                            
+                    </section>
+            
+        </section>
+    
+        
+            <section id="resource_group_wms_example" class="resourceGroupExample">
+                <h3 id="h-resource_group_wms_example">WMS</h3>
+        
+
+                
+                    <section id="resource_getmap_example" class="resourceExample">
+                        <h4 id="h-resource_getmap_example">GetMap [/geoserver/wms?service={service}&version={version}&request={request}&srs={srs}&format={format}&layers={layers}&bbox={boundingbox}&width={width}&height={height}]</h4>
+                            
+                            
+                            
+
+                            
+                            
+                            
+
+                            
+
+	<span class="parameters-title">Parameters</span>
+	<dl>
+		
+			<dt>
+				service (Required, string)
+			</dt>
+			<dd>
+				
+				
+			</dd>
+		
+			<dt>
+				version (Required, string)
+			</dt>
+			<dd>
+				
+				
+			</dd>
+		
+			<dt>
+				request (Required, string)
+			</dt>
+			<dd>
+				
+				
+			</dd>
+		
+			<dt>
+				srs (Required, string)
+			</dt>
+			<dd>
+				
+				
+			</dd>
+		
+			<dt>
+				format (Required, string)
+			</dt>
+			<dd>
+				
+				
+			</dd>
+		
+			<dt>
+				layers (Required, string)
+			</dt>
+			<dd>
+				
+				
+			</dd>
+		
+			<dt>
+				boundingbox (Required, string)
+			</dt>
+			<dd>
+				
+				
+			</dd>
+		
+			<dt>
+				width (Required, number)
+			</dt>
+			<dd>
+				
+				
+			</dd>
+		
+			<dt>
+				height (Required, number)
+			</dt>
+			<dd>
+				
+				
+			</dd>
+		
+	</dl>
+
+
+                            
+                                <div id="action_view-a-getmap-details_examples" class="actionExample GET">
+
+                                    
+    <h4 id="h-action_view-a-getmap-details_examples">
+        View a GetMap details -
+        GET
+        
+            /geoserver/wms?service={service}&version={version}&request={request}&srs={srs}&format={format}&layers={layers}&bbox={boundingbox}&width={width}&height={height}
+        
+    </h4>
+
+                
+                                    <div id="action_view-a-getmap-details_body" class=""> 
+                                        
+                                        
+                                        
+                                        
+         
+                                        
+                                            
+                                            
+                                                
+                                                    
+                                                    
+                                                    
+                                                    
+
+<div class="rest-packet-div">
+
+            <span class="packetType">Request Octet-Stream</span> 
+        
+    
+            
+            
+            
+            
+
+
+
+ 
+            <div id="action_view-a-getmap-details_Request_1_body" class=" action-div-body">
+                <p></p>
+
+                
+        	        <p>Headers</p>
+                    
+                    
+                        
+                    
+
+        	        <pre><code>Accept: application/octet-stream</code></pre>
+                
+
+                
+
+                
+            </div>
+            
+            
+     
+</div>
+                                                
+            
+                                                
+                                                    
+                                                
+                                                
+                                                
+
+<div class="rest-packet-div">
+
+            <span class="packetType">Response 200</span> 
+        
+            (application/octet-stream)
+        
+    
+            
+            
+            
+            
+
+
+
+ 
+            <div id="action_view-a-getmap-details_Response_1_body" class=" action-div-body">
+                <p></p>
+
+                
+        	        <p>Headers</p>
+                    
+                    
+                        
+                    
+
+        	        <pre><code>Content-Type: application/octet-stream</code></pre>
+                
+
+                
+                    <p>Body</p>
+                    <pre><code>0000 000a 0000 000a 42fb f5b2 42fb a6cb
+7fc0 0000 7fc0 0000 43a6 7e35 43af 7a3d
+43b3 cd0e 43b5 2e35 43b2 b4dd 43b0 3958
+43ad c20c 43ab 52f2 7fc0 0000 7fc0 0000
+43a5 bf7d 43ac d53f 43b1 bccd 43b1 ccee
+43b0 553f 43ae e168 43ab bdb2 43a8 6687
+7fc0 0000 7fc0 0000 43a5 1c8b 43ab 1fdf
+43ae e937 43af 2312 43ac e2b0 43a9 5c4a
+43a4 deb8 43a4 622d 7fc0 0000 7fc0 0000
+43a3 be77 43a9 2106 43ac 3b23 43aa d4bc
+43a8 7625 43a4 6312 43a4 bb44 43a7 50a4
+7fc0 0000 7fc0 0000 43a2 e810 43a7 02d1
+43a8 799a 43a7 89ba 43a4 9ac1 43a6 7604
+43aa 1375 43aa 8e35 7fc0 0000 7fc0 0000
+43a2 b4bc 43a6 199a 43a5 ff7d 43a4 c852
+43a7 824e 43ab 9581 43af 1efa 43ad 9810
+7fc0 0000 7fc0 0000 43a1 9b64 43a5 649c
+43a5 9979 43a7 c687 43ac 1042 43b2 b9ba
+43b5 90c5 43b9 b1aa 7fc0 0000 7fc0 0000
+43a0 4c4a 43a3 e021 43a6 9e98 43ab 80e5
+43b2 3c29 43b9 778d 43be 9e77 43bf 447b
+7fc0 0000 7fc0 0000 439e eaa0 43a4 bf5c
+43a8 3168 43af 32d1 43b5 0f5c 43bc 720c
+43c1 85a2 43c4 399a 7fc0 0000 7fc0 0000
+7fc0 0000 7fc0 0000 7fc0 0000 7fc0 0000
+7fc0 0000 7fc0 0000 7fc0 0000 7fc0 0000
+</code></pre>
+                
+
+                
+            </div>
+            
+            
+     
+</div>
+                                                
+                                            
+                                            <div class="goActions">
+                                                <a href="#action_view-a-getmap-details">Go to specification</a>
+                                            </div>
+                                    </div>
+                                </div>
+                            
+                    </section>
+            
+        </section>
+    
+
+
+
+</section>
+  </section>
+  
+   
+
+
+
+	
+
+	
+
+	
+
+    
+    
+    
+      <section id="references">
+      <h1>References</h1>
+          <ul>
+              
+                  <li><a href="http://forge.fiware.org/plugins/mediawiki/wiki/fiware/index.php/FI-WARE_Open_Specification_Legal_Notice_%28essential_patents_license%29">FIWARE Open Specification License</a></li>
+              
+          </ul>
+      </section>
+    
+  </div>
+</div>
+</body>
+</html>
