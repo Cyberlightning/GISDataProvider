@@ -100,7 +100,7 @@ codes can be cloned from
 [Github](https://github.com/Cyberlightning/geoserver/tree/fiware_rel_4.x "https://github.com/Cyberlightning/geoserver/tree/fiware_rel_4.x").
 
 GIS GE related changes are in fiware\_rel\_4.x brach and it can be
-cloned with `git clone -b fiware_rel_4.x https://github.com/Cyberlightning/geoserver.git`
+cloned with `git clone -b fiware_rel_4.x` from `https://github.com/Cyberlightning/geoserver.git`
 
 
 After GeoServer project is cloned it needs to be build with Maven. In
