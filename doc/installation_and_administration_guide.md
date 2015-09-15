@@ -53,7 +53,7 @@ Required toolset
     -   PostGis
 
 Tools can be installed with following command: 
-``sudo apt-get install maven2 openjdk-7-jdk git postgresql-9.3-postgis-2.1``
+    sudo apt-get install maven2 openjdk-7-jdk git postgresql-9.3-postgis-2.1
 
 ### Tools for package deploying
 
@@ -63,9 +63,11 @@ Tools can be installed with following command:
     -   PostGis
     -   Tomcat7
 
-Tools can be installed with following command: ``sudo apt-get install openjdk-7-jdk git postgresql-9.3-postgis-2.1 tomcat7``
+Tools can be installed with following command: 
+    sudo apt-get install openjdk-7-jdk git postgresql-9.3-postgis-2.1 tomcat7
 
-Optional: pgadmin3 can be used for Postgis database management: ``sudo apt-get install pgadmin3``
+Optional: pgadmin3 can be used for Postgis database management: 
+    sudo apt-get install pgadmin3
 
 
 Default username for PostgrSQL installation is *postgres*.
@@ -193,6 +195,8 @@ Geoserver. GeoServer admin panel can be find from the URI:
 
 The default control panel is shown below:
 <img src="images/GIS.png" width="600"  />
+
+![](images/GIS.png =500x)
 
 
 ### Deploy provided geoserver.war
