@@ -194,9 +194,7 @@ Geoserver. GeoServer admin panel can be find from the URI:
 **geoserver**.
 
 The default control panel is shown below:
-<img src="images/GIS.png" width="600"  />
-
-![](images/GIS.png)
+![The default control panel](images/GIS.png "The default control panel")
 
 
 ### Deploy provided geoserver.war
@@ -229,7 +227,7 @@ Octet-Stream output!
         have write rights to a folder containing image.
 -   Save
 
-<img src="images/Geoserver_add_geotiff_datasource.png" width="550" alt="Add GeoTIFF data source"/>
+![Add geotiff datasource](images/Geoserver_add_geotiff_datasource.png "Add geotiff datasource")
 
 
 -   Publish layer
@@ -243,7 +241,7 @@ Octet-Stream output!
             `Force declared`.
     -   From Publishing tab set `Byte Order` to `Big Endian`
 
-<img src="images/DEM_srs_def.jpg" width="550" alt="DEM file SRS definition in Data-tab"/>
+![DEM file SRS definition in Data-tab](images/DEM_srs_def.jpg "DEM file SRS definition in Data-tab")
 
 #### Polygon based data sets for elevation
 
