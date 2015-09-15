@@ -8,8 +8,7 @@ query GIS data from GeoServer in XML3D format. GeoServer is able to
 create XML3D objects and pass them to the client.
 
 Before starting to implement web client software it is recommended that
-installation part from the *GIS Data Provider - Installation and
-Administration Guide* is successfully completed.
+installation part from the [GIS Data Provider - Installation and Administration Guide](installation_and_administration_guide.md) is successfully completed.
 
 ## Background and Detail
 
@@ -31,26 +30,11 @@ should work. Most tested browsers are:
 
 ### Setup GeoServer with test data
 
-To be able to query GIS data in XML3D format from GeoServer GIS data
-itself needs to be uploaded to server. One way to upload test data to
-GeoServer is by uploading **ESRI Shapefile** to server. This practice
-was used during implementation of GIS Data Provider GE. Shapefile needs
-to contain geometry objects with elevation data, otherwise GIS web
-client is unable to display 3d terrain. Elevation data is used as Z-axis
-when XML3D objects are generated in GeoServer. When layer as shapefile
-is uploaded to GeoServer, mandatory filetypes are *.shp, .dbf* and
-*.shx*.
+To be able to query GIS data in XML3D format from GeoServer GIS data itself needs to be uploaded to server. One way to upload test data to GeoServer is by uploading **ESRI Shapefile** to server. This practice was used during implementation of GIS Data Provider GE. Shapefile needs to contain geometry objects with elevation data, otherwise GIS web client is unable to display 3d terrain. Elevation data is used as Z-axis when XML3D objects are generated in GeoServer. When layer as shapefile is uploaded to GeoServer, mandatory filetypes are `.shp, .dbf, .shx`.
 
-Compared to data efficiency between data stored to shapefile or PosGIS
-DB, reading data from PostGIS performs significantly better. Detailed
-guidance how to setup PostGIS with provided test data is described in
-the *GIS Data Provider - Unit Testing Plan and Report* -document.
+Compared to data efficiency between data stored to shapefile or PosGIS DB, reading data from PostGIS performs significantly better. Detailed guidance how to setup PostGIS with provided test data is described in the [GIS Data Provider - Installation and Administration Guide](installation_and_administration_guide.md).
 
-Third option is to use image based elevation data formats (DEM models).
-These data sets can only be requested through WMS service and therefore
-request parameters varies in some parts but data in the response is
-identical with W3DS request. At the moment in **WMS service** only
-**Octet-Stream** response is supported for terrain.
+Third option is to use image based elevation data formats (DEM models). These data sets can only be requested through WMS service and therefore request parameters varies in some parts but data in the response is identical with W3DS request. At the moment in **WMS service** only **Octet-Stream** response is supported for terrain.
 
 ### 3D GIS data generation
 
@@ -113,9 +97,9 @@ file.
 Depending on selected storage format choose corresponding publishing
 steps for data publishing into a W3DS layer with GeoServer.
 
-Official GeoServer guide how to publish a shapefile: http://docs.geoserver.org/stable/en/user/gettingstarted/shapefile-quickstart/index.html
+[Official GeoServer guide how to publish a shapefile](http://docs.geoserver.org/stable/en/user/gettingstarted/shapefile-quickstart/index.html)
 
-Official GeoServer guide how to publish a PostGIS table: http://docs.geoserver.org/stable/en/user/gettingstarted/postgis-quickstart/index.html
+[Official GeoServer guide how to publish a PostGIS table](http://docs.geoserver.org/stable/en/user/gettingstarted/postgis-quickstart/index.html)
 
 ### Uploading XML3D objects reference information to PostGIS
 
@@ -133,20 +117,19 @@ following format:
 | 3  | Cabin3          | 01010000A0E70B000048E17A04A888524114AE47A1CEEE49410000000000208C40 | http://reference_to_xml3d_file/xml3d_file.xml | 
 
 
-Geometry conversion to PostGIS can be done with **psql
-ST\_GeomFromText** -command.
+Geometry conversion to PostGIS can be done with `psql ST\_GeomFromText` -command.
 
 # Programmers guide
 
 Guide for programmers utilizing the GE.
 
-GIS data provider release contains example implementations of the GIS web
-client (*GISDataProvider-test\_client\_relx.x.x.zip*). Package contains own version for requesting XMl3D terrain objects from the geoserver
+GIS data provider release contains [example implementations of the GIS web
+client](https://github.com/Cyberlightning/GISDataProvider). Package contains own version for requesting XMl3D terrain objects from the geoserver
 and version for requesting elevation data in octet stream format form the server and dynamically generating XML3D objetc based on received data.
 
 ## Needed javascript libraries
 
-For enabling XML3D content in web page at least *xml3d.js* needs to be
+For enabling XML3D content in web page at least `xml3d.js` needs to be
 included.
 
      <script src="http://www.xml3d.org/xml3d/script/xml3d.js"></script>
@@ -155,29 +138,31 @@ If camera handlding is used, include camera.js.
 
      <script src="http://www.xml3d.org/xml3d/script/tools/camera.js"></script>
 
-    in order to activate camera moving by keys, useKeys needs to be defined inside <xml3d>.
+In order to activate camera moving by keys, useKeys needs to be defined inside `<xml3d>`.
+
      <bool id="useKeys">true</bool>
 
 Camera handling in 3D GIS environment works following way:
 
--   'a'- and 'd'-keys move camera left and right
--   'w'- and 's'-keys move camera up and down
+-   `a` and `d` -keys move camera left and right
+-   `w` and `s` -keys move camera up and down
 -   Camera orientation can be changed by pressing right mouse button
     down and moving mouse
 
 ## Get GeoServer capabilities
 
 GeoServer capabilities can be queried with following syntax :
-*[http://hostname:port/path?SERVICE=W3DS&ACCEPTVERSIONS=0.3.0,0.4.0&request=GetCapabilities](http://hostname:port/path?SERVICE=W3DS&ACCEPTVERSIONS=0.3.0,0.4.0&request=GetCapabilities "http://hostname:port/path?SERVICE=W3DS&ACCEPTVERSIONS=0.3.0,0.4.0&request=GetCapabilities")*
 
-The response to a GetCapabilities request is an XML document containing
-service metadata about the server, including specific information about
-layer properties and how to access data from the server.
+	http://hostname:port/path?SERVICE=W3DS&ACCEPTVERSIONS=0.3.0,0.4.0&request=GetCapabilities
 
-    Example query from test client:
+The response to a GetCapabilities request is an XML document containing service metadata about the server, including specific information about layer properties and how to access data from the server.
+
+Example query from test client:
+
      http://localhost:8080/geoserver/ows?service=w3ds&version=0.4.0&request=GetCapabilities
 
-    Example of layer details in GetCapabilities response:
+Example of layer details in GetCapabilities response:
+
      <w3ds:Layer>
        <ows:Title>V4132E</ows:Title>
        <ows:Abstract/>
@@ -246,16 +231,9 @@ definition files.
 
 ### Level Of Details (LOD) usage in object query
 
-Level Of Details (LOD) is integer value starting from 1 and ending to
-10. Smaller than 10 LOD levels are generated so that original source
-data is filtered in GeoServer based on LOD level so that generated 3D
-terrain data has less details compared to original. LOD level 10 means
-that detail levels are not reduced at all from the source data.
+Level Of Details (LOD) is integer value starting from 1 and ending to 10. Smaller than 10 LOD levels are generated so that original source data is filtered in GeoServer based on LOD level so that generated 3D terrain data has less details compared to original. LOD level 10 means that detail levels are not reduced at all from the source data.
 
-Level Of Detail is defined in the GeoServer query by providing *LOD*
--parameter with relevant LOD number. 
-
-Example how to add define LOD level 4 `&LOD=4` in the GeoServer query:
+Level Of Detail is defined in the GeoServer query by providing `LOD` -parameter with relevant LOD number. Example how to add define LOD level 4 `&LOD=4` in the GeoServer query:
 
     130.206.80.182:8080/geoserver/w3ds?version=0.4&service=w3ds&request=GetScene&crs=EPSG:3047&format=model/xml3d+xml&layers=testbed:fiware_test_terrain&boundingbox=373969.9375,7547970,375183.9625,7549182&LOD=4
 
@@ -277,7 +255,7 @@ information:
 
 Above information is according to [XML3D API
 specification](/plugins/mediawiki/wiki/fiware/index.php/FIWARE.OpenSpecification.Details.MiWi.3D-UI "FIWARE.OpenSpecification.Details.MiWi.3D-UI")
-and it needs to be placed inside `\<xml3d\>...\</xml3d\>` -tags. Web
+and it needs to be placed inside `<xml3d>...</xml3d>` -tags. Web
 client needs to create light shader for the loaded XML3D content.
 
 ### Adding texture
@@ -305,15 +283,7 @@ GeoServer is able to return correct area of the bitmap when requested.
 
 ### Returned XML3D data definition file reference
 
-GeoServer is capable to include external XML3D object definition
-references in to the returned XML3D GIS data query. Chapter *Uploading
-XML3D objects reference information to PostGIS* describes how data
-should be uploaded to PostGIS. GeoServer will query database based on
-the requested bounding box and returns all found points. Each point has
-reference to external XML3D file. Each point are translated to
-coordinates inside requested bounding box, so client scene manager needs
-to be aware where returned building objects should be placed in the 3D
-GIS presentation.
+GeoServer is capable to include external XML3D object definition references in to the returned XML3D GIS data query. Chapter *Uploading XML3D objects reference information to PostGIS* describes how data should be uploaded to PostGIS. GeoServer will query database based on the requested bounding box and returns all found points. Each point has reference to external XML3D file. Each point are translated to coordinates inside requested bounding box, so client scene manager needs to be aware where returned building objects should be placed in the 3D GIS presentation.
 
 Example of returned XML3D information with external reference:
 

@@ -311,23 +311,13 @@ tests and user validation.
 End to End testing
 ------------------
 
-If GeoServer started with suggested command, it is currently running on
-localhost 9090 -port. To verify that GeoServer is running type
-<http://localhost:9090/geoserver> to your web browser. Geoserver admin
-panel should be opened. Default username is *admin* and password
-*geoserver*. Login should be possible with these credentials. In the
-main page there is **Service Capabilities**-section. Press
-[0.4.0](http://localhost:9090/geoserver/ows?service=w3ds&version=0.4.0&request=GetCapabilities "http://localhost:9090/geoserver/ows?service=w3ds&version=0.4.0&request=GetCapabilities")
-under **W3DS**, link requests GeoServer W3DS capabilities, server
-responds this with XML-response. If response is successfully loaded to
-new page GeoServer capability requests are done correctly.
+If GeoServer started with suggested command, it is currently running on localhost 9090 -port. To verify that GeoServer is running type [http://localhost:9090/geoserver](http://localhost:9090/geoserver) to your web browser. Geoserver admin panel should be opened. Default username is **admin** and password **geoserver**. Login should be possible with these credentials. In the main page there is **Service Capabilities**-section. Press [0.4.0](http://localhost:9090/geoserver/ows?service=w3ds&version=0.4.0&request=GetCapabilities "http://localhost:9090/geoserver/ows?service=w3ds&version=0.4.0&request=GetCapabilities") under **W3DS**, link requests GeoServer W3DS capabilities, server responds this with XML-response. If response is successfully loaded to new page GeoServer capability requests are done correctly.
 
-GeoServer logs can be see in [Geoserver
-logs](http://localhost:9090/geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.admin.LogPage "http://localhost:9090/geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.admin.LogPage").
+GeoServer logs can be see in [http://localhost:9090/geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.admin.LogPage](http://localhost:9090/geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.admin.LogPage "http://localhost:9090/geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.admin.LogPage").
 Log information shows possible error situations which help to find
 actual problem.
 
-[GeoServer status](http://localhost:9090/geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.admin.StatusPage "http://localhost:9090/geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.admin.StatusPage")
+GeoServer status [http://localhost:9090/geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.admin.StatusPage](http://localhost:9090/geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.admin.StatusPage "http://localhost:9090/geoserver/web/?wicket:bookmarkablePage=:org.geoserver.web.admin.StatusPage")
 page contains useful buttons to free memory, clear cache or reload
 configuration. Using these can also help solving problem situation.
 
@@ -346,12 +336,8 @@ server.
 Databases
 ---------
 
-It is possible to store GIS data with 3D information straight to
-GeoServer itself so separate database is not necessary required. However
-database performs significantly better than internal data storage.
-PostGis extension in PostgreSQL is one option to be used as a database.
-More information of the PostGis usage with GeoServer can be found
-[here](http://docs.geoserver.org/latest/en/user/data/database/postgis.html "http://docs.geoserver.org/latest/en/user/data/database/postgis.html").
+It is possible to store GIS data with 3D information straight to GeoServer itself so separate database is not necessary required. However database performs significantly better than internal data storage.
+PostGis extension in PostgreSQL is one option to be used as a database. More information of the PostGis usage with GeoServer can be found [here](http://docs.geoserver.org/latest/en/user/data/database/postgis.html "http://docs.geoserver.org/latest/en/user/data/database/postgis.html").
 
 As the database selection is user definable, the sanity check for it is
 the same. However, if PostGIS has been installed as indicated by this
@@ -400,4 +386,3 @@ I/O flow amount is highly depend of the bounding box area and what is
 the detail level inside bounding box. Therefore I/O flow can drastically
 change even though requested bounding box area is same. I/O flow type is
 HTTP and admin parameters can be encrypted.
-
