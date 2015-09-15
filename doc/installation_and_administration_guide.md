@@ -196,7 +196,7 @@ Geoserver. GeoServer admin panel can be find from the URI:
 The default control panel is shown below:
 <img src="images/GIS.png" width="600"  />
 
-![](images/GIS.png =500x)
+![](images/GIS.png)
 
 
 ### Deploy provided geoserver.war
