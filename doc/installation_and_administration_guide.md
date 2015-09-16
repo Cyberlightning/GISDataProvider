@@ -1,13 +1,12 @@
 # GIS Data Provider - Installation and Administration Guide
 
-Introduction
-============
+## Introduction
+
 
 The purpose of this document is to provide information how to set up GIS
 data service.
 
-System Requirements
-===================
+## System Requirements
 
 Setup has been verified with:
 
@@ -16,32 +15,30 @@ Setup has been verified with:
 -   Maven 2
 -   Git
 
-Hardware Requirements
----------------------
+## Hardware Requirements
+
 
 Configuration has been tested with:
 
 -   Intel i5
 -   8GB RAM
 
-Operating System Support
-------------------------
+## Operating System Support
+
 
 System configuration has been verified with Ubuntu version 14.04.
 
-Software Requirements
----------------------
+## Software Requirements
+
 
 Required and verified toolset to run the GIS Data Provider:
 
 -   OpenJDK 7
 -   Tomcat 7
 
-Software Installation and Configuration
-=======================================
+# Software Installation and Configuration
 
-Required toolset
-----------------
+## Required toolset
 
 ### Tools for building from source code
 
@@ -64,18 +61,19 @@ Tools can be installed with following command:
     -   Tomcat7
 
 Tools can be installed with following command: 
+
     sudo apt-get install openjdk-7-jdk git postgresql-9.3-postgis-2.1 tomcat7
 
-Optional: pgadmin3 can be used for Postgis database management: 
-    sudo apt-get install pgadmin3
+*Optional*: pgadmin3 can be used for Postgis database management: `sudo apt-get install pgadmin3`
 
 
 Default username for PostgrSQL installation is *postgres*.
 **createuser** -command in terminal shell creates new user to PostgreSQL
 so that Linux / UNUX IDENT authentication can be used.
 
-Setup GeoServer with W3DS and DDS community modules
----------------------------------------------------
+
+## Setup GeoServer with W3DS and DDS community modules
+
 
 FIWARE GIS Data Provider delivery provides 2 alternative ways to get GIS
 service running:

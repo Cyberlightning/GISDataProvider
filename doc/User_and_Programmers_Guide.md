@@ -3,26 +3,19 @@
 
 ## Introduction
 
-This document describes how to implement web client which is capable to
-query GIS data from GeoServer in XML3D format. GeoServer is able to
-create XML3D objects and pass them to the client.
+This document describes how to use GIS Data Provider GE to implement web client which is capable to query GIS data from GeoServer for creating 3D scenes. GeoServer is able to create XML3D objects and pass them to the client.
 
-Before starting to implement web client software it is recommended that
-installation part from the [GIS Data Provider - Installation and Administration Guide](installation_and_administration_guide.md) is successfully completed.
+Before starting to implement web client software it is recommended that installation part from the [GIS Data Provider - Installation and Administration Guide](installation_and_administration_guide.md) is successfully completed.
 
 ## Background and Detail
 
-This User and Programmers Guide relates to the GIS Data Provider GE
-which is part of the [Advanced Middleware and Web User Interfaces chapter](http://forge.fiware.org/plugins/mediawiki/wiki/fiware/index.php/Summary_of_FIWARE_Open_Specifications_R4#Advanced_Web_User_Interfaces_Chapter "Advanced_Web_User_Interfaces_Chapter").
+GIS Data Provider GE which is part of the [Advanced Middleware and Web User Interfaces chapter](http://forge.fiware.org/plugins/mediawiki/wiki/fiware/index.php/Summary_of_FIWARE_Open_Specifications_R4#Advanced_Web_User_Interfaces_Chapter "Advanced_Web_User_Interfaces_Chapter").
 
-For more background information on this GE, also refer to its [Open Specification](http://forge.fiware.org/plugins/mediawiki/wiki/fiware/index.php/FIWARE.OpenSpecification.WebUI.GISDataProvider_R4 "FIWARE.OpenSpecification.WebUI.GISDataProvider") and [FIWARE Advanced Web UI Architecture](http://forge.fiware.org/plugins/mediawiki/wiki/fiware/index.php/Advanced_Web_UI_Architecture). Here you can find [Detailed API documentation](http://docs.gisdataprovider.apiary.io/#).
+For more information on this GE, also refer to its [Open Specification](http://forge.fiware.org/plugins/mediawiki/wiki/fiware/index.php/FIWARE.OpenSpecification.WebUI.GISDataProvider_R4 "FIWARE.OpenSpecification.WebUI.GISDataProvider") and [FIWARE Advanced Web UI Architecture](http://forge.fiware.org/plugins/mediawiki/wiki/fiware/index.php/Advanced_Web_UI_Architecture). Here you can find [Detailed API documentation](http://docs.gisdataprovider.apiary.io/#).
 
 ## User guide
 
-Reference GIS client is part of the release. 3D rendering is done with
-XML3D, therefore web browser needs to support it. XML3D is based on
-WebGL and JavaScript, any browser that support these two technologies
-should work. Most tested browsers are:
+GIS Data Provider contains reference web client, which demonstrates how provided elevation data can be used for creating 3D scene. Provided client uses [XML3D](http://xml3d.org/) for rendering, XML3D is based on WebGL and JavaScript, any browser that support these two technologies should work. Most tested browsers are:
 
 -   Chrome on Windows, Mac OS X and Android
 -   Firefox on Windows, Mac OS X and Android
@@ -30,22 +23,15 @@ should work. Most tested browsers are:
 
 ### Setup GeoServer with test data
 
-To be able to query GIS data in XML3D format from GeoServer GIS data itself needs to be uploaded to server. One way to upload test data to GeoServer is by uploading **ESRI Shapefile** to server. This practice was used during implementation of GIS Data Provider GE. Shapefile needs to contain geometry objects with elevation data, otherwise GIS web client is unable to display 3d terrain. Elevation data is used as Z-axis when XML3D objects are generated in GeoServer. When layer as shapefile is uploaded to GeoServer, mandatory filetypes are `.shp, .dbf, .shx`.
+To be able to query GIS data in XML3D format from GeoServer GIS data itself needs to be uploaded to server. One way to upload test data to GeoServer is by uploading **ESRI Shapefile** to server. This practice was used during implementation of GIS Data Provider GE. Shapefile needs to contain geometry objects with elevation data, otherwise GIS web client is unable to display 3D terrain. Elevation data is used as Z-axis when XML3D objects are generated in GeoServer. When layer as shapefile is uploaded to GeoServer, mandatory filetypes are `.shp, .dbf, .shx`.
 
-Compared to data efficiency between data stored to shapefile or PosGIS DB, reading data from PostGIS performs significantly better. Detailed guidance how to setup PostGIS with provided test data is described in the [GIS Data Provider - Installation and Administration Guide](installation_and_administration_guide.md).
+Compared to data efficiency between data stored to shapefile or PosGIS DB, reading data from PostGIS performs significantly better. Detailed guidance how to setup PostGIS with provided test data is described in the [Setup GIS Data Provider Test asset](setup_test_asset.md).
 
 Third option is to use image based elevation data formats (DEM models). These data sets can only be requested through WMS service and therefore request parameters varies in some parts but data in the response is identical with W3DS request. At the moment in **WMS service** only **Octet-Stream** response is supported for terrain.
 
 ### 3D GIS data generation
 
-GIS Data Provider GE test data was based on the National Land Survey of
-Finland elevation data. Source data was in *-xyz*-format, which contains
-elevation data with spatial information. With this source information it
-is possible to generate shapefile consisting polygon structure with
-elevation data. 2D presentation of the converted shapefile with
-elevation points is flat grid, in 3D presentation each grid points are
-in same elevation level as in the real world. Therefore this grid with
-elevation data can be used as source for terrain presentation.
+GIS Data Provider GE test data is based on the National Land Survey of Finland elevation data. Source data was in *-xyz*-format, which contains elevation data with spatial information. With this source information it is possible to generate shapefile consisting polygon structure with elevation data. 2D presentation of the converted shapefile with elevation points is flat grid, in 3D presentation each grid points are in same elevation level as in the real world. Therefore this grid with elevation data can be used as source for terrain presentation.
 
 ### Data generation from \*.xyz file format
 
@@ -77,10 +63,18 @@ From that grid we can create polygons representing terrain surface.
 
 WKT polygons generated from that dataset should look like this:
 
-    POLYGONZ((398000.000 7542000.000 279.950, 398010.000 7542000.000 279.388, 398010.000 7541990.000 280.436, 398000.000 7541990.000 281.002, 398000.000 7542000.000 279.950))
-    POLYGONZ((398010.000 7542000.000 279.388, 398020.000 7542000.000 278.818, 398020.000 7541990.000 279.847, 398010.000 7541990.000 280.436, 398010.000 7542000.000 279.388))
-    POLYGONZ((398000.000 7541990.000 281.002, 398010.000 7541990.000 280.436, 398010.000 7541980.000 281.539, 398000.000 7541980.000 282.096, 398000.000 7541990.000 281.002))
-    POLYGONZ((398010.000 7541990.000 280.436, 398020.000 7541990.000 279.847, 398020.000 7541980.000 280.944, 398010.000 7541980.000 281.539, 398010.000 7541990.000 280.436))
+    POLYGONZ((398000.000 7542000.000 279.950, 398010.000 7542000.000 279.388, 
+              398010.000 7541990.000 280.436, 398000.000 7541990.000 281.002, 
+              398000.000 7542000.000 279.950))
+    POLYGONZ((398010.000 7542000.000 279.388, 398020.000 7542000.000 278.818, 
+              398020.000 7541990.000 279.847, 398010.000 7541990.000 280.436, 
+              398010.000 7542000.000 279.388))
+    POLYGONZ((398000.000 7541990.000 281.002, 398010.000 7541990.000 280.436,
+              398010.000 7541980.000 281.539, 398000.000 7541980.000 282.096, 
+              398000.000 7541990.000 281.002))
+    POLYGONZ((398010.000 7541990.000 280.436, 398020.000 7541990.000 279.847, 
+              398020.000 7541980.000 280.944, 398010.000 7541980.000 281.539, 
+              398010.000 7541990.000 280.436))
 
 NOTE: It is said in WKT specification that polygons needs to be closed,
 meaning that start and end points are the same.
@@ -253,10 +247,7 @@ information:
         </mesh>
     </group>
 
-Above information is according to [XML3D API
-specification](/plugins/mediawiki/wiki/fiware/index.php/FIWARE.OpenSpecification.Details.MiWi.3D-UI "FIWARE.OpenSpecification.Details.MiWi.3D-UI")
-and it needs to be placed inside `<xml3d>...</xml3d>` -tags. Web
-client needs to create light shader for the loaded XML3D content.
+Above information contains XML3D presentation if the terrain and it needs to be placed inside `<xml3d>...</xml3d>` -tags. Web client needs to create light shader for the loaded XML3D content. More information about using XML3D in the [xml3d.js wiki](https://github.com/xml3d/xml3d.js/wiki).
 
 ### Adding texture
 
@@ -293,10 +284,8 @@ Example of returned XML3D information with external reference:
 
 ## Adding XML3D objects in json format to html page
 
-XML3D objects stored to the json can be injected to client web page or
-generate new web page where returned XML3D objects are inserted. XML3D
-declarations received from the GeoServer needs to be injected inside
-`\<xml3d\>` -tags.
+XML3D objects stored to the json can be injected to client web page or generate new web page where returned XML3D objects are inserted. XML3D declarations received from the GeoServer needs to be injected inside
+`<xml3d\>` -tags.
 
 Example of index.html-template where new XML3D objects are injected. In
 GIS data provider demo all XML3D elements are injected inside
@@ -358,27 +347,13 @@ index.html after XML3D data request:
 ## Using GIS GE Asset instance in web client
 
 
-It is possible to query XML3D terrain data so that returned terrain data
-will be in xml-file. This response is possible to be referenced directly
-from DOM. Benefit of using reference to XML3D object file instead of
-having whole XML3D object definition in the DOM tree is that this way
-DOM tree will remain more clean and easier to maintain.
+It is possible to query XML3D terrain data so that returned terrain data will be in xml-file. This response is possible to be referenced directly from DOM. Benefit of using reference to XML3D object file instead of having whole XML3D object definition in the DOM tree is that this way DOM tree will remain more clean and easier to maintain.
 
-GIS GE returns terrain data in asset instance format when
-**Application/xml** is used as requested data format. Client can utilize
-this functionality so that it generates correct URL for the asset
-instance request and places this URL to the DOM as \<model\> *src*
-content. Below is the example of the asset instance request,
+GIS GE returns terrain data in asset instance format when **Application/xml** is used as requested data format. Client can utilize this functionality so that it generates correct URL for the asset instance request and places this URL to the DOM as \<model\> *src* content. Below is the example of the asset instance request,
 
     http://localhost:8080/geoserver/w3ds?version=0.4&service=w3ds&request=GetScene&crs=EPSG:3047&format=Application/xml&layers=fiware:postgis\_terrain&boundingbox=373969.9375,7547970,375183.9625,7549182&LOD=4\#asset
 
-returns terrain data in xml format. When requesting asset data from GIS
-GE, returned terrain data has id='asset', this needs to be used in the
-generated URL as you can see from the example. More details about asset
-instancing can be get from
-[http://www.XML3D.org](http://www.XML3D.org "http://www.XML3D.org") In
-the example `fiware:postgis\_terrain00transform` and
-`fiware:postgis\_terrain00shader` are the client generated definitions
+returns terrain data in xml format. When requesting asset data from GIS GE, returned terrain data has id='asset', this needs to be used in the generated URL as you can see from the example. More details about asset instancing can be get from [http://www.XML3D.org](http://www.XML3D.org "http://www.XML3D.org") In the example `fiware:postgis\_terrain00transform` and `fiware:postgis\_terrain00shader` are the client generated definitions
 to be used with received asset.
 
 Web Client terrain data asset instance example: 
@@ -422,21 +397,13 @@ Terrain data can be requested also in the octet-stream format by using
 of the returned octet-stream format can be found in the [GIS GE Open API
 Specification](http://forge.fiware.org/plugins/mediawiki/wiki/fiware/index.php/GIS_Data_Provider_Open_API_Specification#Representation_Format "http://forge.fiware.org/plugins/mediawiki/wiki/fiware/index.php/GIS_Data_Provider_Open_API_Specification#Representation_Format").
 
-When terrain data is requested in octet-stream format, GIS GE returns
-binary data from the requested bounding box area. Binary data contains
-only information how many elevation points there is within bounding box
-and what are the elevation values for these points. Client itself needs
-to create 3D presentation based on the received octet-stream data.
-Benefit of using octet-stream request is that client is able to freely
-use any available rendering engine.
+When terrain data is requested in octet-stream format, GIS GE returns binary data from the requested bounding box area. Binary data contains only information how many elevation points there is within bounding box and what are the elevation values for these points. Client itself needs to create 3D presentation based on the received octet-stream data. Benefit of using octet-stream request is that client is able to freely use any available rendering engine.
 
-Octet-Steam can be requested from two server modules based on source
-data format and those requests differs in some parts.
+Octet-Steam can be requested from two server modules based on source data format and those requests differs in some parts.
 
 ### World Wind Format Module
 
-This module can handle image based data (DEM Models) and it is
-recommended way to store and use elevation data.
+This module can handle image based data (DEM Models) and it is recommended way to store and use elevation data.
 
 Sample request
 

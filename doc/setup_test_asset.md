@@ -40,13 +40,13 @@ Open GeoServer and go to `Workspaces`. Select `Add new workspace` and name new w
 
 Before proceeding create new database to PostGIS where GIS related data is stored. In Ubuntu environment pgAdmin provides nice GUI for managing PostGIS database and it's content.
 
-## Import PostGIS database backup with terrain data
+### Import PostGIS database backup with terrain data
 
-NOTE that if terrain data is imported to PostGIS, it is not necessary to import terrain data in shp-format as described in [terrain.shp](#terrain.shp).
+Test asset contains file named `FIWARE-postgis-test_asset-terrain` which is backup of PostGIS database and contains stored terrain data. Backup is provided for demonstrating PostGIS usage with GIS Data Provider GE.
 
-Test asset contains file named `FIWARE-postgis-test_asset-terrain`. File is backup of PostGIS database which contains stored terrain data.
+*NOTE that if terrain data is imported to PostGIS, it is not necessary to import terrain data in shp-format as described in [terrain.shp](#terrain.shp).*
 
-### How to import data to PostGIS with pgAdmin
+#### How to import data to PostGIS with pgAdmin
 -   Go to GIS specific database in PostGIS and select *Restore*, restore dialog is opened
     -   **File options:** In *Filename* textbox navigate to location where you saved test files and select `FIWARE-postgis-test_asset-terrain`
     -   **Restore options \#1:**
@@ -58,7 +58,7 @@ Test asset contains file named `FIWARE-postgis-test_asset-terrain`. File is back
 
 ![](images/Postgis_import.png)
 
-### Import PostGIS database backup with building location data
+#### Import PostGIS database backup with building location data
 
 PostGIS database backup with building coordinates information is stored to `FIWARE-postgis-building_coordinates` -file.
 
@@ -72,7 +72,7 @@ Import command for PostGIS:
     replace [database] with database name where building coordinates backup should be imported
 
 
-### Specify building coordinates to PostGIS
+#### Specify building coordinates to PostGIS
 
 If provided *FIWARE-postgis-building\_coordinates* database backup is not used, it is possible to manually define building location information to the PostGIS.
 
@@ -80,7 +80,7 @@ If provided *FIWARE-postgis-building\_coordinates* database backup is not used, 
 
 Create new table to PostGIS GIS database called **building_coordinates**. Add following columns to the table: **id**, **name**, **geom** and **mesh\_ref**. After this copy building name (e.g. pallas1) to the *name* -column, WKB presentation of the coordinate to the *geom* -column and XML3D file URL to the *mesh\_ref* column. After this there is new table defined in the PostGIS with 3 separate object (buildings) definitions which can be accessed by GeoServer.
 
-### PostGIS connection to GeoServer
+#### PostGIS connection to GeoServer
 
 After defining **fiware_test_terrain**- and **building_coordinates** -tables to the PostGIS we need to take them in use in the GeoServer. This is done by first defining PostGIS connection to GeoServer and then defining new layer to GeoServer which content is fetched from the *building_coordinates* -PostGIS table.
 
