@@ -22,9 +22,11 @@ The GIS Data Provider GE offers access to 3D GIS data via geo-location queries w
 * Demos/RvI_GIS_demo:
   * compiled jar package of the RealVirtualInteraction GE, can be used with GIS_Client_xml3d for demonstrating RvI visualization.
 
----------------------------------------------------------------------------------------------------------
-This project is part of FIWARE.
-https://www.fiware.org/
+---
+**This project is part of FIWARE.**
+[https://www.fiware.org/](https://www.fiware.org/)
 
-Link to the GIS Data Provider FIWARE catalogue:
-http://catalogue.fiware.org/enablers/gis-data-provider-geoserver3d
+
+FIWARE catalogue: [GIS Data Provider](http://catalogue.fiware.org/enablers/gis-data-provider-geoserver3d)
+
+Dockerhub: [GIS Data Provider](https://hub.docker.com/r/juhahyva/rvi/)
