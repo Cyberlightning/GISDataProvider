@@ -29,4 +29,4 @@ The GIS Data Provider GE offers access to 3D GIS data via geo-location queries w
 
 FIWARE catalogue: [GIS Data Provider](http://catalogue.fiware.org/enablers/gis-data-provider-geoserver3d)
 
-Dockerhub: [GIS Data Provider](https://hub.docker.com/r/juhahyva/rvi/)
+Dockerhub: [GIS Data Provider](https://hub.docker.com/r/fiware/gisdataprovider)
