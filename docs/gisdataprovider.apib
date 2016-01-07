@@ -1,0 +1,350 @@
+FORMAT: 1A
+HOST: http://GISDataProvider.apiblueprint.org/
+TITLE: GIS Data Provider Specification
+DATE: 4 September 2015
+VERSION: 1.0
+PREVIOUS_VERSION: -
+APIARY_PROJECT: GISDataProvider
+
+# GIS Data Provider Specification
+
+This specification defines GIS Data Provider version 1.0 API.
+
+"GIS (Geographic Information System) Data Provider" is a GE, which is able to serve both outdoor and indoor 3D data. The data shall be served roughly speaking in two fashions:
+
+1. For single user apps, which can make queries to GIS GE, to download specific a single object or a set of geolocated 3D objects (i.e. building and terrain model of a named city centre)
+
+2. For multi-user apps, which communicate via collaborative client platform (e.g. with Synchronization GE) and in which case this component/GE/Enabler/platform takes care of providing the 3D models for the client application.
+
+The GIS DP GE itself is a server, which is able to process geolocated queries, an extension to it which is able to manage web-optimized 3D data and a backend database where all geolocated data is saved. Because the GIS GE needs to serve both single user client apps (browsers) and multi-user enabled virtual spaces, an API will be defined to serve fluently both of the cases. In this API is a RESTful one, and allows both the browser app as well as other platforms to use it for downloading geolocated data.
+
+## Editors
+
++ Juha Hyvärinen, Cyberlightning Ltd.
+
+## Status
+
+This API is final version.
+
+This specification is licensed under the [FIWARE Open Specification License](http://forge.fiware.org/plugins/mediawiki/wiki/fiware/index.php/FI-WARE_Open_Specification_Legal_Notice_%28essential_patents_license%29).
+
+## Copyright
+
+All rights reserved. No part of this publication may be reproduced, distributed, or transmitted in any form or by any means, including photocopying, recording, or other electronic or mechanical methods, without the prior written permission of the publisher, except in the case of brief quotations embodied in critical reviews and certain other noncommercial uses permitted by copyright law. For permission requests, write to the publisher, addressed “Attention: Permissions Coordinator,” at the address below.
+
+## Group Geoserver
+
+## GetCapabilities [/geoserver/ows?service={service}&version={version}&request=GetCapabilities]
+
+Capabilities request returns all layers  and supported formats from server which can be processed with used module
+
++ Parameters
+    + service: w3ds (required, string) - Requested Service
+    + version: 0.4.0 (required, string) - Service version
+
+
+### View a GetCapabilities request details [GET]
+
++ Response 200 (application/xml)
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <w3ds:Capabilities version="0.4.0" xmlns="http://www.opengis.net/w3ds/0.4.0" xmlns:w3ds="http://www.opengis.net/w3ds/0.4.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <ows:ServiceIdentification>
+        <ows:Title/>
+        <ows:Abstract/>
+        <ows:ServiceType>OGC W3DS</ows:ServiceType>
+        <ows:ServiceTypeVersion>0.4.0</ows:ServiceTypeVersion>
+        <ows:Fees/>
+        <ows:AccessConstraints/>
+        </ows:ServiceIdentification>
+        <ows:OperationsMetadata>
+        <ows:Operation name="GetCapabilities">
+        <ows:DCP>
+        <ows:HTTP>
+        <ows:Get xlink:href="http://localhost:8080/geoserver/ows?">
+        <ows:Constraint name="GetEncoding">
+        <ows:AllowedValues>
+        <ows:Value>KVP</ows:Value>
+        </ows:AllowedValues>
+        </ows:Constraint>
+        </ows:Get>
+        </ows:HTTP>
+        </ows:DCP>
+        </ows:Operation>
+        <ows:Operation name="GetScene">
+        <ows:DCP>
+        <ows:HTTP>
+        <ows:Get xlink:href="http://localhost:8080/geoserver/ows?">
+        <ows:Constraint name="GetEncoding">
+        <ows:AllowedValues>
+        <ows:Value>KVP</ows:Value>
+        </ows:AllowedValues>
+        </ows:Constraint>
+        </ows:Get>
+        </ows:HTTP>
+        </ows:DCP>
+        </ows:Operation>
+        <ows:Operation name="GetTile">
+        <ows:DCP>
+        <ows:HTTP>
+        <ows:Get xlink:href="http://localhost:8080/geoserver/ows?">
+        <ows:Constraint name="GetEncoding">
+        <ows:AllowedValues>
+        <ows:Value>KVP</ows:Value>
+        </ows:AllowedValues>
+        </ows:Constraint>
+        </ows:Get>
+        </ows:HTTP>
+        </ows:DCP>
+        </ows:Operation>
+        <ows:Operation name="GetFeatureInfo">
+        <ows:DCP>
+        <ows:HTTP>
+        <ows:Get xlink:href="http://localhost:8080/geoserver/ows?">
+        <ows:Constraint name="GetEncoding">
+        <ows:AllowedValues>
+        <ows:Value>KVP</ows:Value>
+        </ows:AllowedValues>
+        </ows:Constraint>
+        </ows:Get>
+        </ows:HTTP>
+        </ows:DCP>
+        </ows:Operation>
+        </ows:OperationsMetadata>
+        <w3ds:Contents>
+        <w3ds:Layer>
+        <ows:Title>terrain</ows:Title>
+        <ows:Abstract/>
+        <ows:Identifier>fiware:terrain</ows:Identifier>
+        <ows:BoundingBox crs="EPSG:3067">
+        <ows:LowerCorner>240070.40625 7179013.0</ows:LowerCorner>
+        <ows:UpperCorner>633889.625 7784407.0</ows:UpperCorner>
+        </ows:BoundingBox>
+        <ows:OutputFormat>model/x3d+xml</ows:OutputFormat>
+        <ows:OutputFormat>text/html</ows:OutputFormat>
+        <w3ds:DefaultCRS>EPSG:3067</w3ds:DefaultCRS>
+        <w3ds:Queriable>true</w3ds:Queriable>
+        <w3ds:Tiled>false</w3ds:Tiled>
+        </w3ds:Layer>
+        </w3ds:Contents>
+        </w3ds:Capabilities>
+
+
+## Group W3DS
+
+## W3DS module requests [GET]
+
+W3DS module can generate 3D models from polygonal data stored in shapefiles or in databases. Supported response dataformats are:
+
++ model/xml3d+xml
++ application/xml
++ application/octet-stream
+
+## GetScene [/geoserver/w3ds?version=0.4&service=w3ds&crs={CRS}&format={format}&boundingbox={boundingbox}&layers={layers}&LOD={lod}]
+
+The GetScene operation returns a 3D scene representing a subset of the natural or man made structures on the earth surface. 
+Upon receiving a GetScene request, a W3DS shall either satisfy the request or issue a service exception. 
+
+The required parameters for retrieving a 3D scene from a W3DS comprise spatial, thematic, and other constraints. The minimum set of parameters include, in addition to the mandatory parameters service, request and version, which are part of every W3DS operation, the spatial extent of the scene given as bounding box, the CRS in which the scene shall be provided, the format, and the list of layers. The bounding box defines a rectangular region with edges perpendicular to the selected CRS. LOD is Level of details definition value, this is optional parameter. In order to get LOD working properly, defined layer needs to support LOD data.
+
+Format is the definition of the response data format, there is 3 alternative response data formats available: application/xml3d, application/xml and application/octet-stream. application/xml3d returns XML3D presentation of the requested area, application/xml return xml-file which can be used with asset instancing feature and application/octet-stream return binary data in octet-stream format.
+
+A GetScene query has the following parameters:
+
++ Parameters
+    + CRS: EPSG:3067 (required, string) - Coordinate Reference System in EPSG format
+    + format: model/xml3d+xml (required, string) - Requested response format
+    + boundingbox: 240070.40625,7179013.0,633889.625,7784407.0 (required, string) - bounding box defines a rectangular region with edges perpendicular to the selected CRS
+    + layers: terrain (required, string) - Terrain layer name
+    + lod: 4 (optional, number) - Level Of Detail for terrain
+
+### View a GetScene Detail [GET]
+
++ Request XML3D model
+
+    + Headers
+    
+            Accept: model/xml3d+xml
+
++ Response 200 (model/xml3d+xml)
+
+    + Body
+    
+            <group xmlns="http://www.w3.org/1999/xhtml" id="outputGeometryCollection" class="NodeClassName">
+            <mesh type="triangles">
+            <int name="index">0 1 2  1 2 3</int>
+            <float3 name="position">0 -10 0 6273.50 -10 0  0 -10 -6271.72 6273.50 -10 -6271.74</float3>
+            <float3 name="normal">0 0 1  0 0 1  0 0 1  0 0 1</float3>
+            <float2 name="texcoord">0.0 0.0 1.0 0.0 0.0 1.0 1.0 1.0</float2></mesh></group>
+
++ Request XML file with XML3D content
+
+    + Headers
+    
+            Accept: application/xml
+            
++ Response 200 (application/xml)
+    
+    + Body
+    
+            <?xml version=\"1.0\" encoding=\"utf-8\" ?>
+            <xml3d xmlns=\"http://www.xml3d.org/2009/xml3d\">
+            <asset id=\"asset\">
+            <group xmlns="http://www.w3.org/1999/xhtml" id="outputGeometryCollection" class="NodeClassName">
+            <mesh type="triangles">
+            <int name="index">0 1 2  1 2 3</int>
+            <float3 name="position">0 -10 0 6273.502 -10 0  0 -10 -6271.74 6273.50 -10 -6271.74</float3>
+            <float3 name="normal">0 0 1  0 0 1  0 0 1  0 0 1</float3>
+            <float2 name="texcoord">0.0 0.0 1.0 0.0 0.0 1.0 1.0 1.0</float2>
+            </mesh>
+            </group>
+            </asset>
+            </xml3d>
+        
++ Request Octet-Stream
+
+    + Headers
+    
+            Accept: application/octet-stream
+
++ Response 200 (application/octet-stream)
+
+    + Body
+    
+            0000 000a 0000 000a 42fb f5b2 42fb a6cb
+            7fc0 0000 7fc0 0000 43a6 7e35 43af 7a3d
+            43b3 cd0e 43b5 2e35 43b2 b4dd 43b0 3958
+            43ad c20c 43ab 52f2 7fc0 0000 7fc0 0000
+            43a5 bf7d 43ac d53f 43b1 bccd 43b1 ccee
+            43b0 553f 43ae e168 43ab bdb2 43a8 6687
+            7fc0 0000 7fc0 0000 43a5 1c8b 43ab 1fdf
+            43ae e937 43af 2312 43ac e2b0 43a9 5c4a
+            43a4 deb8 43a4 622d 7fc0 0000 7fc0 0000
+            43a3 be77 43a9 2106 43ac 3b23 43aa d4bc
+            43a8 7625 43a4 6312 43a4 bb44 43a7 50a4
+            7fc0 0000 7fc0 0000 43a2 e810 43a7 02d1
+            43a8 799a 43a7 89ba 43a4 9ac1 43a6 7604
+            43aa 1375 43aa 8e35 7fc0 0000 7fc0 0000
+            43a2 b4bc 43a6 199a 43a5 ff7d 43a4 c852
+            43a7 824e 43ab 9581 43af 1efa 43ad 9810
+            7fc0 0000 7fc0 0000 43a1 9b64 43a5 649c
+            43a5 9979 43a7 c687 43ac 1042 43b2 b9ba
+            43b5 90c5 43b9 b1aa 7fc0 0000 7fc0 0000
+            43a0 4c4a 43a3 e021 43a6 9e98 43ab 80e5
+            43b2 3c29 43b9 778d 43be 9e77 43bf 447b
+            7fc0 0000 7fc0 0000 439e eaa0 43a4 bf5c
+            43a8 3168 43af 32d1 43b5 0f5c 43bc 720c
+            43c1 85a2 43c4 399a 7fc0 0000 7fc0 0000
+            7fc0 0000 7fc0 0000 7fc0 0000 7fc0 0000
+            7fc0 0000 7fc0 0000 7fc0 0000 7fc0 0000
+
+
+## Group WMS
+
+## WMS module requests [GET]
+
+WMS module can process both vector and raster data types and it produces image and height maps.
+
+## GetMap [/geoserver/wms?service={service}&version={version}&request={request}&srs={srs}&format={format}&layers={layers}&bbox={boundingbox}&width={width}&height={height}]
+
+GetMap returns rendered map or a heightmap from requested area.
+
+Supported output formats are:
+
++ image/png
++ application/atom xml
++ application/atom+xml
++ application/bil
++ application/bil16
++ application/bil32
++ application/bil8
++ application/octet-stream
++ application/openlayers
++ application/pdf
++ application/rss xml
++ application/rss+xml
++ application/vnd.google-earth.kml
++ application/vnd.google-earth.kml xml
++ application/vnd.google-earth.kml+xml
++ application/vnd.google-earth.kml+xml;mode=networklink
++ application/vnd.google-earth.kmz
++ application/vnd.google-earth.kmz xml
++ application/vnd.google-earth.kmz+xml
++ application/vnd.google-earth.kmz;mode=networklink
++ atom
++ image/bil
++ image/dds
++ image/dds; format=DXT1
++ image/dds; format=DXT3
++ image/dds; format=ETC1
++ image/geotiff
++ image/geotiff8
++ image/gif
++ image/gif;subtype=animated
++ image/jpeg
++ image/png8
++ image/png; mode=8bit
++ image/svg
++ image/svg xml
++ image/svg+xml
++ image/tiff
++ image/tiff8
++ kml
++ kmz
++ openlayers
++ rss
++ text/html; subtype=openlayers
+
++ Parameters
+    + service: WMS (required, string)
+    + version: 1.1.0 (required, string)
+    + request: GetMap (required, string)
+    + srs: EPSG:4326 (required, string)
+    + format: image/jpeg (required, string)
+    + layers: fiware:aerial (required, string)
+    + boundingbox: 24.77355931465547,60.223299073691685,24.791604656806086,60.2322744331105 (required, string)
+    + width: 512 (required, number)
+    + height: 512 (required, number)
+    
+
+### View a GetMap details [GET]
+
++ Request Octet-Stream
+
+    + Headers
+    
+            Accept: application/octet-stream
+
++ Response 200 (application/octet-stream)
+
+    + Body
+    
+            0000 000a 0000 000a 42fb f5b2 42fb a6cb
+            7fc0 0000 7fc0 0000 43a6 7e35 43af 7a3d
+            43b3 cd0e 43b5 2e35 43b2 b4dd 43b0 3958
+            43ad c20c 43ab 52f2 7fc0 0000 7fc0 0000
+            43a5 bf7d 43ac d53f 43b1 bccd 43b1 ccee
+            43b0 553f 43ae e168 43ab bdb2 43a8 6687
+            7fc0 0000 7fc0 0000 43a5 1c8b 43ab 1fdf
+            43ae e937 43af 2312 43ac e2b0 43a9 5c4a
+            43a4 deb8 43a4 622d 7fc0 0000 7fc0 0000
+            43a3 be77 43a9 2106 43ac 3b23 43aa d4bc
+            43a8 7625 43a4 6312 43a4 bb44 43a7 50a4
+            7fc0 0000 7fc0 0000 43a2 e810 43a7 02d1
+            43a8 799a 43a7 89ba 43a4 9ac1 43a6 7604
+            43aa 1375 43aa 8e35 7fc0 0000 7fc0 0000
+            43a2 b4bc 43a6 199a 43a5 ff7d 43a4 c852
+            43a7 824e 43ab 9581 43af 1efa 43ad 9810
+            7fc0 0000 7fc0 0000 43a1 9b64 43a5 649c
+            43a5 9979 43a7 c687 43ac 1042 43b2 b9ba
+            43b5 90c5 43b9 b1aa 7fc0 0000 7fc0 0000
+            43a0 4c4a 43a3 e021 43a6 9e98 43ab 80e5
+            43b2 3c29 43b9 778d 43be 9e77 43bf 447b
+            7fc0 0000 7fc0 0000 439e eaa0 43a4 bf5c
+            43a8 3168 43af 32d1 43b5 0f5c 43bc 720c
+            43c1 85a2 43c4 399a 7fc0 0000 7fc0 0000
+            7fc0 0000 7fc0 0000 7fc0 0000 7fc0 0000
+            7fc0 0000 7fc0 0000 7fc0 0000 7fc0 0000
+
+
+
