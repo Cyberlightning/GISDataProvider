@@ -1,0 +1,15 @@
+site_name: GISDataProvider
+site_url: https://gisdataprovider.readthedocs.org
+repo_url: https://github.com/cyberlightning/GISDataProvider.git
+site_description: GIS Data Provider Documentation
+docs_dir: docs
+site_dir: html
+markdown_extensions: [toc,fenced_code]
+use_directory_urls: false
+theme: readthedocs
+extra_css: ["https://fiware.org/style/fiware_readthedocs.css"]
+pages:
+  - Home: index.md
+  - 'User & Programmers Guide': 'User_and_Programmers_Guide.md'
+  - 'Installation & Administration Guide': 'installation_and_administration_guide.md'
+  
