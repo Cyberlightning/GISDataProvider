@@ -1,11 +1,16 @@
+[![License badge](https://img.shields.io/badge/license-GPL-blue.svg)](https://opensource.org/licenses/GPL-2.0)
+[![Documentation badge](https://readthedocs.org/projects/gisdataprovider/badge/?version=latest)](http://gisdataprovider.readthedocs.org/en/latest/?badge=latest)
+[![Docker badge](https://img.shields.io/docker/pulls/fiware/gisdataprovider.svg)](https://hub.docker.com/r/fiware/gisdataprovider/)
+[![Support badge]( https://img.shields.io/badge/support-sof-yellowgreen.svg)](http://stackoverflow.com/questions/tagged/gisdataprovider)
+
 # GIS Data Provider GE
 
 The GIS Data Provider GE offers access to 3D GIS data via geo-location queries which can be used by any application to render content in a virtual real world scenario.
 
 ## Guides
-[GIS Data Provider - Installation and Administration Guide](doc/installation_and_administration_guide.md)
+[GIS Data Provider - Installation and Administration Guide](docs/installation_and_administration_guide.md)
 
-[GIS Data Provider - User and Programmers Guide](doc/User_and_Programmers_Guide.md)
+[GIS Data Provider - User and Programmers Guide](docs/User_and_Programmers_Guide.md)
 
 ## Content
 * GIS_Client_assetInstancing:
