@@ -12,4 +12,4 @@ pages:
   - Home: index.md
   - 'User & Programmers Guide': 'User_and_Programmers_Guide.md'
   - 'Installation & Administration Guide': 'installation_and_administration_guide.md'
-  
+  - 'Test asset setup guide': 'setup_test_asset.md'
