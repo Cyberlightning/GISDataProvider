@@ -453,3 +453,52 @@ Dynamic optional parameters are:
 -   height (defines how many points response contains in vertical
     direction)
 -   lod
+
+## Feature Info Query (GetFeatureInfo)
+
+The GetFeatureInfo operation is designed to provide clients with additional attribute information about features within a scene that is currently displayed.
+
+Example use case for GetFeatureInfo is that a user explores the response of a GetScene request and points at an object within the scene for which to obtain more information. The concept of this operation is that the client determines a location in 3D space by clicking on an object and calculates either the intersection point of the object geometry with the picking ray or the center point of the object and submits this location together with additional parameters to the server.
+
+Sample request
+
+    localhost:8080/geoserver/w3ds?service=w3ds&request=GetFeatureInfo&VERSION=0.4.0&CRS=EPSG:26916&FORMAT=text/xml&LAYERS=bldgs&FEATURECOUNT=5&COORDINATE=202042.233,3310094.983,334.0&EXCEPTIONS=text/htm
+
+Sample response
+
+    <html>
+     <head></head>
+     <body>
+       <table width="95%" >
+         <tr>
+          <td bgcolor='#ffffff'><b>Buildings</b></td>
+         </tr>
+         <tr>
+           <td bgcolor='#fafafa'></td>
+           <td bgcolor='dddddd'>id </td>
+           <td bgcolor='dddddd'>objkey </td>
+           <td bgcolor='dddddd'>strkey </td>
+           <td bgcolor='dddddd'>hsno </td>
+           <td bgcolor='dddddd'>description </td>
+           <td bgcolor='dddddd'>sockelhoehe </td>
+           <td bgcolor='dddddd'>traufhoehe </td>
+           <td bgcolor='dddddd'>height </td>
+         </tr>
+         <tr>
+           <td bgcolor='#fafafa'>1</td>
+           <td bgcolor='#fafafa'>34891270</td>
+           <td bgcolor='#fafafa'>1123 Hochschulgebaeude</td>
+           <td bgcolor='#fafafa'>2390</td>
+           <td bgcolor='#fafafa'>1</td>
+           <td bgcolor='#fafafa'>Alte Universitaet</td>
+           <td bgcolor='#fafafa'>2.500000</td>
+           <td bgcolor='#fafafa'>15.000000</td>
+           <td bgcolor='#fafafa'>115.347270</td>
+         </tr>
+         <tr>
+          <td bgcolor='#fafafa'></td>
+         </tr>
+       </table>
+     </body>
+    </html>
+
