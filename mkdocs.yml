@@ -1,5 +1,5 @@
 site_name: GISDataProvider
-site_url: https://gisdataprovider.readthedocs.org
+site_url: https://gisdataprovider.readthedocs.io
 repo_url: https://github.com/cyberlightning/GISDataProvider.git
 site_description: GIS Data Provider Documentation
 docs_dir: docs
