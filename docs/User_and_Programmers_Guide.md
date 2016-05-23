@@ -462,7 +462,7 @@ Example use case for GetFeatureInfo is that a user explores the response of a Ge
 
 Sample request
 
-    localhost:8080/geoserver/w3ds?service=w3ds&request=GetFeatureInfo&VERSION=0.4.0&CRS=EPSG:26916&FORMAT=text/xml&LAYERS=bldgs&FEATURECOUNT=5&COORDINATE=202042.233,3310094.983,334.0&EXCEPTIONS=text/htm
+    localhost:8080/geoserver/w3ds?service=w3ds&request=GetFeatureInfo&VERSION=0.4.0&CRS=EPSG:26916&FORMAT=text/html&LAYERS=bldgs&FEATURECOUNT=5&COORDINATE=202042.233,3310094.983,334.0&EXCEPTIONS=text/htm
 
 Sample response
 
