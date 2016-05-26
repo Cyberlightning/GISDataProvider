@@ -1,7 +1,7 @@
 FORMAT: 1A
 HOST: http://GISDataProvider.apiblueprint.org/
 TITLE: GIS Data Provider Specification
-DATE: 4 September 2015
+DATE: 23 May 2016
 VERSION: 1.0
 PREVIOUS_VERSION: -
 APIARY_PROJECT: GISDataProvider
@@ -140,7 +140,7 @@ W3DS module can generate 3D models from polygonal data stored in shapefiles or i
 + application/xml
 + application/octet-stream
 
-## GetScene [/geoserver/w3ds?version=0.4&service=w3ds&crs={CRS}&format={format}&boundingbox={boundingbox}&layers={layers}&LOD={lod}]
+## GetScene [/geoserver/w3ds?version=0.4&service=w3ds&request={requestype}&crs={CRS}&format={format}&boundingbox={boundingbox}&layers={layers}&LOD={lod}]
 
 The GetScene operation returns a 3D scene representing a subset of the natural or man made structures on the earth surface. 
 Upon receiving a GetScene request, a W3DS shall either satisfy the request or issue a service exception. 
@@ -152,6 +152,7 @@ Format is the definition of the response data format, there is 3 alternative res
 A GetScene query has the following parameters:
 
 + Parameters
+    + request: GetScene (required, string) - Request type
     + CRS: EPSG:3067 (required, string) - Coordinate Reference System in EPSG format
     + format: model/xml3d+xml (required, string) - Requested response format
     + boundingbox: 240070.40625,7179013.0,633889.625,7784407.0 (required, string) - bounding box defines a rectangular region with edges perpendicular to the selected CRS
@@ -238,6 +239,69 @@ A GetScene query has the following parameters:
             7fc0 0000 7fc0 0000 7fc0 0000 7fc0 0000
             7fc0 0000 7fc0 0000 7fc0 0000 7fc0 0000
 
+## GetFeatureInfo [/geoserver/w3ds?service=w3ds&request={request}&VERSION=0.4.0&CRS={CRS}&FORMAT={format}&LAYERS={layers}&FEATURECOUNT={featurecount}&COORDINATE={coordinate}&EXCEPTIONS=text/htm]
+
+The GetFeatureInfo operation is designed to provide clients with additional attribute information about features within a scene that is currently displayed.
+
+Example use case for GetFeatureInfo is that a user explores the response of a GetScene request and points at an object within the scene for which to obtain more information. The concept of this operation is that the client determines a location in 3D space by clicking on an object and calculates either the intersection point of the object geometry with the picking ray or the center point of the object and submits this location together with additional parameters to the server.
+
+
+
++ Parameters
+    + request: GetFeatureInfo (required, string) - Request type
+    + CRS: EPSG:3067 (required, string) - Coordinate Reference System in EPSG format
+    + format: text/html (required, string) - Requested response format
+    + layers: terrain (required, string) - Terrain layer name
+    + COORDINATE: 202042.233,3310094.983,334.0 (required, string) - Origin coordinate for search
+    + FEATURECOUNT: 5 (optional, string) - Limit number of returned features
+    
+### View a GetFeatureInfo Detail [GET]
+
++ Request FeatureInfo
+
+    + Headers
+    
+            Accept: text/html
+
++ Response 200 (text/html)
+    
+    + Body
+    
+            <html>
+            <head></head>
+            <body>
+            <table width="95%" >
+            <tr>
+            <td bgcolor='#ffffff'><b>Buildings</b></td>
+            </tr>
+            <tr>
+            <td bgcolor='#fafafa'></td>
+            <td bgcolor='dddddd'>id </td>
+            <td bgcolor='dddddd'>objkey </td>
+            <td bgcolor='dddddd'>strkey </td>
+            <td bgcolor='dddddd'>hsno </td>
+            <td bgcolor='dddddd'>description </td>
+            <td bgcolor='dddddd'>sockelhoehe </td>
+            <td bgcolor='dddddd'>traufhoehe </td>
+            <td bgcolor='dddddd'>height </td>
+            </tr>
+            <tr>
+            <td bgcolor='#fafafa'>1</td>
+            <td bgcolor='#fafafa'>34891270</td>
+            <td bgcolor='#fafafa'>1123 Hochschulgebaeude</td>
+            <td bgcolor='#fafafa'>2390</td>
+            <td bgcolor='#fafafa'>1</td>
+            <td bgcolor='#fafafa'>Alte Universitaet</td>
+            <td bgcolor='#fafafa'>2.500000</td>
+            <td bgcolor='#fafafa'>15.000000</td>
+            <td bgcolor='#fafafa'>115.347270</td>
+            </tr>
+            <tr>
+            <td bgcolor='#fafafa'></td>
+            </tr>
+            </table>
+            </body>
+            </html>
 
 ## Group WMS
 
@@ -345,6 +409,5 @@ Supported output formats are:
             43c1 85a2 43c4 399a 7fc0 0000 7fc0 0000
             7fc0 0000 7fc0 0000 7fc0 0000 7fc0 0000
             7fc0 0000 7fc0 0000 7fc0 0000 7fc0 0000
-
 
 
