@@ -8,6 +8,7 @@ markdown_extensions: [toc,fenced_code]
 use_directory_urls: false
 theme: readthedocs
 extra_css: ["https://fiware.org/style/fiware_readthedocs.css"]
+google_analytics: ['UA-83903049-1 ', 'gisdataprovider.readthedocs.io']
 pages:
   - Home: index.md
   - 'User & Programmers Guide': 'User_and_Programmers_Guide.md'
